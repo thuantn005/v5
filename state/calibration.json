@@ -1,0 +1,9 @@
+{
+  "n_backtested_draws": 688,
+  "notify_threshold_confidence": 7.255638503958833,
+  "correlation_confidence_vs_main_hits": -0.02021298317794287,
+  "correlation_confidence_vs_special_hit": 0.05784784207500214,
+  "avg_main_hits_overall": 0.7122093023255814,
+  "avg_main_hits_when_confidence_above_threshold": 0.5714285714285714,
+  "note": "Correlation values near 0 mean the confidence score does NOT predict actual hit rate any better than chance -- consistent with every prior backtest on this data. The threshold only controls how often notifications fire (roughly the top 5% most 'unusual' rounds by this heuristic), not a genuine edge."
+}
