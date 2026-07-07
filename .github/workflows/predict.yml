@@ -1,0 +1,46 @@
+name: Lotto 5/35 Predict & Notify
+
+on:
+  schedule:
+    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7) = 06:00 and 14:00 UTC.
+    # Data source usually updates ~2-4h after the draw, so we run a bit later.
+    - cron: "0 10 * * *"   # 17:00 ICT -- after the 13:00 draw
+    - cron: "0 18 * * *"   # 01:00 ICT (next day) -- after the 21:00 draw
+  workflow_dispatch: {}     # allows manual "Run workflow" button too
+
+permissions:
+  contents: write
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch latest draw data
+        run: python scripts/fetch_data.py
+
+      - name: Recalibrate backtest threshold
+        run: python scripts/backtest_calibrate.py
+
+      - name: Predict next draw & notify if warranted
+        env:
+          NTFY_TOPIC: lotto535-thuan
+        run: python scripts/predict.py
+
+      - name: Commit updated data & logs
+        run: |
+          git config user.name "lotto535-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/all.csv state/calibration.json state/predictions_log.csv
+          git diff --cached --quiet || git commit -m "chore: update data & prediction log [skip ci]"
+          git push
