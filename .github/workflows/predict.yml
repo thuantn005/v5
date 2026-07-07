@@ -2,10 +2,11 @@ name: Lotto 5/35 Predict & Notify
 
 on:
   schedule:
-    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7) = 06:00 and 14:00 UTC.
-    # Data source usually updates ~2-4h after the draw, so we run a bit later.
-    - cron: "0 10 * * *"   # 17:00 ICT -- after the 13:00 draw
-    - cron: "0 18 * * *"   # 01:00 ICT (next day) -- after the 21:00 draw
+    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7).
+    # We run ~1h after each draw to give the data source time to update:
+    # 14:00 ICT = 07:00 UTC, 22:00 ICT = 15:00 UTC
+    - cron: "0 7 * * *"    # 14:00 ICT
+    - cron: "0 15 * * *"   # 22:00 ICT
   workflow_dispatch: {}     # allows manual "Run workflow" button too
 
 permissions:
