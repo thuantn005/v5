@@ -29,6 +29,7 @@ from datetime import datetime, timezone
 
 from model import parse_draws, predict_next, DEFAULT_WINDOW
 from jackpot_check import check_jackpot
+from jackpot_watch import check_early_alert
 from notify_ntfy import send as ntfy_send
 from check_results import FIELDNAMES
 
@@ -79,6 +80,7 @@ def main():
     threshold = calibration["notify_threshold_confidence"] if calibration else None
 
     jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time)
+    early_alert = check_early_alert(jackpot["jackpot_vnd"])
 
     high_confidence = threshold is not None and pred["confidence"] >= threshold
     jackpot_round = jackpot["is_sharing_round"]
@@ -94,8 +96,26 @@ def main():
     print(f"Prediction for draw #{target_id}: {numbers_str} + special {special_str} "
           f"(confidence={pred['confidence']:.3f}, threshold={threshold})")
     print(f"Jackpot check: {jackpot}")
+    print(f"Early jackpot alert check: {early_alert}")
     print(f"Notify decision: {should_notify} "
           f"(high_confidence={high_confidence}, jackpot_round={jackpot_round})")
+
+    # --- Early "săn kỳ chia giải" heads-up: fires once, as soon as jackpot
+    # crosses 12 billion, well before the actual sharing-round day. ---
+    if early_alert["should_alert"]:
+        jackpot_str = f"{early_alert['jackpot_vnd']:,}".replace(",", ".")
+        ntfy_send(
+            NTFY_TOPIC,
+            title="🔔 Lotto 5/35 – Jackpot vừa vượt 12 tỷ!",
+            message=(
+                f"Giải Độc Đắc hiện tại: {jackpot_str} đồng.\n"
+                f"Nếu không ai trúng ở các kỳ tiếp theo, kỳ quay 21h00 của "
+                f"ngày kế tiếp sẽ là kỳ CHIA GIẢI ĐỘC ĐẮC. Sẽ báo lại chính xác "
+                f"khi đến đúng kỳ đó."
+            ),
+            priority="high",
+            tags="rotating_light,moneybag",
+        )
 
     if should_notify:
         reasons = []
