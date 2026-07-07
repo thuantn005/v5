@@ -17,14 +17,24 @@ scripts/
   model.py               # logic tính điểm hybrid (tần suất + gap)
   fetch_data.py          # tải CSV kết quả mới nhất
   backtest_calibrate.py  # walk-forward backtest + tính ngưỡng thông báo
-  jackpot_check.py       # kiểm tra khả năng đến "kỳ chia giải" Độc Đắc
+  jackpot_check.py       # xác định đúng kỳ "chia giải" Độc Đắc (21h ngày kế tiếp, jackpot > 12 tỷ)
+  check_results.py       # đối chiếu dự đoán kỳ trước với kết quả thật đã ra, ghi lại trung thực
   predict.py             # điều phối: dự đoán, quyết định gửi tin, ghi log
   notify_ntfy.py         # gửi push notification qua ntfy.sh
 data/all.csv             # dữ liệu lịch sử (tự cập nhật)
 state/calibration.json   # kết quả backtest + ngưỡng (tự cập nhật)
-state/predictions_log.csv# lịch sử mọi lần dự đoán, để tự kiểm chứng độ chính xác
+state/predictions_log.csv# lịch sử mọi lần dự đoán + kết quả thật đối chiếu, để tự kiểm chứng độ chính xác
 .github/workflows/predict.yml  # lịch chạy tự động 2 lần/ngày
 ```
+
+## Quy tắc "kỳ chia giải Độc Đắc"
+
+Theo quy định Vietlott: khi giải Độc Đắc vượt 12 tỷ đồng mà chưa ai trúng, kỳ quay 21h00 của **ngày kế tiếp** (không phải kỳ quay ngay sau đó nếu cùng ngày) mới là kỳ chia giải. `jackpot_check.py` implement đúng quy tắc này: chỉ báo `is_sharing_round=True` khi (a) jackpot > 12 tỷ, VÀ (b) kỳ sắp dự đoán đúng là kỳ 21h của ngày kế tiếp. Nếu không cào được số liệu jackpot (trang Vietlott/nguồn phụ thay đổi cấu trúc), script im lặng trả về `False` thay vì đoán bừa.
+
+## Theo dõi độ chính xác (tự động, trung thực)
+
+Mỗi lần workflow chạy, `check_results.py` sẽ kiểm tra xem kỳ đã dự đoán trước đó đã có kết quả thật chưa; nếu có, nó tự điền vào `state/predictions_log.csv`: số thật đã ra, số trùng (main_hits 0-5), có trùng số đặc biệt không, và có trúng "jackpot" (5 số chính + đặc biệt) hay không. File này được commit lại repo mỗi lần chạy — bạn có thể mở bất cứ lúc nào để tự xem con số thật (trung bình số trùng nên dao động quanh mức ngẫu nhiên kỳ vọng ~0.71 số/5, không có gì đặc biệt nếu mô hình không có edge thật — và theo mọi backtest đã chạy, nó không có).
+
 
 ## Nguồn dữ liệu
 
@@ -55,7 +65,3 @@ NTFY_TOPIC=lotto535-thuan python scripts/predict.py
 - `backtest_calibrate.py`: đổi `PERCENTILE_FOR_THRESHOLD` (mặc định 0.95) để báo thường xuyên hơn/ít hơn.
 - `jackpot_check.py`: mang tính "best-effort" — Vietlott có thể đổi cấu trúc trang bất kỳ lúc nào khiến scraper không tìm được số liệu; khi đó script sẽ **im lặng bỏ qua** phần jackpot thay vì đoán bừa, để tránh báo sai.
 - `predict.py`: chỉnh nội dung tin nhắn ntfy, mức priority, tags, v.v.
-
-## Theo dõi độ chính xác
-
-Mỗi lần chạy, `state/predictions_log.csv` được ghi thêm một dòng (kỳ dựa vào, bộ số dự đoán, confidence, ngưỡng, có báo tin hay không). Vì file này được commit lại vào repo, bạn có thể mở ra bất cứ lúc nào để tự đối chiếu với kết quả thật và kiểm chứng xem mô hình có thực sự "hơn ngẫu nhiên" hay không — theo đúng tinh thần backtest trung thực.

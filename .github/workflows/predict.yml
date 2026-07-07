@@ -33,6 +33,9 @@ jobs:
       - name: Recalibrate backtest threshold
         run: python scripts/backtest_calibrate.py
 
+      - name: Check past predictions against actual results
+        run: python scripts/check_results.py
+
       - name: Predict next draw & notify if warranted
         env:
           NTFY_TOPIC: lotto535-thuan

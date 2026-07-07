@@ -36,6 +36,7 @@ GAP_WEIGHT = 0.5
 class Draw:
     draw_id: str
     draw_date: str
+    draw_time: str | None     # "13:00" or "21:00", if known
     numbers: list[int]        # 5 main numbers
     special: int               # 1 special number
 
@@ -52,10 +53,17 @@ def parse_draws(rows: Iterable[dict]) -> list[Draw]:
             special = int(special_list[0]) if special_list else None
             if special is None or len(numbers) != 5:
                 continue
+            draw_time = None
+            try:
+                attrs = json.loads(row.get("attributes_json") or "{}")
+                draw_time = attrs.get("draw_time")
+            except (ValueError, json.JSONDecodeError, TypeError):
+                pass
             draws.append(
                 Draw(
                     draw_id=row["draw_id"],
                     draw_date=row["draw_date"],
+                    draw_time=draw_time,
                     numbers=numbers,
                     special=special,
                 )

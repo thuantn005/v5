@@ -1,24 +1,38 @@
 """
 jackpot_check.py
 -----------------
-Best-effort check for Lotto 5/35's jackpot-sharing draw ("ky chia giai").
+Determines whether the *next* draw is Lotto 5/35's jackpot-sharing draw
+("ky chia giai Doc Dac"), per Vietlott's published rule:
 
-Background (public rules, see vietlott.vn):
-  - Jackpot starts at 6 billion VND and accumulates if unclaimed.
-  - Once it passes 12 billion VND with no winner, the NEXT day's 21:00 draw
-    is designated the "ky chia giai" (jackpot-sharing draw), where the
-    jackpot pool gets distributed across lower prize tiers even without a
-    5/5 match.
+  "Sau khi ket thuc mot ky quay so mo thuong bat ky va gia tri Giai Doc Dac
+   vuot tren 12 ty dong (cong bo khong co nguoi trung Giai Doc Dac) thi ky
+   quay so mo thuong CUOI CUNG cua ngay LIEN KE TIEP THEO duoc xac dinh la
+   ky quay so mo thuong 'Chia Giai Doc Dac'."
 
-This script tries to scrape the current jackpot figure from Vietlott's
-public Lotto 5/35 page. Page structure on lottery sites changes often and
-without notice, so this is intentionally defensive: if scraping fails or
-the figure can't be confidently parsed, it returns is_jackpot_round=False
-rather than guessing -- we never want to send a false "jackpot" alert.
+In plain terms:
+  - Jackpot accumulates from 6 billion VND if unclaimed.
+  - Once it's confirmed to exceed 12 billion VND after some draw, the
+    21:00 draw of the FOLLOWING calendar day is the sharing round --
+    not just "any draw where jackpot > 12 billion".
+
+This module:
+  1. Scrapes the current jackpot figure (best-effort; falls back across
+     sources; returns None if it can't confidently parse a number rather
+     than guessing).
+  2. Given the last known draw (date + time), computes whether the *next*
+     draw to be predicted is that following day's 21:00 draw, AND the
+     jackpot is above the 12 billion threshold.
+
+Both conditions must hold. If either can't be determined confidently,
+this returns is_sharing_round=False -- we never want a false "jackpot"
+alert.
 """
 
+from __future__ import annotations
 import re
 import sys
+from datetime import date, datetime, timedelta
+
 import requests
 
 URL = "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535"
@@ -27,38 +41,87 @@ THRESHOLD_VND = 12_000_000_000
 
 
 def _extract_jackpot_vnd(html: str) -> int | None:
-    # Look for patterns like "12.345.678.900 đồng" or "12,345,678,900 dong"
     matches = re.findall(r"([\d][\d\.,]{8,})\s*(?:đồng|dong|vnd)", html, re.IGNORECASE)
     candidates = []
     for m in matches:
         digits = re.sub(r"[^\d]", "", m)
         if digits:
             candidates.append(int(digits))
-    # Jackpot figures are large (billions); filter out noise
     plausible = [c for c in candidates if 1_000_000_000 <= c <= 500_000_000_000]
     if not plausible:
         return None
     return max(plausible)
 
 
-def check_jackpot() -> dict:
+def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
     for url in (URL, FALLBACK_URL):
         try:
             resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
             resp.raise_for_status()
             amount = _extract_jackpot_vnd(resp.text)
             if amount is not None:
-                return {
-                    "source": url,
-                    "jackpot_vnd": amount,
-                    "is_sharing_round_likely": amount >= THRESHOLD_VND,
-                }
+                return amount, url
         except requests.RequestException as e:
             print(f"WARNING: jackpot check failed for {url}: {e}", file=sys.stderr)
             continue
-    return {"source": None, "jackpot_vnd": None, "is_sharing_round_likely": False}
+    return None, None
+
+
+def _next_draw_datetime(last_draw_date: str, last_draw_time: str | None):
+    """Given the last known draw's date/time, compute the (date, time) of the
+    NEXT draw, assuming the strict daily 13:00 / 21:00 alternating schedule."""
+    try:
+        d = datetime.strptime(last_draw_date, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+    if last_draw_time == "13:00":
+        return d, "21:00"
+    if last_draw_time == "21:00":
+        return d + timedelta(days=1), "13:00"
+    return None
+
+
+def check_jackpot(last_draw_date: str, last_draw_time: str | None) -> dict:
+    jackpot_vnd, source = _scrape_jackpot_vnd()
+    next_slot = _next_draw_datetime(last_draw_date, last_draw_time)
+
+    is_sharing_round = False
+    reason = "insufficient information"
+
+    if jackpot_vnd is None:
+        reason = "could not scrape jackpot amount"
+    elif next_slot is None:
+        reason = "could not determine next draw's date/time slot"
+    else:
+        next_date, next_time = next_slot
+        try:
+            last_date_obj = datetime.strptime(last_draw_date, "%Y-%m-%d").date()
+        except ValueError:
+            last_date_obj = None
+
+        if jackpot_vnd <= THRESHOLD_VND:
+            reason = f"jackpot {jackpot_vnd:,} VND has not exceeded 12 billion yet"
+        elif next_time != "21:00":
+            reason = "next draw is a 13:00 draw, not the 21:00 sharing slot"
+        elif last_date_obj is not None and next_date <= last_date_obj:
+            reason = "next 21:00 draw is not yet the following calendar day"
+        else:
+            is_sharing_round = True
+            reason = (
+                f"jackpot {jackpot_vnd:,} VND exceeds 12 billion and next draw "
+                f"({next_date} 21:00) is the following day's 21:00 slot"
+            )
+
+    return {
+        "source": source,
+        "jackpot_vnd": jackpot_vnd,
+        "next_draw_date": next_slot[0].isoformat() if next_slot else None,
+        "next_draw_time": next_slot[1] if next_slot else None,
+        "is_sharing_round": is_sharing_round,
+        "reason": reason,
+    }
 
 
 if __name__ == "__main__":
     import json
-    print(json.dumps(check_jackpot(), ensure_ascii=False, indent=2))
+    print(json.dumps(check_jackpot("2026-07-07", "21:00"), ensure_ascii=False, indent=2))
