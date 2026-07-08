@@ -66,7 +66,7 @@ NTFY_TOPIC=lotto535-thuan python scripts/predict.py
 
 ## Tùy chỉnh
 
-- `model.py`: đổi `DEFAULT_WINDOW`, `FREQ_WEIGHT`, `GAP_WEIGHT` để thử các biến thể khác (giống các thử nghiệm hybrid weighted scoring trước đây).
+- `model.py`: đổi `SHORT_WINDOW`/`NEAR_WINDOW`, trọng số `W_SHORT`/`W_NEAR`/`W_LONG`/`W_GAP`/`PAIR_SYNERGY_WEIGHT` để thử biến thể khác. Công thức hiện tại (`0.40*z_ngắn + 0.30*z_gần - 0.15*z_dài + 0.15*(gap_ratio-1)` + bonus cặp synergy) mô phỏng theo phương pháp "Kết hợp ba dấu hiệu" (balanced signal) của [nhanaz-data.github.io/vietlott-prediction-web](https://nhanaz-data.github.io/vietlott-prediction-web/phuong-phap.html) — dự án thống kê độc lập, cùng tác giả với bộ dữ liệu. Ngay cả với công thức chặt chẽ hơn này, backtest walk-forward vẫn cho tương quan ~0 giữa confidence và số trúng thật — khớp với kết luận chính thức của dự án tham khảo: *"Chưa cách chọn nào thắng ngẫu nhiên ổn định."*
 - `backtest_calibrate.py`: đổi `PERCENTILE_FOR_THRESHOLD` (mặc định 0.95) để báo thường xuyên hơn/ít hơn.
 - `jackpot_check.py`: mang tính "best-effort" — Vietlott có thể đổi cấu trúc trang bất kỳ lúc nào khiến scraper không tìm được số liệu; khi đó script sẽ **im lặng bỏ qua** phần jackpot thay vì đoán bừa, để tránh báo sai.
 - `predict.py`: chỉnh nội dung tin nhắn ntfy, mức priority, tags, v.v.
