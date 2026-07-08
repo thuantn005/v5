@@ -215,14 +215,21 @@ def _pair_synergy_table(history: list[Draw], window: int = NEAR_WINDOW) -> dict[
     return synergy
 
 
-def _pick_top5_with_synergy(main_scores: dict[int, float], synergy: dict[tuple[int, int], float]) -> list[int]:
-    """Greedy selection: pick the highest-scoring number first, then for each
-    subsequent pick, add a small bonus for positive co-occurrence synergy
-    with numbers already chosen (mirrors the reference project's approach)."""
+def _pick5_with_synergy(main_scores: dict[int, float], synergy: dict[tuple[int, int], float],
+                         mode: str = "top") -> list[int]:
+    """Greedy selection of 5 main numbers.
+    mode="top": highest-scoring first, with a bonus for positive
+        co-occurrence synergy with already-picked numbers (mirrors the
+        reference project's approach).
+    mode="bottom": the INVERSE selection -- lowest-scoring numbers first
+        (numbers the model considers "least due"/"coldest"), and instead of
+        favoring pairs that tend to co-occur, it actively avoids them --
+        a true mirror-image of the "top" strategy, not just a partial flip.
+    """
     remaining = dict(main_scores)
     chosen: list[int] = []
 
-    def synergy_bonus(candidate: int, picked: list[int]) -> float:
+    def positive_synergy_mean(candidate: int, picked: list[int]) -> float:
         if not picked:
             return 0.0
         vals = []
@@ -236,7 +243,11 @@ def _pick_top5_with_synergy(main_scores: dict[int, float], synergy: dict[tuple[i
     for _ in range(5):
         best_num, best_val = None, float("-inf")
         for num, base_score in remaining.items():
-            adjusted = base_score + PAIR_SYNERGY_WEIGHT * synergy_bonus(num, chosen)
+            bonus = PAIR_SYNERGY_WEIGHT * positive_synergy_mean(num, chosen)
+            if mode == "top":
+                adjusted = base_score + bonus
+            else:  # bottom: want low base_score AND low pairing-with-crowd
+                adjusted = -base_score - bonus
             if adjusted > best_val:
                 best_num, best_val = num, adjusted
         chosen.append(best_num)
@@ -245,16 +256,25 @@ def _pick_top5_with_synergy(main_scores: dict[int, float], synergy: dict[tuple[i
     return chosen
 
 
+def _pick_top5_with_synergy(main_scores: dict[int, float], synergy: dict[tuple[int, int], float]) -> list[int]:
+    return _pick5_with_synergy(main_scores, synergy, mode="top")
+
+
 def predict_next(history: list[Draw], window: int = DEFAULT_WINDOW) -> dict:
     """Generate the next-draw prediction plus an internal confidence metric,
-    using the balanced-signal formula (3 windows + gap + pair synergy)."""
+    using the balanced-signal formula (3 windows + gap + pair synergy).
+    Also returns an INVERSE pick (bottom-scoring numbers) for comparison --
+    the "chọn ngược lại" (opposite) set, purely for reference/curiosity."""
     main_scores = score_pool(history, MAIN_MIN, MAIN_MAX, k=MAIN_K, use_special=False)
     special_scores = score_pool(history, SPECIAL_MIN, SPECIAL_MAX, k=SPECIAL_K, use_special=True)
     synergy = _pair_synergy_table(history)
 
-    top5 = _pick_top5_with_synergy(main_scores, synergy)
+    top5 = _pick5_with_synergy(main_scores, synergy, mode="top")
+    bottom5 = _pick5_with_synergy(main_scores, synergy, mode="bottom")
+
     ranked_special = sorted(special_scores.items(), key=lambda kv: kv[1], reverse=True)
     top_special = ranked_special[0][0]
+    bottom_special = ranked_special[-1][0]
 
     ranked_main_all = sorted(main_scores.items(), key=lambda kv: kv[1], reverse=True)
     top5_scores = [main_scores[n] for n in top5]
@@ -266,6 +286,8 @@ def predict_next(history: list[Draw], window: int = DEFAULT_WINDOW) -> dict:
         "main_numbers": sorted(top5),
         "special_number": top_special,
         "confidence": confidence,
+        "inverse_main_numbers": sorted(bottom5),
+        "inverse_special_number": bottom_special,
         "main_score_table": dict(sorted(main_scores.items())),
         "special_score_table": dict(sorted(special_scores.items())),
     }

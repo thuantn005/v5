@@ -89,12 +89,15 @@ def main():
 
     numbers_str = "-".join(f"{n:02d}" for n in pred["main_numbers"])
     special_str = f"{pred['special_number']:02d}"
+    inverse_numbers_str = "-".join(f"{n:02d}" for n in pred["inverse_main_numbers"])
+    inverse_special_str = f"{pred['inverse_special_number']:02d}"
     target_id = next_draw_id(last_draw.draw_id)
 
     print(f"Last draw: #{last_draw.draw_id} ({last_draw.draw_date} {last_draw.draw_time}) "
           f"{last_draw.numbers} + special {last_draw.special}")
     print(f"Prediction for draw #{target_id}: {numbers_str} + special {special_str} "
           f"(confidence={pred['confidence']:.3f}, threshold={threshold})")
+    print(f"Inverse (chọn ngược lại) pick: {inverse_numbers_str} + special {inverse_special_str}")
     print(f"Jackpot check: {jackpot}")
     print(f"Early jackpot alert check: {early_alert}")
     print(f"Notify decision: {should_notify} "
@@ -133,6 +136,7 @@ def main():
             f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
             f"Số chính: {numbers_str}\n"
             f"Số đặc biệt: {special_str}\n"
+            f"Bộ ngược lại (số điểm thấp nhất): {inverse_numbers_str} + đặc biệt {inverse_special_str}\n"
             f"Lý do gửi: {reason_text}.\n"
             f"Lưu ý: đây là điểm số heuristic (tần suất + độ trễ), KHÔNG phải "
             f"xác suất trúng thật. Backtest cho thấy không có tương quan thật "
@@ -148,6 +152,8 @@ def main():
         "target_draw_id": target_id,
         "predicted_main_numbers": numbers_str,
         "predicted_special": special_str,
+        "predicted_inverse_main_numbers": inverse_numbers_str,
+        "predicted_inverse_special": inverse_special_str,
         "confidence": round(pred["confidence"], 4),
         "threshold": threshold,
         "jackpot_vnd": jackpot["jackpot_vnd"],

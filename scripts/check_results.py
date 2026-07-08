@@ -22,9 +22,11 @@ FIELDNAMES = [
     "generated_at", "based_on_draw_id", "based_on_draw_date",
     "target_draw_id",
     "predicted_main_numbers", "predicted_special",
+    "predicted_inverse_main_numbers", "predicted_inverse_special",
     "confidence", "threshold", "jackpot_vnd", "notified",
     "actual_draw_id", "actual_main_numbers", "actual_special",
     "main_hits", "special_hit", "jackpot_match",
+    "inverse_main_hits", "inverse_special_hit", "inverse_jackpot_match",
 ]
 
 
@@ -76,6 +78,16 @@ def main():
         row["main_hits"] = hits["main_hits"]
         row["special_hit"] = hits["special_hit"]
         row["jackpot_match"] = int(hits["main_hits"] == 5 and hits["special_hit"] == 1)
+
+        if row.get("predicted_inverse_main_numbers"):
+            inv_main = [int(n) for n in row["predicted_inverse_main_numbers"].split("-")]
+            inv_special = int(row["predicted_inverse_special"])
+            inv_hits = match_count(inv_main, inv_special, actual)
+            row["inverse_main_hits"] = inv_hits["main_hits"]
+            row["inverse_special_hit"] = inv_hits["special_hit"]
+            row["inverse_jackpot_match"] = int(
+                inv_hits["main_hits"] == 5 and inv_hits["special_hit"] == 1
+            )
         updated += 1
 
     if updated:
@@ -96,6 +108,17 @@ def main():
               f"avg main-number hits = {avg_hits:.3f} (chance ~= 0.71), "
               f"special-number hit rate = {special_rate:.3f} (chance ~= 1/12 = 0.083), "
               f"full jackpot matches = {jackpots}")
+
+        inv_resolved = [r for r in resolved if r.get("inverse_main_hits") not in (None, "")]
+        if inv_resolved:
+            n = len(inv_resolved)
+            inv_avg_hits = sum(int(r["inverse_main_hits"]) for r in inv_resolved) / n
+            inv_special_rate = sum(int(r["inverse_special_hit"]) for r in inv_resolved) / n
+            inv_jackpots = sum(int(r["inverse_jackpot_match"]) for r in inv_resolved)
+            print(f"Inverse ('chọn ngược lại') track record: {n} resolved, "
+                  f"avg main-number hits = {inv_avg_hits:.3f} (chance ~= 0.71), "
+                  f"special-number hit rate = {inv_special_rate:.3f} (chance ~= 0.083), "
+                  f"full jackpot matches = {inv_jackpots}")
 
 
 if __name__ == "__main__":
