@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from model import parse_draws
 from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
-from jackpot_watch import check_early_alert
+from jackpot_watch import check_early_alert, check_scrape_alert
 from jackpot_hunter import hunter_predict
 from notify_ntfy import send as ntfy_send
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
@@ -112,6 +112,9 @@ def main():
 
     # --- Step 6: jackpot checks ---
     jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time)
+    # Surface the "silent blind spot": if every jackpot source failed we
+    # can't tell whether the next draw is the sharing round -- alert once.
+    scrape_alert = check_scrape_alert(jackpot["jackpot_vnd"])
     early_alert = check_early_alert(jackpot["jackpot_vnd"])
 
     high_confidence = threshold is not None and pred["confidence"] >= threshold
@@ -127,6 +130,26 @@ def main():
     print(f"Jackpot: {jackpot}")
     print(f"Early alert: {early_alert}")
     print(f"Notify: {should_notify} (high_confidence={high_confidence}, jackpot_round={jackpot_round})")
+    print(f"Scrape alert: {scrape_alert}")
+
+    # --- Step 7 (blind-spot): jackpot scrape failed on every source ---
+    # Without a jackpot figure, is_sharing_round is forced False and both
+    # jackpot alerts stay silent. Warn once so the user can check manually
+    # instead of silently missing the sharing round.
+    if scrape_alert["should_alert"]:
+        ntfy_send(
+            NTFY_TOPIC,
+            title="⚠️ Lotto 5/35 – Không lấy được số Jackpot",
+            message=(
+                "Tất cả các nguồn tra cứu giá trị Giải Độc Đắc đều lỗi ở kỳ này, "
+                "nên hệ thống TẠM THỜI không thể tự xác định kỳ CHIA GIẢI ĐỘC ĐẮC.\n"
+                "Bạn nên kiểm tra thủ công trên vietlott.vn để không bỏ lỡ kỳ chia "
+                "giải. Bạn sẽ chỉ nhận cảnh báo này 1 lần cho tới khi việc tra cứu "
+                "hoạt động trở lại."
+            ),
+            priority="high",
+            tags="warning",
+        )
 
     # --- Step 7a: early jackpot-crossing alert (independent of main notify) ---
     if early_alert["should_alert"]:

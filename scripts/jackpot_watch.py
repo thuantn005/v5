@@ -20,6 +20,16 @@ State machine (per "cycle" = period between jackpot resets):
     jackpot_check.is_sharing_round
   - jackpot drops back <= 12B (meaning it was won/paid out) -> new cycle,
     flag resets automatically
+
+This module ALSO covers the "silent blind spot": both the early alert and
+jackpot_check.is_sharing_round depend on successfully scraping the jackpot
+figure. If every source fails (site down / HTML format changed),
+check_jackpot() returns jackpot_vnd=None, is_sharing_round is forced False,
+and we would otherwise stay completely silent -- potentially missing the
+real sharing round without anyone knowing. check_scrape_alert() fires ONE
+heads-up the moment scraping starts failing (using the same state file, key
+"scrape_fail_alerted"), stays quiet while it keeps failing, and resets once
+scraping recovers.
 """
 
 import json
@@ -68,7 +78,38 @@ def check_early_alert(jackpot_vnd: int | None) -> dict:
     return {"should_alert": should_alert, "jackpot_vnd": jackpot_vnd}
 
 
+def check_scrape_alert(jackpot_vnd: int | None) -> dict:
+    """
+    Returns {"should_alert": bool} and updates state/jackpot_state.json.
+    Fires ONE alert when jackpot scraping first fails (jackpot_vnd is None),
+    then stays silent while it keeps failing, and resets once a real figure
+    is scraped again. This surfaces the otherwise-silent blind spot where we
+    can't tell whether the next draw is the sharing round.
+
+    Call once per run, right after jackpot_check.check_jackpot(). Call this
+    BEFORE check_early_alert() -- when jackpot_vnd is None, check_early_alert
+    returns early without touching the state file, so ordering is safe.
+    """
+    state = _load_state()
+    should_alert = False
+
+    if jackpot_vnd is None:
+        if not state.get("scrape_fail_alerted"):
+            should_alert = True
+            state["scrape_fail_alerted"] = True
+    else:
+        state["scrape_fail_alerted"] = False
+
+    _save_state(state)
+    return {"should_alert": should_alert, "jackpot_vnd": jackpot_vnd}
+
+
 if __name__ == "__main__":
     print(check_early_alert(12_500_000_000))
     print(check_early_alert(12_600_000_000))  # should NOT alert again
     print(check_early_alert(5_000_000_000))    # cycle resets
+    print("--- scrape alert ---")
+    print(check_scrape_alert(None))            # scrape failed -> alert once
+    print(check_scrape_alert(None))            # still failing -> silent
+    print(check_scrape_alert(7_000_000_000))   # recovered -> reset (no alert)
+    print(check_scrape_alert(None))            # fails again -> alert once more

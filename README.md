@@ -105,9 +105,10 @@ Model `balanced_signal` vẫn giữ khả năng tính bộ số ngược lại (
 
 Theo quy định Vietlott: khi giải Độc Đắc vượt 12 tỷ đồng mà chưa ai trúng, kỳ quay 21h00 của **ngày kế tiếp** (không phải kỳ quay ngay sau đó nếu cùng ngày) mới là kỳ chia giải. `jackpot_check.py` chỉ báo `is_sharing_round=True` khi (a) jackpot > 12 tỷ, VÀ (b) kỳ sắp dự đoán đúng là kỳ 21h của ngày kế tiếp.
 
-Có 2 tầng thông báo:
+Có 3 tầng thông báo:
 1. **Báo sớm** (`jackpot_watch.py`): ngay khi jackpot vừa vượt 12 tỷ lần đầu trong chu kỳ.
 2. **Báo đúng ngày**: khi đến chính xác kỳ 21h ngày chia giải, kèm bộ số ensemble.
+3. **Báo mù** (`jackpot_watch.check_scrape_alert`): nếu **mọi nguồn tra cứu jackpot đều lỗi** (site sập / đổi HTML), hệ thống không thể tự xác định kỳ chia giải — gửi cảnh báo 1 lần để bạn kiểm tra thủ công, tránh im lặng bỏ lỡ. Tự tắt khi tra cứu hoạt động lại.
 
 ## Dashboard (GitHub Pages)
 
