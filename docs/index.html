@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lotto 5/35 – Dashboard Dự Đoán Tự Động</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1420; --card: #161d2e; --text: #e8ecf4; --muted: #8a93a8;
+    --accent: #4f8cff; --good: #3ecf8e; --bad: #ff6b6b; --warn: #f5a623;
+    --border: #262f45;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+  .banner {
+    background: linear-gradient(135deg, #2a1a3e, #1a2a3e); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; font-size: 0.85rem; color: var(--muted);
+    line-height: 1.5;
+  }
+  .banner b { color: var(--warn); }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; overflow-x: auto;
+  }
+  .card h2 { font-size: 1rem; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px; }
+  .numbers { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .num-ball {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem;
+  }
+  .num-ball.special { background: var(--warn); color: #1a1500; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; }
+  .sig { color: var(--good); font-weight: 600; }
+  .nonsig { color: var(--muted); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; }
+  .pill.yes { background: #12331f; color: var(--good); }
+  .pill.no { background: #331212; color: var(--bad); }
+  .muted { color: var(--muted); }
+  canvas { max-height: 320px; }
+  .loading { color: var(--muted); padding: 40px; text-align: center; }
+  .strategy-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+</style>
+</head>
+<body>
+  <h1>🎰 Lotto 5/35 – Dashboard Dự Đoán Tự Động</h1>
+  <div class="subtitle" id="generated-at">Đang tải...</div>
+
+  <div class="banner">
+    ⚠️ <b>Lưu ý quan trọng:</b> Đây là dự án thống kê/kỹ thuật, không phải công cụ tăng tỷ lệ trúng thật.
+    Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ — xác suất trúng Jackpot luôn cố định
+    ở mức 1/324.632 bất kể chọn số theo cách nào. Các model dưới đây được so sánh trung thực
+    với baseline ngẫu nhiên (không dùng chỉ số ROI dễ gây hiểu lầm). Chỉ nên xem đây là công cụ
+    giải trí / học thống kê.
+  </div>
+
+  <div class="grid" id="app">
+    <div class="loading">Đang tải dữ liệu...</div>
+  </div>
+
+<script>
+async function loadData() {
+  const res = await fetch('data.json?_=' + Date.now());
+  return res.json();
+}
+
+function ballHTML(n, special=false) {
+  return `<div class="num-ball ${special ? 'special' : ''}">${String(n).padStart(2,'0')}</div>`;
+}
+
+function renderLatestPrediction(data) {
+  const lp = data.latest_prediction;
+  if (!lp) return '<div class="card"><h2>🎯 Bộ số dự đoán mới nhất</h2><p class="muted">Chưa có dữ liệu.</p></div>';
+  const ens = lp.ensemble;
+  const hunter = lp.hunter;
+  let html = `<div class="card">
+    <h2>🎯 Bộ số dự đoán mới nhất — Kỳ #${lp.target_draw_id}</h2>
+    <div class="muted">Ensemble Voting (trung bình chuẩn hóa của 10 model), dựa trên kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date})</div>
+    <div class="numbers">${ens.main.map(n => ballHTML(n)).join('')}${ballHTML(ens.special, true)}</div>
+    <div class="muted">Độ tin cậy nội bộ: ${ens.confidence.toFixed(3)} (chỉ số heuristic, không phải xác suất trúng)</div>`;
+  if (hunter) {
+    html += `<h3 style="font-size:0.85rem;margin-top:14px;color:var(--muted)">🏹 Jackpot Hunter (né số công cụ tham khảo công khai gợi ý)</h3>
+    <div class="numbers">${hunter.main.map(n => ballHTML(n)).join('')}${ballHTML(hunter.special, true)}</div>
+    <div class="muted" style="font-size:0.75rem">${hunter.reference_available ? 'Đã loại trừ ' + hunter.excluded_main.length + ' số công khai từ công cụ tham khảo' : 'Không lấy được dữ liệu tham khảo -- dùng ensemble thuần'}</div>`;
+  }
+  html += `<h3 style="font-size:0.85rem;margin-top:16px;color:var(--muted)">Từng model dự đoán</h3>`;
+  for (const [name, pick] of Object.entries(lp.per_strategy || {})) {
+    html += `<div class="strategy-row"><span>${name}</span><span>${pick.main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(pick.special).padStart(2,'0')}</span></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderLeaderboard(data) {
+  const lb = data.leaderboard;
+  if (!lb) return '';
+  let rows = lb.ranking_by_avg_hits.map(r => {
+    const detail = lb.results[r.strategy];
+    const sig = detail.significant_at_0_05 || detail['significant_at_0.05'];
+    return `<tr>
+      <td>${r.strategy}</td>
+      <td>${detail.avg_main_hits.toFixed(4)}</td>
+      <td class="muted">${detail.expected_random_main_hits.toFixed(4)}</td>
+      <td>${detail.p_value_vs_random.toFixed(4)}</td>
+      <td>${sig ? '<span class="pill yes">có ý nghĩa</span>' : '<span class="pill no">chỉ là nhiễu</span>'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="card">
+    <h2>🏆 Bảng xếp hạng model (backtest walk-forward)</h2>
+    <table><thead><tr><th>Model</th><th>Khớp TB</th><th>Ngẫu nhiên kỳ vọng</th><th>p-value</th><th>Kết luận</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <p class="muted" style="margin-top:10px;font-size:0.78rem">${lb.note}</p>
+  </div>`;
+}
+
+function renderPerformanceChart(data) {
+  const pot = data.performance_over_time;
+  if (!pot || !pot.labels || pot.labels.length === 0) {
+    return '<div class="card"><h2>📈 Hiệu năng theo thời gian</h2><p class="muted">Chưa đủ dữ liệu đã đối chiếu kết quả thật (cần vài kỳ nữa).</p></div>';
+  }
+  return `<div class="card"><h2>📈 Hiệu năng theo thời gian (trung bình khớp lũy kế)</h2><canvas id="perfChart"></canvas></div>`;
+}
+
+function drawPerformanceChart(data) {
+  const pot = data.performance_over_time;
+  if (!pot || !pot.labels || pot.labels.length === 0) return;
+  const ctx = document.getElementById('perfChart');
+  if (!ctx) return;
+  const colors = ['#4f8cff','#3ecf8e','#f5a623','#ff6b6b','#a56bff','#6bd6ff','#ffb86b','#8affc1','#ff8ac6'];
+  let i = 0;
+  const datasets = Object.entries(pot.series).map(([name, series]) => ({
+    label: name, data: series, borderColor: colors[i++ % colors.length],
+    borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: true,
+  }));
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: pot.labels, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#8a93a8', font: { size: 10 } } } },
+      scales: {
+        x: { ticks: { color: '#8a93a8', maxTicksLimit: 12 }, grid: { color: '#262f45' } },
+        y: { ticks: { color: '#8a93a8' }, grid: { color: '#262f45' } },
+      },
+    },
+  });
+}
+
+function renderModelAccuracy(data) {
+  const ma = data.model_accuracy;
+  if (!ma || Object.keys(ma).length === 0) {
+    return '<div class="card"><h2>📉 Độ chính xác từng model (thực tế đã triển khai)</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
+  }
+  let rows = Object.entries(ma).sort((a,b) => b[1].avg_main_hits - a[1].avg_main_hits)
+    .map(([name, s]) => `<tr><td>${name}</td><td>${s.n}</td><td>${s.avg_main_hits.toFixed(4)}</td><td>${(s.special_hit_rate*100).toFixed(1)}%</td></tr>`).join('');
+  return `<div class="card">
+    <h2>📉 Độ chính xác từng model (thực tế đã triển khai)</h2>
+    <table><thead><tr><th>Model</th><th>Số kỳ</th><th>Khớp TB</th><th>Tỷ lệ trúng ĐB</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`;
+}
+
+function renderDrawHistory(data) {
+  const hist = data.draw_history;
+  if (!hist || hist.length === 0) {
+    return '<div class="card"><h2>📊 Lịch sử các kỳ quay</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
+  }
+  let rows = hist.map(h => `<tr>
+    <td>#${h.target_draw_id}</td><td>${h.draw_date}</td>
+    <td>${h.actual_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.actual_special).padStart(2,'0')}</td>
+    <td>${h.ensemble_predicted_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.ensemble_predicted_special).padStart(2,'0')}</td>
+    <td>${h.ensemble_main_hits}/5${h.ensemble_special_hit ? ' + ĐB' : ''}</td>
+  </tr>`).join('');
+  return `<div class="card">
+    <h2>📊 Lịch sử các kỳ quay & kết quả</h2>
+    <table><thead><tr><th>Kỳ</th><th>Ngày</th><th>Kết quả thật</th><th>Ensemble đã dự đoán</th><th>Khớp</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`;
+}
+
+async function main() {
+  const data = await loadData();
+  document.getElementById('generated-at').textContent =
+    'Cập nhật lần cuối: ' + new Date(data.generated_at).toLocaleString('vi-VN') +
+    ` · ${data.n_resolved_predictions} kỳ đã đối chiếu kết quả thật`;
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="grid grid-2">
+      ${renderLatestPrediction(data)}
+      ${renderLeaderboard(data)}
+    </div>
+    ${renderPerformanceChart(data)}
+    <div class="grid grid-2">
+      ${renderModelAccuracy(data)}
+      ${renderDrawHistory(data)}
+    </div>
+  `;
+  drawPerformanceChart(data);
+}
+
+main().catch(err => {
+  document.getElementById('app').innerHTML =
+    `<div class="card"><p class="muted">Lỗi tải dữ liệu: ${err.message}. Dashboard sẽ có dữ liệu sau lần chạy pipeline đầu tiên.</p></div>`;
+});
+</script>
+</body>
+</html>

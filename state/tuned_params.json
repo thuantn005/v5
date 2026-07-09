@@ -1,0 +1,25 @@
+{
+  "hot_numbers": {
+    "window": 150
+  },
+  "cold_numbers": {
+    "window": 100
+  },
+  "long_absence": {},
+  "exponential_decay": {
+    "half_life": 60
+  },
+  "pair_frequency": {
+    "window": 100
+  },
+  "markov_chain": {
+    "window": 100
+  },
+  "not_repeat": {
+    "avoid_last_n": 3
+  },
+  "pattern": {
+    "window": 200
+  },
+  "balanced_signal": {}
+}
