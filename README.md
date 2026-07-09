@@ -117,9 +117,15 @@ Có 2 tầng thông báo:
 
 **Kích hoạt GitHub Pages** (1 lần): repo → Settings → Pages → Source: **Deploy from a branch** → Branch: `main`, folder **`/docs`** → Save. Sau đó dashboard sẽ có ở `https://<username>.github.io/<repo>/`.
 
-## Nguồn dữ liệu
+## Nguồn dữ liệu (có dự phòng tự động, 2 tầng)
 
-Mặc định lấy từ dataset công khai [`NhanAZ-Data/vietlott-data-research`](https://github.com/NhanAZ-Data/vietlott-data-research). Đổi `SOURCE_URL` trong `fetch_data.py` nếu muốn dùng nguồn khác (chỉ cần cột `draw_id` và `result_json` cùng định dạng).
+**Tầng 1 — nguồn chính** (`fetch_data.py`): thử lần lượt 3 mirror — GitHub raw, jsdelivr CDN, statically.io CDN, đều trỏ về cùng dataset [`NhanAZ-Data/vietlott-data-research`](https://github.com/NhanAZ-Data/vietlott-data-research) (hạ tầng khác nhau nên nếu 1 cái sập/rate-limit thì cái kia thường vẫn chạy). Thành công thì **thay thế toàn bộ** `data/all.csv` bằng bản đầy đủ mới nhất.
+
+**Tầng 2 — scraper độc lập thật sự** (`fallback_scraper.py`): chỉ kích hoạt khi **cả 3 mirror ở Tầng 1 đều lỗi**. Đây không phải mirror của cùng 1 dataset — nó tự cào trực tiếp bảng "15 kỳ gần nhất" từ `minhchinh.com` (nguồn hoàn toàn khác), rồi **chỉ bổ sung** (append) các kỳ mới chưa có trong `data/all.csv`, không thay thế toàn bộ file. Mỗi dòng được bổ sung theo cách này gắn nhãn rõ `"data_source": "minhchinh_com_fallback_scraper"` và `"validation_status": "unverified_fallback"` trong dữ liệu để minh bạch nguồn gốc.
+
+Nếu **cả 2 tầng đều lỗi**: giữ nguyên `data/all.csv` hiện có, không ghi đè, không crash — pipeline tiếp tục chạy trên dữ liệu cũ.
+
+**Giá trị Jackpot** (`jackpot_check.py`): 5 nguồn dự phòng riêng — vietlott.vn (chính thức), xsmn.mobi, minhchinh.com, onbit.vn, ketquadientoan.com. Nếu tất cả lỗi, trả về `jackpot_vnd: null` và không báo tin jackpot thay vì đoán bừa.
 
 ## Thiết lập trên GitHub
 

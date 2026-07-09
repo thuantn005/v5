@@ -36,8 +36,22 @@ from datetime import date, datetime, timedelta
 import requests
 
 URL = "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535"
-FALLBACK_URL = "https://xsmn.mobi/xs-lotto-5-35.html"
+FALLBACK_URLS = [
+    "https://xsmn.mobi/xs-lotto-5-35.html",
+    "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html",
+    "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
+    "https://www.ketquadientoan.com/tat-ca-ky-xo-so-lotto-535.html",
+]
+ALL_SOURCES = [URL] + FALLBACK_URLS
 THRESHOLD_VND = 12_000_000_000
+
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+    ),
+    "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+}
 
 
 def _extract_jackpot_vnd(html: str) -> int | None:
@@ -54,16 +68,19 @@ def _extract_jackpot_vnd(html: str) -> int | None:
 
 
 def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
-    for url in (URL, FALLBACK_URL):
+    for url in ALL_SOURCES:
         try:
-            resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+            resp = requests.get(url, timeout=15, headers=_HEADERS)
             resp.raise_for_status()
             amount = _extract_jackpot_vnd(resp.text)
             if amount is not None:
                 return amount, url
+            print(f"WARNING: fetched {url} but could not find a jackpot figure in it", file=sys.stderr)
         except requests.RequestException as e:
             print(f"WARNING: jackpot check failed for {url}: {e}", file=sys.stderr)
             continue
+    print(f"WARNING: all {len(ALL_SOURCES)} jackpot sources failed -- "
+          f"treating jackpot as unknown this run (no false alerts).", file=sys.stderr)
     return None, None
 
 
