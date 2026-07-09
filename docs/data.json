@@ -1,0 +1,424 @@
+{
+  "generated_at": "2026-07-09T08:21:35.166677+00:00",
+  "latest_prediction": {
+    "generated_at": "2026-07-09T08:21:35.097052+00:00",
+    "based_on_draw_id": "00750",
+    "based_on_draw_date": "2026-07-08",
+    "target_draw_id": "00751",
+    "ensemble": {
+      "main": [
+        15,
+        18,
+        22,
+        26,
+        33
+      ],
+      "special": 9,
+      "confidence": 1.136
+    },
+    "hunter": {
+      "main": [
+        19,
+        24,
+        32,
+        33,
+        35
+      ],
+      "special": 9,
+      "reference_available": true,
+      "excluded_main": [
+        2,
+        3,
+        6,
+        10,
+        15,
+        17,
+        18,
+        22,
+        26,
+        27,
+        28,
+        29,
+        31,
+        34
+      ],
+      "excluded_special": [
+        3,
+        6,
+        7
+      ]
+    },
+    "per_strategy": {
+      "hot_numbers": {
+        "main": [
+          15,
+          22,
+          27,
+          33,
+          34
+        ],
+        "special": 4
+      },
+      "cold_numbers": {
+        "main": [
+          3,
+          7,
+          12,
+          25,
+          30
+        ],
+        "special": 11
+      },
+      "long_absence": {
+        "main": [
+          9,
+          18,
+          19,
+          26,
+          32
+        ],
+        "special": 11
+      },
+      "exponential_decay": {
+        "main": [
+          15,
+          22,
+          27,
+          29,
+          34
+        ],
+        "special": 4
+      },
+      "pair_frequency": {
+        "main": [
+          15,
+          22,
+          26,
+          27,
+          33
+        ],
+        "special": 9
+      },
+      "markov_chain": {
+        "main": [
+          15,
+          26,
+          27,
+          29,
+          33
+        ],
+        "special": 3
+      },
+      "not_repeat": {
+        "main": [
+          10,
+          17,
+          22,
+          26,
+          33
+        ],
+        "special": 9
+      },
+      "pattern": {
+        "main": [
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "special": 9
+      },
+      "balanced_signal": {
+        "main": [
+          6,
+          15,
+          18,
+          27,
+          29
+        ],
+        "special": 6
+      },
+      "crowd_avoidance": {
+        "main": [
+          31,
+          32,
+          33,
+          34,
+          35
+        ],
+        "special": 1
+      }
+    },
+    "notified": false,
+    "jackpot_vnd": null,
+    "resolved": false,
+    "actual": null,
+    "hits": null
+  },
+  "leaderboard": {
+    "results": {
+      "hot_numbers": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.742,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0277,
+        "p_value_vs_random": 0.3214,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0739,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 286,
+          "1": 303,
+          "2": 94,
+          "3": 7,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "cold_numbers": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7449,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0306,
+        "p_value_vs_random": 0.2735,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0739,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 297,
+          "1": 284,
+          "2": 97,
+          "3": 12,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "long_absence": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.742,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0277,
+        "p_value_vs_random": 0.3214,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0826,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 298,
+          "1": 283,
+          "2": 98,
+          "3": 11,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "exponential_decay": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7609,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0466,
+        "p_value_vs_random": 0.0959,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0623,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 274,
+          "1": 313,
+          "2": 97,
+          "3": 6,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "pair_frequency": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7449,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0306,
+        "p_value_vs_random": 0.2735,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0812,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 284,
+          "1": 305,
+          "2": 94,
+          "3": 7,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "markov_chain": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7667,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0524,
+        "p_value_vs_random": 0.0612,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0826,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 272,
+          "1": 313,
+          "2": 99,
+          "3": 6,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "not_repeat": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7188,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0046,
+        "p_value_vs_random": 0.8707,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0783,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 302,
+          "1": 293,
+          "2": 82,
+          "3": 13,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "pattern": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7217,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0075,
+        "p_value_vs_random": 0.7899,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0826,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 300,
+          "1": 289,
+          "2": 94,
+          "3": 7,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "balanced_signal": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7217,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0075,
+        "p_value_vs_random": 0.7899,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0826,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 297,
+          "1": 299,
+          "2": 83,
+          "3": 11,
+          "4": 0,
+          "5": 0
+        }
+      },
+      "crowd_avoidance": {
+        "n_backtested": 690,
+        "avg_main_hits": 0.7159,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.0017,
+        "p_value_vs_random": 0.9528,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0826,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 310,
+          "1": 281,
+          "2": 86,
+          "3": 11,
+          "4": 2,
+          "5": 0
+        }
+      },
+      "random_baseline": {
+        "n_backtested": 6900,
+        "avg_main_hits": 0.7213,
+        "expected_random_main_hits": 0.7143,
+        "diff_vs_random": 0.007,
+        "p_value_vs_random": 0.4276,
+        "significant_at_0.05": false,
+        "special_hit_rate": 0.0828,
+        "expected_random_special_rate": 0.0833,
+        "main_hit_distribution": {
+          "0": 3000,
+          "1": 2939,
+          "2": 848,
+          "3": 110,
+          "4": 3,
+          "5": 0
+        }
+      }
+    },
+    "ranking_by_avg_hits": [
+      {
+        "strategy": "markov_chain",
+        "avg_main_hits": 0.7667
+      },
+      {
+        "strategy": "exponential_decay",
+        "avg_main_hits": 0.7609
+      },
+      {
+        "strategy": "cold_numbers",
+        "avg_main_hits": 0.7449
+      },
+      {
+        "strategy": "pair_frequency",
+        "avg_main_hits": 0.7449
+      },
+      {
+        "strategy": "hot_numbers",
+        "avg_main_hits": 0.742
+      },
+      {
+        "strategy": "long_absence",
+        "avg_main_hits": 0.742
+      },
+      {
+        "strategy": "pattern",
+        "avg_main_hits": 0.7217
+      },
+      {
+        "strategy": "balanced_signal",
+        "avg_main_hits": 0.7217
+      },
+      {
+        "strategy": "random_baseline",
+        "avg_main_hits": 0.7213
+      },
+      {
+        "strategy": "not_repeat",
+        "avg_main_hits": 0.7188
+      },
+      {
+        "strategy": "crowd_avoidance",
+        "avg_main_hits": 0.7159
+      }
+    ],
+    "note": "Rankings here reflect avg main-number hits vs the exact random baseline (5/35 pick, expected 0.7143 hits), with a two-sided p-value. Even a genuinely random strategy will show some positive or negative deviation by chance across ~700 draws -- check p_value_vs_random before treating a ranking difference as a real edge. None of these strategies change actual jackpot odds, which are fixed at 1-in-324,632 regardless of numbers chosen."
+  },
+  "ensemble_calibration": {
+    "n_backtested_draws": 690,
+    "notify_threshold_confidence": 1.3132674474111754,
+    "correlation_confidence_vs_main_hits": -0.04112524350350948,
+    "correlation_confidence_vs_special_hit": 0.018965282800054165,
+    "avg_main_hits_overall": 0.7507246376811594,
+    "note": "Same honesty caveat as the single-model calibration: a correlation near 0 means ensemble confidence does not predict real hit rate. The threshold only controls notification frequency (top ~5% most 'unusual' rounds), not a genuine edge."
+  },
+  "tuning_report": null,
+  "performance_over_time": {
+    "labels": [],
+    "series": {}
+  },
+  "model_accuracy": {},
+  "draw_history": [],
+  "n_resolved_predictions": 0
+}
