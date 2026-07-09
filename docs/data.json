@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-09T20:23:01.850623+00:00",
+  "generated_at": "2026-07-09T18:13:27.998535+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-09T20:23:01.771888+00:00",
+    "generated_at": "2026-07-09T18:13:27.919905+00:00",
     "based_on_draw_id": "00752",
     "based_on_draw_date": "2026-07-09",
     "target_draw_id": "00753",
@@ -148,7 +148,7 @@
       }
     },
     "notified": false,
-    "jackpot_vnd": null,
+    "jackpot_vnd": 7269262500,
     "resolved": false,
     "actual": null,
     "hits": null
@@ -405,17 +405,175 @@
   "ensemble_calibration": {
     "n_backtested_draws": 692,
     "notify_threshold_confidence": 1.3132674474111754,
-    "correlation_confidence_vs_main_hits": -0.04004557803740646,
-    "correlation_confidence_vs_special_hit": 0.01603332099222776,
+    "correlation_confidence_vs_main_hits": -0.0400455780374065,
+    "correlation_confidence_vs_special_hit": 0.01603332099222777,
     "avg_main_hits_overall": 0.75,
     "note": "Same honesty caveat as the single-model calibration: a correlation near 0 means ensemble confidence does not predict real hit rate. The threshold only controls notification frequency (top ~5% most 'unusual' rounds), not a genuine edge."
   },
   "tuning_report": null,
   "performance_over_time": {
-    "labels": [],
-    "series": {}
+    "labels": [
+      "00751",
+      "00752"
+    ],
+    "series": {
+      "balanced_signal": [
+        1.0,
+        0.5
+      ],
+      "cold_numbers": [
+        1.0,
+        1.0
+      ],
+      "crowd_avoidance": [
+        1.0,
+        0.5
+      ],
+      "ensemble": [
+        1.0,
+        0.5
+      ],
+      "exponential_decay": [
+        0.0,
+        0.0
+      ],
+      "hot_numbers": [
+        1.0,
+        0.5
+      ],
+      "jackpot_hunter": [
+        1.0,
+        1.0
+      ],
+      "long_absence": [
+        0.0,
+        0.5
+      ],
+      "markov_chain": [
+        1.0,
+        1.0
+      ],
+      "not_repeat": [
+        2.0,
+        1.0
+      ],
+      "pair_frequency": [
+        1.0,
+        0.5
+      ],
+      "pattern": [
+        0.0,
+        0.5
+      ]
+    }
   },
-  "model_accuracy": {},
-  "draw_history": [],
-  "n_resolved_predictions": 0
+  "model_accuracy": {
+    "balanced_signal": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0
+    },
+    "cold_numbers": {
+      "n": 2,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "crowd_avoidance": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0.5
+    },
+    "ensemble": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0.5
+    },
+    "exponential_decay": {
+      "n": 2,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0.5
+    },
+    "hot_numbers": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0.5
+    },
+    "jackpot_hunter": {
+      "n": 2,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "long_absence": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0
+    },
+    "markov_chain": {
+      "n": 2,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "not_repeat": {
+      "n": 2,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "pair_frequency": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0
+    },
+    "pattern": {
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0
+    }
+  },
+  "draw_history": [
+    {
+      "target_draw_id": "00752",
+      "draw_date": "2026-07-09",
+      "actual_main": [
+        14,
+        19,
+        25,
+        28,
+        30
+      ],
+      "actual_special": 4,
+      "ensemble_predicted_main": [
+        15,
+        18,
+        26,
+        29,
+        34
+      ],
+      "ensemble_predicted_special": 4,
+      "ensemble_main_hits": 0,
+      "ensemble_special_hit": true
+    },
+    {
+      "target_draw_id": "00751",
+      "draw_date": "2026-07-09",
+      "actual_main": [
+        6,
+        10,
+        20,
+        25,
+        33
+      ],
+      "actual_special": 1,
+      "ensemble_predicted_main": [
+        15,
+        18,
+        22,
+        26,
+        33
+      ],
+      "ensemble_predicted_special": 9,
+      "ensemble_main_hits": 1,
+      "ensemble_special_hit": false
+    }
+  ],
+  "n_resolved_predictions": 2
 }

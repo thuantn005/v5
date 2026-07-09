@@ -1,8 +1,8 @@
 {
   "n_backtested_draws": 692,
   "notify_threshold_confidence": 1.3132674474111754,
-  "correlation_confidence_vs_main_hits": -0.04004557803740646,
-  "correlation_confidence_vs_special_hit": 0.01603332099222776,
+  "correlation_confidence_vs_main_hits": -0.0400455780374065,
+  "correlation_confidence_vs_special_hit": 0.01603332099222777,
   "avg_main_hits_overall": 0.75,
   "note": "Same honesty caveat as the single-model calibration: a correlation near 0 means ensemble confidence does not predict real hit rate. The threshold only controls notification frequency (top ~5% most 'unusual' rounds), not a genuine edge."
 }
