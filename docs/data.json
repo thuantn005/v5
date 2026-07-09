@@ -1,58 +1,56 @@
 {
-  "generated_at": "2026-07-09T08:37:41.914942+00:00",
+  "generated_at": "2026-07-09T14:56:40.977044+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-09T08:21:35.097052+00:00",
-    "based_on_draw_id": "00750",
-    "based_on_draw_date": "2026-07-08",
-    "target_draw_id": "00751",
+    "generated_at": "2026-07-09T14:56:40.897153+00:00",
+    "based_on_draw_id": "00751",
+    "based_on_draw_date": "2026-07-09",
+    "target_draw_id": "00752",
     "ensemble": {
       "main": [
         15,
         18,
-        22,
         26,
-        33
+        29,
+        34
       ],
-      "special": 9,
-      "confidence": 1.136
+      "special": 4,
+      "confidence": 0.9871
     },
     "hunter": {
       "main": [
+        17,
         19,
         24,
-        32,
-        33,
-        35
+        26,
+        31
       ],
       "special": 9,
       "reference_available": true,
       "excluded_main": [
-        2,
-        3,
         6,
         10,
         15,
-        17,
         18,
         22,
-        26,
+        23,
+        25,
         27,
         28,
         29,
-        31,
+        33,
         34
       ],
       "excluded_special": [
         3,
-        6,
-        7
+        4,
+        6
       ]
     },
     "per_strategy": {
       "hot_numbers": {
         "main": [
+          6,
           15,
-          22,
           27,
           33,
           34
@@ -64,7 +62,7 @@
           3,
           7,
           12,
-          25,
+          16,
           30
         ],
         "special": 11
@@ -81,10 +79,10 @@
       },
       "exponential_decay": {
         "main": [
+          6,
           15,
           22,
           27,
-          29,
           34
         ],
         "special": 4
@@ -101,21 +99,21 @@
       },
       "markov_chain": {
         "main": [
+          6,
+          14,
           15,
           26,
-          27,
-          29,
-          33
+          34
         ],
-        "special": 3
+        "special": 1
       },
       "not_repeat": {
         "main": [
-          10,
           17,
+          18,
           22,
-          26,
-          33
+          23,
+          26
         ],
         "special": 9
       },
@@ -151,7 +149,7 @@
       }
     },
     "notified": false,
-    "jackpot_vnd": null,
+    "jackpot_vnd": 7269262500,
     "resolved": false,
     "actual": null,
     "hits": null
@@ -159,17 +157,17 @@
   "leaderboard": {
     "results": {
       "hot_numbers": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.742,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7424,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0277,
-        "p_value_vs_random": 0.3214,
+        "diff_vs_random": 0.0281,
+        "p_value_vs_random": 0.3146,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0739,
+        "special_hit_rate": 0.0738,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 286,
-          "1": 303,
+          "1": 304,
           "2": 94,
           "3": 7,
           "4": 0,
@@ -177,17 +175,17 @@
         }
       },
       "cold_numbers": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7449,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7453,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0306,
-        "p_value_vs_random": 0.2735,
+        "diff_vs_random": 0.031,
+        "p_value_vs_random": 0.2674,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0739,
+        "special_hit_rate": 0.0738,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 297,
-          "1": 284,
+          "1": 285,
           "2": 97,
           "3": 12,
           "4": 0,
@@ -195,16 +193,16 @@
         }
       },
       "long_absence": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.742,
+        "n_backtested": 691,
+        "avg_main_hits": 0.741,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0277,
-        "p_value_vs_random": 0.3214,
+        "diff_vs_random": 0.0267,
+        "p_value_vs_random": 0.3402,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0826,
+        "special_hit_rate": 0.0825,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
-          "0": 298,
+          "0": 299,
           "1": 283,
           "2": 98,
           "3": 11,
@@ -213,16 +211,16 @@
         }
       },
       "exponential_decay": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7609,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7598,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0466,
-        "p_value_vs_random": 0.0959,
+        "diff_vs_random": 0.0455,
+        "p_value_vs_random": 0.1038,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0623,
+        "special_hit_rate": 0.0622,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
-          "0": 274,
+          "0": 275,
           "1": 313,
           "2": 97,
           "3": 6,
@@ -231,17 +229,17 @@
         }
       },
       "pair_frequency": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7449,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7453,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0306,
-        "p_value_vs_random": 0.2735,
+        "diff_vs_random": 0.031,
+        "p_value_vs_random": 0.2674,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0812,
+        "special_hit_rate": 0.081,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 284,
-          "1": 305,
+          "1": 306,
           "2": 94,
           "3": 7,
           "4": 0,
@@ -249,17 +247,17 @@
         }
       },
       "markov_chain": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7667,
+        "n_backtested": 691,
+        "avg_main_hits": 0.767,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0524,
-        "p_value_vs_random": 0.0612,
+        "diff_vs_random": 0.0527,
+        "p_value_vs_random": 0.0594,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0826,
+        "special_hit_rate": 0.0825,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 272,
-          "1": 313,
+          "1": 314,
           "2": 99,
           "3": 6,
           "4": 0,
@@ -267,34 +265,34 @@
         }
       },
       "not_repeat": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7188,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7207,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0046,
-        "p_value_vs_random": 0.8707,
+        "diff_vs_random": 0.0064,
+        "p_value_vs_random": 0.8187,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0783,
+        "special_hit_rate": 0.0781,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 302,
           "1": 293,
-          "2": 82,
+          "2": 83,
           "3": 13,
           "4": 0,
           "5": 0
         }
       },
       "pattern": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7217,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7207,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0075,
-        "p_value_vs_random": 0.7899,
+        "diff_vs_random": 0.0064,
+        "p_value_vs_random": 0.8187,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0826,
+        "special_hit_rate": 0.0825,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
-          "0": 300,
+          "0": 301,
           "1": 289,
           "2": 94,
           "3": 7,
@@ -303,17 +301,17 @@
         }
       },
       "balanced_signal": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7217,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7221,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0075,
-        "p_value_vs_random": 0.7899,
+        "diff_vs_random": 0.0079,
+        "p_value_vs_random": 0.7787,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0826,
+        "special_hit_rate": 0.0825,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 297,
-          "1": 299,
+          "1": 300,
           "2": 83,
           "3": 11,
           "4": 0,
@@ -321,17 +319,17 @@
         }
       },
       "crowd_avoidance": {
-        "n_backtested": 690,
-        "avg_main_hits": 0.7159,
+        "n_backtested": 691,
+        "avg_main_hits": 0.7164,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.0017,
-        "p_value_vs_random": 0.9528,
+        "diff_vs_random": 0.0021,
+        "p_value_vs_random": 0.9411,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0826,
+        "special_hit_rate": 0.0839,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
           "0": 310,
-          "1": 281,
+          "1": 282,
           "2": 86,
           "3": 11,
           "4": 2,
@@ -339,86 +337,209 @@
         }
       },
       "random_baseline": {
-        "n_backtested": 6900,
-        "avg_main_hits": 0.7213,
+        "n_backtested": 6910,
+        "avg_main_hits": 0.7182,
         "expected_random_main_hits": 0.7143,
-        "diff_vs_random": 0.007,
-        "p_value_vs_random": 0.4276,
+        "diff_vs_random": 0.0039,
+        "p_value_vs_random": 0.6552,
         "significant_at_0.05": false,
-        "special_hit_rate": 0.0828,
+        "special_hit_rate": 0.0864,
         "expected_random_special_rate": 0.0833,
         "main_hit_distribution": {
-          "0": 3000,
-          "1": 2939,
-          "2": 848,
-          "3": 110,
-          "4": 3,
-          "5": 0
+          "0": 2997,
+          "1": 2966,
+          "2": 852,
+          "3": 88,
+          "4": 6,
+          "5": 1
         }
       }
     },
     "ranking_by_avg_hits": [
       {
         "strategy": "markov_chain",
-        "avg_main_hits": 0.7667
+        "avg_main_hits": 0.767
       },
       {
         "strategy": "exponential_decay",
-        "avg_main_hits": 0.7609
+        "avg_main_hits": 0.7598
       },
       {
         "strategy": "cold_numbers",
-        "avg_main_hits": 0.7449
+        "avg_main_hits": 0.7453
       },
       {
         "strategy": "pair_frequency",
-        "avg_main_hits": 0.7449
+        "avg_main_hits": 0.7453
       },
       {
         "strategy": "hot_numbers",
-        "avg_main_hits": 0.742
+        "avg_main_hits": 0.7424
       },
       {
         "strategy": "long_absence",
-        "avg_main_hits": 0.742
-      },
-      {
-        "strategy": "pattern",
-        "avg_main_hits": 0.7217
+        "avg_main_hits": 0.741
       },
       {
         "strategy": "balanced_signal",
-        "avg_main_hits": 0.7217
-      },
-      {
-        "strategy": "random_baseline",
-        "avg_main_hits": 0.7213
+        "avg_main_hits": 0.7221
       },
       {
         "strategy": "not_repeat",
-        "avg_main_hits": 0.7188
+        "avg_main_hits": 0.7207
+      },
+      {
+        "strategy": "pattern",
+        "avg_main_hits": 0.7207
+      },
+      {
+        "strategy": "random_baseline",
+        "avg_main_hits": 0.7182
       },
       {
         "strategy": "crowd_avoidance",
-        "avg_main_hits": 0.7159
+        "avg_main_hits": 0.7164
       }
     ],
     "note": "Rankings here reflect avg main-number hits vs the exact random baseline (5/35 pick, expected 0.7143 hits), with a two-sided p-value. Even a genuinely random strategy will show some positive or negative deviation by chance across ~700 draws -- check p_value_vs_random before treating a ranking difference as a real edge. None of these strategies change actual jackpot odds, which are fixed at 1-in-324,632 regardless of numbers chosen."
   },
   "ensemble_calibration": {
-    "n_backtested_draws": 690,
+    "n_backtested_draws": 691,
     "notify_threshold_confidence": 1.3132674474111754,
-    "correlation_confidence_vs_main_hits": -0.04112524350350948,
-    "correlation_confidence_vs_special_hit": 0.018965282800054165,
-    "avg_main_hits_overall": 0.7507246376811594,
+    "correlation_confidence_vs_main_hits": -0.04088064578471963,
+    "correlation_confidence_vs_special_hit": 0.018746619325624127,
+    "avg_main_hits_overall": 0.7510853835021708,
     "note": "Same honesty caveat as the single-model calibration: a correlation near 0 means ensemble confidence does not predict real hit rate. The threshold only controls notification frequency (top ~5% most 'unusual' rounds), not a genuine edge."
   },
   "tuning_report": null,
   "performance_over_time": {
-    "labels": [],
-    "series": {}
+    "labels": [
+      "00751"
+    ],
+    "series": {
+      "balanced_signal": [
+        1.0
+      ],
+      "cold_numbers": [
+        1.0
+      ],
+      "crowd_avoidance": [
+        1.0
+      ],
+      "ensemble": [
+        1.0
+      ],
+      "exponential_decay": [
+        0.0
+      ],
+      "hot_numbers": [
+        1.0
+      ],
+      "jackpot_hunter": [
+        1.0
+      ],
+      "long_absence": [
+        0.0
+      ],
+      "markov_chain": [
+        1.0
+      ],
+      "not_repeat": [
+        2.0
+      ],
+      "pair_frequency": [
+        1.0
+      ],
+      "pattern": [
+        0.0
+      ]
+    }
   },
-  "model_accuracy": {},
-  "draw_history": [],
-  "n_resolved_predictions": 0
+  "model_accuracy": {
+    "balanced_signal": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "cold_numbers": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "crowd_avoidance": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 1
+    },
+    "ensemble": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "exponential_decay": {
+      "n": 1,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0
+    },
+    "hot_numbers": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "jackpot_hunter": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "long_absence": {
+      "n": 1,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0
+    },
+    "markov_chain": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "not_repeat": {
+      "n": 1,
+      "avg_main_hits": 2,
+      "special_hit_rate": 0
+    },
+    "pair_frequency": {
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0
+    },
+    "pattern": {
+      "n": 1,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0
+    }
+  },
+  "draw_history": [
+    {
+      "target_draw_id": "00751",
+      "draw_date": "2026-07-09",
+      "actual_main": [
+        6,
+        10,
+        20,
+        25,
+        33
+      ],
+      "actual_special": 1,
+      "ensemble_predicted_main": [
+        15,
+        18,
+        22,
+        26,
+        33
+      ],
+      "ensemble_predicted_special": 9,
+      "ensemble_main_hits": 1,
+      "ensemble_special_hit": false
+    }
+  ],
+  "n_resolved_predictions": 1
 }
