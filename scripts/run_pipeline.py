@@ -23,6 +23,7 @@ Full automated pipeline, run twice daily by GitHub Actions:
 import csv
 import json
 import os
+import sys
 from datetime import datetime, timezone
 
 from model import parse_draws
@@ -30,7 +31,7 @@ from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
 from jackpot_watch import check_early_alert, check_scrape_alert
 from jackpot_hunter import hunter_predict
-from notify_ntfy import send as ntfy_send
+from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
 
 import tuning
@@ -40,6 +41,17 @@ import ensemble_calibrate
 DATA_PATH = "data/all.csv"
 CALIBRATION_PATH = "state/ensemble_calibration.json"
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "lotto535-thuan")
+
+
+def ntfy_send(*args, **kwargs):
+    """Send an ntfy notification, but NEVER let a notification failure abort
+    the pipeline. A transient ntfy.sh outage / rate-limit / network blip must
+    not stop us from logging the prediction and resolving past results (both
+    happen after the notify blocks). Log the error and carry on."""
+    try:
+        _ntfy_send_raw(*args, **kwargs)
+    except Exception as e:  # noqa: BLE001 -- notifications are best-effort
+        print(f"WARNING: ntfy notification failed (continuing): {e}", file=sys.stderr)
 
 
 def load_draws():
