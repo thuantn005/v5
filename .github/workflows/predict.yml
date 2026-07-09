@@ -41,9 +41,10 @@ jobs:
       - name: Fetch latest draw data
         run: python scripts/fetch_data.py
 
-      - name: Run full pipeline (tune -> backtest -> ensemble -> notify -> log)
+      - name: Run full pipeline (Claude predict -> jackpot check -> notify -> log)
         env:
           NTFY_TOPIC: lotto535-thuan
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python scripts/run_pipeline.py
 
       - name: Generate dashboard data for GitHub Pages

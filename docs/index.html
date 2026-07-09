@@ -48,7 +48,6 @@
   .muted { color: var(--muted); }
   canvas { max-height: 320px; }
   .loading { color: var(--muted); padding: 40px; text-align: center; }
-  .strategy-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
 </style>
 </head>
 <body>
@@ -56,11 +55,11 @@
   <div class="subtitle" id="generated-at">Đang tải...</div>
 
   <div class="banner">
-    ⚠️ <b>Lưu ý quan trọng:</b> Đây là dự án thống kê/kỹ thuật, không phải công cụ tăng tỷ lệ trúng thật.
-    Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ — xác suất trúng Jackpot luôn cố định
-    ở mức 1/324.632 bất kể chọn số theo cách nào. Các model dưới đây được so sánh trung thực
-    với baseline ngẫu nhiên (không dùng chỉ số ROI dễ gây hiểu lầm). Chỉ nên xem đây là công cụ
-    giải trí / học thống kê.
+    ⚠️ <b>Lưu ý quan trọng:</b> Dự án này dùng Claude (AI) để chọn số, nhưng KHÔNG phải công cụ
+    tăng tỷ lệ trúng thật. Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ — xác suất trúng
+    Jackpot luôn cố định ở mức 1/324.632 bất kể chọn số theo cách nào, kể cả do AI chọn.
+    Bảng "độ chính xác" bên dưới là kết quả THẬT đã đối chiếu (không phải backtest giả lập).
+    Chỉ nên xem đây là công cụ giải trí.
   </div>
 
   <div class="grid" id="app">
@@ -80,46 +79,26 @@ function ballHTML(n, special=false) {
 function renderLatestPrediction(data) {
   const lp = data.latest_prediction;
   if (!lp) return '<div class="card"><h2>🎯 Bộ số dự đoán mới nhất</h2><p class="muted">Chưa có dữ liệu.</p></div>';
-  const ens = lp.ensemble;
-  const hunter = lp.hunter;
+  const claude = lp.claude;
+  const hunterSets = lp.hunter_sets || [];
   let html = `<div class="card">
     <h2>🎯 Bộ số dự đoán mới nhất — Kỳ #${lp.target_draw_id}</h2>
-    <div class="muted">Ensemble Voting (trung bình chuẩn hóa của 10 model), dựa trên kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date})</div>
-    <div class="numbers">${ens.main.map(n => ballHTML(n)).join('')}${ballHTML(ens.special, true)}</div>
-    <div class="muted">Độ tin cậy nội bộ: ${ens.confidence.toFixed(3)} (chỉ số heuristic, không phải xác suất trúng)</div>`;
-  if (hunter) {
-    html += `<h3 style="font-size:0.85rem;margin-top:14px;color:var(--muted)">🏹 Jackpot Hunter (né số công cụ tham khảo công khai gợi ý)</h3>
-    <div class="numbers">${hunter.main.map(n => ballHTML(n)).join('')}${ballHTML(hunter.special, true)}</div>
-    <div class="muted" style="font-size:0.75rem">${hunter.reference_available ? 'Đã loại trừ ' + hunter.excluded_main.length + ' số công khai từ công cụ tham khảo' : 'Không lấy được dữ liệu tham khảo -- dùng ensemble thuần'}</div>`;
+    <div class="muted">Chọn bởi Claude, dựa trên kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date})</div>`;
+  if (claude) {
+    html += `<div class="numbers">${claude.main.map(n => ballHTML(n)).join('')}${ballHTML(claude.special, true)}</div>
+    <div class="muted" style="font-size:0.8rem">${claude.rationale || ''}</div>`;
+  } else {
+    html += `<p class="muted">Claude không tạo được dự đoán ở lượt này (lỗi API).</p>`;
   }
-  html += `<h3 style="font-size:0.85rem;margin-top:16px;color:var(--muted)">Từng model dự đoán</h3>`;
-  for (const [name, pick] of Object.entries(lp.per_strategy || {})) {
-    html += `<div class="strategy-row"><span>${name}</span><span>${pick.main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(pick.special).padStart(2,'0')}</span></div>`;
+  if (hunterSets.length > 0) {
+    html += `<h3 style="font-size:0.85rem;margin-top:14px;color:var(--muted)">🏹 Jackpot Hunter — ${hunterSets.length} bộ số cho kỳ chia giải (né số công cụ tham khảo công khai gợi ý)</h3>`;
+    for (const s of hunterSets) {
+      html += `<div class="numbers">${s.main.map(n => ballHTML(n)).join('')}${ballHTML(s.special, true)}</div>
+      <div class="muted" style="font-size:0.78rem">${s.rationale || ''}</div>`;
+    }
   }
   html += `</div>`;
   return html;
-}
-
-function renderLeaderboard(data) {
-  const lb = data.leaderboard;
-  if (!lb) return '';
-  let rows = lb.ranking_by_avg_hits.map(r => {
-    const detail = lb.results[r.strategy];
-    const sig = detail.significant_at_0_05 || detail['significant_at_0.05'];
-    return `<tr>
-      <td>${r.strategy}</td>
-      <td>${detail.avg_main_hits.toFixed(4)}</td>
-      <td class="muted">${detail.expected_random_main_hits.toFixed(4)}</td>
-      <td>${detail.p_value_vs_random.toFixed(4)}</td>
-      <td>${sig ? '<span class="pill yes">có ý nghĩa</span>' : '<span class="pill no">chỉ là nhiễu</span>'}</td>
-    </tr>`;
-  }).join('');
-  return `<div class="card">
-    <h2>🏆 Bảng xếp hạng model (backtest walk-forward)</h2>
-    <table><thead><tr><th>Model</th><th>Khớp TB</th><th>Ngẫu nhiên kỳ vọng</th><th>p-value</th><th>Kết luận</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <p class="muted" style="margin-top:10px;font-size:0.78rem">${lb.note}</p>
-  </div>`;
 }
 
 function renderPerformanceChart(data) {
@@ -135,7 +114,7 @@ function drawPerformanceChart(data) {
   if (!pot || !pot.labels || pot.labels.length === 0) return;
   const ctx = document.getElementById('perfChart');
   if (!ctx) return;
-  const colors = ['#4f8cff','#3ecf8e','#f5a623','#ff6b6b','#a56bff','#6bd6ff','#ffb86b','#8affc1','#ff8ac6'];
+  const colors = ['#4f8cff'];
   let i = 0;
   const datasets = Object.entries(pot.series).map(([name, series]) => ({
     label: name, data: series, borderColor: colors[i++ % colors.length],
@@ -158,14 +137,15 @@ function drawPerformanceChart(data) {
 function renderModelAccuracy(data) {
   const ma = data.model_accuracy;
   if (!ma || Object.keys(ma).length === 0) {
-    return '<div class="card"><h2>📉 Độ chính xác từng model (thực tế đã triển khai)</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
+    return '<div class="card"><h2>📉 Độ chính xác thực tế của Claude</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
   }
-  let rows = Object.entries(ma).sort((a,b) => b[1].avg_main_hits - a[1].avg_main_hits)
+  let rows = Object.entries(ma)
     .map(([name, s]) => `<tr><td>${name}</td><td>${s.n}</td><td>${s.avg_main_hits.toFixed(4)}</td><td>${(s.special_hit_rate*100).toFixed(1)}%</td></tr>`).join('');
   return `<div class="card">
-    <h2>📉 Độ chính xác từng model (thực tế đã triển khai)</h2>
+    <h2>📉 Độ chính xác thực tế của Claude</h2>
     <table><thead><tr><th>Model</th><th>Số kỳ</th><th>Khớp TB</th><th>Tỷ lệ trúng ĐB</th></tr></thead>
     <tbody>${rows}</tbody></table>
+    <p class="muted" style="margin-top:10px;font-size:0.78rem">Dựa trên các dự đoán thật đã gửi và đối chiếu kết quả thật -- không phải backtest giả lập. Ngẫu nhiên kỳ vọng: 0.7143 khớp/kỳ.</p>
   </div>`;
 }
 
@@ -177,12 +157,12 @@ function renderDrawHistory(data) {
   let rows = hist.map(h => `<tr>
     <td>#${h.target_draw_id}</td><td>${h.draw_date}</td>
     <td>${h.actual_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.actual_special).padStart(2,'0')}</td>
-    <td>${h.ensemble_predicted_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.ensemble_predicted_special).padStart(2,'0')}</td>
-    <td>${h.ensemble_main_hits}/5${h.ensemble_special_hit ? ' + ĐB' : ''}</td>
+    <td>${h.claude_predicted_main ? h.claude_predicted_main.map(n=>String(n).padStart(2,'0')).join('-') + ' + ' + String(h.claude_predicted_special).padStart(2,'0') : 'N/A'}</td>
+    <td>${h.claude_main_hits !== null ? h.claude_main_hits + '/5' + (h.claude_special_hit ? ' + ĐB' : '') : 'N/A'}</td>
   </tr>`).join('');
   return `<div class="card">
     <h2>📊 Lịch sử các kỳ quay & kết quả</h2>
-    <table><thead><tr><th>Kỳ</th><th>Ngày</th><th>Kết quả thật</th><th>Ensemble đã dự đoán</th><th>Khớp</th></tr></thead>
+    <table><thead><tr><th>Kỳ</th><th>Ngày</th><th>Kết quả thật</th><th>Claude đã dự đoán</th><th>Khớp</th></tr></thead>
     <tbody>${rows}</tbody></table>
   </div>`;
 }
@@ -195,10 +175,7 @@ async function main() {
 
   const app = document.getElementById('app');
   app.innerHTML = `
-    <div class="grid grid-2">
-      ${renderLatestPrediction(data)}
-      ${renderLeaderboard(data)}
-    </div>
+    ${renderLatestPrediction(data)}
     ${renderPerformanceChart(data)}
     <div class="grid grid-2">
       ${renderModelAccuracy(data)}

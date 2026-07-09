@@ -1,9 +1,12 @@
 """
 generate_dashboard_data.py
 ----------------------------
-Aggregates state/model_leaderboard.json, state/ensemble_calibration.json,
-state/tuning_report.json, and state/ensemble_log.jsonl into a single
-docs/data.json consumed by docs/index.html (the GitHub Pages dashboard).
+Aggregates state/ensemble_log.jsonl into a single docs/data.json consumed
+by docs/index.html (the GitHub Pages dashboard). This is Claude's REAL
+track record (predictions actually made and later resolved against real
+draws) -- not a retroactive backtest, since re-running an LLM over
+hundreds of historical draws isn't cheap/practical the way the old
+deterministic strategies were.
 """
 
 import json
@@ -12,76 +15,56 @@ import statistics
 
 from multi_log import load_log
 
-LEADERBOARD_PATH = "state/model_leaderboard.json"
-CALIBRATION_PATH = "state/ensemble_calibration.json"
-TUNING_REPORT_PATH = "state/tuning_report.json"
 OUTPUT_PATH = "docs/data.json"
 
 
-def _read_json(path):
-    if not os.path.exists(path):
-        return None
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
-
-
 def build_performance_over_time(resolved_entries):
-    """Running (cumulative) average main-hits per strategy, in chronological
-    order, for the '📈 Biểu đồ hiệu năng theo thời gian' chart."""
-    strategy_names = set()
-    for e in resolved_entries:
-        strategy_names.update(e["hits"].keys())
-    strategy_names = sorted(strategy_names)
-
-    running_sums = {name: 0.0 for name in strategy_names}
-    running_counts = {name: 0 for name in strategy_names}
-    series = {name: [] for name in strategy_names}
+    """Running (cumulative) average main-hits for Claude's real predictions,
+    in chronological order, for the '📈 Biểu đồ hiệu năng theo thời gian' chart."""
     labels = []
+    series = []
+    running_sum, running_count = 0.0, 0
 
     for e in resolved_entries:
+        hits = e["hits"].get("claude")
+        if hits is None:
+            continue
         labels.append(e["target_draw_id"])
-        for name in strategy_names:
-            h = e["hits"].get(name)
-            if h is not None:
-                running_sums[name] += h["main_hits"]
-                running_counts[name] += 1
-            avg = (running_sums[name] / running_counts[name]) if running_counts[name] else None
-            series[name].append(round(avg, 4) if avg is not None else None)
+        running_sum += hits["main_hits"]
+        running_count += 1
+        series.append(round(running_sum / running_count, 4))
 
-    return {"labels": labels, "series": series}
+    return {"labels": labels, "series": {"claude": series}}
 
 
 def build_model_accuracy(resolved_entries):
-    strategy_names = set()
-    for e in resolved_entries:
-        strategy_names.update(e["hits"].keys())
-
-    summary = {}
-    for name in sorted(strategy_names):
-        hits_list = [e["hits"][name]["main_hits"] for e in resolved_entries if name in e["hits"]]
-        special_list = [e["hits"][name]["special_hit"] for e in resolved_entries if name in e["hits"]]
-        if not hits_list:
-            continue
-        summary[name] = {
+    hits_list = [e["hits"]["claude"]["main_hits"] for e in resolved_entries if e["hits"].get("claude")]
+    special_list = [e["hits"]["claude"]["special_hit"] for e in resolved_entries if e["hits"].get("claude")]
+    if not hits_list:
+        return {}
+    return {
+        "claude": {
             "n": len(hits_list),
             "avg_main_hits": round(statistics.mean(hits_list), 4),
             "special_hit_rate": round(statistics.mean(special_list), 4),
         }
-    return summary
+    }
 
 
 def build_draw_history(resolved_entries, limit=50):
     rows = []
     for e in reversed(resolved_entries[-limit:]):
+        claude = e.get("claude")
+        claude_hits = e["hits"].get("claude")
         rows.append({
             "target_draw_id": e["target_draw_id"],
             "draw_date": e["actual"]["draw_date"],
             "actual_main": e["actual"]["main"],
             "actual_special": e["actual"]["special"],
-            "ensemble_predicted_main": e["ensemble"]["main"],
-            "ensemble_predicted_special": e["ensemble"]["special"],
-            "ensemble_main_hits": e["hits"]["ensemble"]["main_hits"],
-            "ensemble_special_hit": bool(e["hits"]["ensemble"]["special_hit"]),
+            "claude_predicted_main": claude["main"] if claude else None,
+            "claude_predicted_special": claude["special"] if claude else None,
+            "claude_main_hits": claude_hits["main_hits"] if claude_hits else None,
+            "claude_special_hit": bool(claude_hits["special_hit"]) if claude_hits else None,
         })
     return rows
 
@@ -100,9 +83,6 @@ def main():
     data = {
         "generated_at": None,
         "latest_prediction": latest_prediction,
-        "leaderboard": _read_json(LEADERBOARD_PATH),
-        "ensemble_calibration": _read_json(CALIBRATION_PATH),
-        "tuning_report": _read_json(TUNING_REPORT_PATH),
         "performance_over_time": build_performance_over_time(resolved),
         "model_accuracy": build_model_accuracy(resolved),
         "draw_history": build_draw_history(resolved),

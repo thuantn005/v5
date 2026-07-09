@@ -1,19 +1,21 @@
 """
 multi_log.py
 -------------
-Persistent, append-only log of every ensemble + per-strategy prediction,
-and the resolver that fills in real outcomes once they're known.
+Persistent, append-only log of every Claude prediction (+ jackpot-round
+hunter ticket sets), and the resolver that fills in real outcomes once
+they're known.
 
 Format: state/ensemble_log.jsonl, one JSON object per line:
 {
   "generated_at": ISO8601, "based_on_draw_id", "based_on_draw_date",
   "target_draw_id",
-  "ensemble": {"main": [...], "special": int, "confidence": float},
-  "per_strategy": {"<name>": {"main": [...], "special": int}, ...},
+  "claude": {"main": [...], "special": int, "rationale": str} | null,
+  "hunter_sets": [{"main": [...], "special": int, "rationale": str}, ...],
   "notified": bool, "jackpot_vnd": int|null,
   "resolved": bool,
   "actual": {"main": [...], "special": int} | null,
-  "hits": {"ensemble": {"main_hits", "special_hit"}, "<name>": {...}, ...} | null
+  "hits": {"claude": {"main_hits", "special_hit"} | null,
+           "hunter_sets": [{"main_hits", "special_hit"}, ...]} | null
 }
 """
 
@@ -77,16 +79,11 @@ def resolve_all():
             continue
 
         hits = {}
-        ens = entry["ensemble"]
-        hits["ensemble"] = match_count(ens["main"], ens["special"], actual)
-        for name, pick in entry.get("per_strategy", {}).items():
-            hits[name] = match_count(pick["main"], pick["special"], actual)
-        hunter = entry.get("hunter")
-        if hunter:
-            hits["jackpot_hunter"] = match_count(hunter["main"], hunter["special"], actual)
-        hunter = entry.get("hunter")
-        if hunter and hunter.get("main") and hunter.get("special") is not None:
-            hits["jackpot_hunter"] = match_count(hunter["main"], hunter["special"], actual)
+        claude = entry.get("claude")
+        hits["claude"] = match_count(claude["main"], claude["special"], actual) if claude else None
+        hits["hunter_sets"] = [
+            match_count(s["main"], s["special"], actual) for s in entry.get("hunter_sets", [])
+        ]
 
         entry["actual"] = {
             "main": actual.numbers,

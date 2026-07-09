@@ -13,17 +13,14 @@ using those same numbers, you have a higher chance of splitting with them.
 
 This module fetches the reference site's latest LOCKED prediction ledger
 (predictions/ledger.jsonl -- a public, hash-chained, pre-registered log,
-not something we're guessing at), takes the union of every number their
-various strategies recommended for the upcoming draw, and produces a pick
-that:
-  1. Starts from OUR OWN ensemble score (so it's still informed by our
-     own multi-model analysis, not just "anything but theirs").
-  2. Completely excludes any number in the reference site's recommended
-     set, reducing (not eliminating -- other tools/players exist too)
-     the chance of an accidental crowd collision.
+not something we're guessing at), then asks Claude (claude_predict.py) for
+several DIVERSE number sets that completely exclude every number in the
+reference site's recommended set -- giving the user multiple ticket
+options to buy for a jackpot-sharing round, all avoiding the same crowd
+collision risk.
 
 If the ledger can't be fetched (network issue, repo restructured), this
-falls back to the plain ensemble pick with no exclusions, and says so
+falls back to a plain Claude pick with no exclusions, and says so
 explicitly rather than silently guessing.
 """
 
@@ -32,15 +29,15 @@ import json
 
 import requests
 
-from ensemble import ensemble_scores, load_tuned_params
-from strategies import pick_topk
-from model import MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
+from claude_predict import claude_pick
+from model import Draw
 
 LEDGER_URL = (
     "https://raw.githubusercontent.com/NhanAZ-Data/"
     "vietlott-prediction-web/main/predictions/ledger.jsonl"
 )
 PRODUCT = "lotto535"
+N_HUNTER_SETS = 5
 
 
 def fetch_reference_predictions() -> dict | None:
@@ -82,40 +79,29 @@ def fetch_reference_predictions() -> dict | None:
             "n_strategies": len(latest_batch)}
 
 
-def hunter_predict(history, tuned_params=None) -> dict:
-    tuned_params = tuned_params or load_tuned_params()
+def hunter_predict(history: list[Draw], n_sets: int = N_HUNTER_SETS) -> dict:
+    """Returns multiple diverse ticket sets for a jackpot-sharing round,
+    each excluding the public reference tool's recommended numbers.
 
-    main_ensemble, _ = ensemble_scores(history, MAIN_MIN, MAIN_MAX, MAIN_K, False, tuned_params)
-    special_ensemble, _ = ensemble_scores(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True, tuned_params)
-
+    {
+      "sets": [{"main": [...], "special": int, "rationale": str}, ...],
+      "excluded_main": [...], "excluded_special": [...],
+      "reference_available": bool,
+      "reference_generated_at": str | None,
+    }
+    """
     reference = fetch_reference_predictions()
+    exclude_main = reference["main"] if reference else set()
+    exclude_special = reference["special"] if reference else set()
 
-    if reference is None:
-        return {
-            "main_numbers": pick_topk(main_ensemble, 5),
-            "special_number": pick_topk(special_ensemble, 1)[0],
-            "excluded_main": [],
-            "excluded_special": [],
-            "reference_available": False,
-        }
-
-    remaining_main = {n: s for n, s in main_ensemble.items() if n not in reference["main"]}
-    remaining_special = {n: s for n, s in special_ensemble.items() if n not in reference["special"]}
-
-    # Safety net: if the reference set is somehow huge and empties the pool,
-    # fall back to the full pool rather than erroring out.
-    if len(remaining_main) < 5:
-        remaining_main = main_ensemble
-    if not remaining_special:
-        remaining_special = special_ensemble
+    sets = claude_pick(history, n_sets=n_sets, exclude_main=exclude_main, exclude_special=exclude_special)
 
     return {
-        "main_numbers": pick_topk(remaining_main, 5),
-        "special_number": pick_topk(remaining_special, 1)[0],
-        "excluded_main": sorted(reference["main"]),
-        "excluded_special": sorted(reference["special"]),
-        "reference_available": True,
-        "reference_generated_at": reference["generated_at"],
+        "sets": sets or [],
+        "excluded_main": sorted(exclude_main),
+        "excluded_special": sorted(exclude_special),
+        "reference_available": reference is not None,
+        "reference_generated_at": reference["generated_at"] if reference else None,
     }
 
 
