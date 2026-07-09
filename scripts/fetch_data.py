@@ -10,6 +10,16 @@ or rate-limited the other often still works). If EVERY source fails, this
 does NOT overwrite the existing data/all.csv -- the pipeline just keeps
 running on the last known-good data rather than crashing or wiping it out.
 
+IMPORTANT TIMING NOTE: NhanAZ-Data's dataset typically isn't updated until
+roughly 2-4h after a draw happens (observed from its own fetched_at
+timestamps). That's too slow if a result is needed within ~1h of the draw.
+So AFTER the primary fetch (whether it succeeded or not), this always also
+runs fallback_scraper.py, which scrapes minhchinh.com's live results page
+directly -- that page updates much faster, usually within minutes of a
+draw. fallback_scraper.py only APPENDS genuinely new draws it finds (never
+overwrites), so running it every time is safe and just means "use whichever
+source has the fastest fresh result."
+
 If you have your own scraper/data source, add it to SOURCE_URLS -- 
 everything downstream only needs a CSV with a `draw_id` and `result_json`
 column in the same shape as this dataset.
@@ -42,6 +52,21 @@ def _try_fetch(url: str) -> str | None:
         return None
 
 
+def _run_fast_fallback_patch():
+    """Always try the fast independent scraper too, so we use whichever
+    source (slow-but-complete primary, or fast-but-recent-only fallback)
+    actually has the newest result first. Safe to call unconditionally --
+    it only appends draws not already present."""
+    try:
+        import fallback_scraper
+        appended = fallback_scraper.scrape_and_append()
+        if appended:
+            print(f"Fast fallback scraper (minhchinh.com) patched in {appended} "
+                  f"newer draw(s) not yet in the primary dataset.")
+    except Exception as e:
+        print(f"WARNING: fast fallback scraper check failed (non-fatal): {e}", file=sys.stderr)
+
+
 def main():
     for url in SOURCE_URLS:
         content = _try_fetch(url)
@@ -50,28 +75,15 @@ def main():
                 f.write(content)
             line_count = content.count("\n")
             print(f"Saved {OUTPUT_PATH} ({line_count} lines) from {url}")
+            _run_fast_fallback_patch()
             return
 
-    # Every primary mirror failed -- do NOT wipe out existing data. Instead,
-    # try a genuinely independent source (not a mirror of the same repo) to
-    # at least patch in any new draws since the last known-good data, so the
-    # pipeline doesn't fall behind while the primary dataset is unavailable.
+    # Every primary mirror failed -- do NOT wipe out existing data.
     if os.path.exists(OUTPUT_PATH):
         print(f"ERROR: all {len(SOURCE_URLS)} primary data sources failed. "
               f"Trying independent fallback scraper to patch in new draws...",
               file=sys.stderr)
-        try:
-            import fallback_scraper
-            appended = fallback_scraper.scrape_and_append()
-            if appended:
-                print(f"Fallback scraper patched in {appended} new draw(s). "
-                      f"Continuing with last known-good data + patch.")
-            else:
-                print(f"Fallback scraper found nothing new to add. "
-                      f"Continuing with last known-good {OUTPUT_PATH} as-is.")
-        except Exception as e:
-            print(f"WARNING: fallback scraper also failed ({e}). "
-                  f"Continuing with last known-good {OUTPUT_PATH} as-is.", file=sys.stderr)
+        _run_fast_fallback_patch()
     else:
         print(f"ERROR: all {len(SOURCE_URLS)} data sources failed and no existing "
               f"{OUTPUT_PATH} to fall back on. Cannot proceed.", file=sys.stderr)

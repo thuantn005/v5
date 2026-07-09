@@ -89,10 +89,13 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 ## Vì sao workflow đôi khi không chạy đúng giờ đã đặt (và cách đã khắc phục)
 
-GitHub Actions chạy `schedule` theo kiểu **best-effort**, không đảm bảo đúng giờ tuyệt đối — đặc biệt hay bị trễ hoặc bỏ lỡ nếu đặt vào **đúng phút 00** của giờ, vì đó là lúc hàng loạt workflow khác trên toàn GitHub cùng kích hoạt, gây nghẽn hàng đợi (giới hạn nền tảng, GitHub công bố công khai). Đã khắc phục bằng 2 cách:
+GitHub Actions chạy `schedule` theo kiểu **best-effort**, không đảm bảo đúng giờ tuyệt đối — đặc biệt hay bị trễ hoặc bỏ lỡ nếu đặt vào **đúng phút 00** của giờ, vì đó là lúc hàng loạt workflow khác trên toàn GitHub cùng kích hoạt, gây nghẽn hàng đợi (giới hạn nền tảng, GitHub công bố công khai).
 
-1. **Đổi giờ chạy sang phút lẻ** (14:07 & 22:12 giờ VN thay vì đúng 14:00/22:00) — né giờ cao điểm.
-2. **Thêm lượt chạy dự phòng** 30 phút sau mỗi lượt chính (14:37 & 22:42) — nếu lượt chính bị GitHub bỏ lỡ, lượt dự phòng sẽ chạy thay. `run_pipeline.py` có cơ chế chống trùng (`already_predicted()`): nếu đã dự đoán cho kỳ đó rồi (lượt chính chạy thành công), lượt dự phòng sẽ tự bỏ qua, không gửi thông báo hay ghi log trùng lặp.
+**Yêu cầu: phải có kết quả trong vòng 1 tiếng sau mỗi kỳ quay.** Đã khắc phục bằng 3 cách:
+
+1. **Chạy sớm hơn nhiều**: primary chạy ở phút **+35** sau mỗi kỳ quay (13:35 & 21:35 giờ VN), backup ở phút **+50** (13:50 & 21:50) — cả hai đều nằm trong khung 1 tiếng.
+2. **`fetch_data.py` giờ LUÔN kiểm tra cả nguồn nhanh** (`fallback_scraper.py` cào trực tiếp minhchinh.com) **song song với nguồn chính** (NhanAZ-Data), không đợi nguồn chính lỗi mới dùng — vì NhanAZ-Data quan sát được là hay cập nhật trễ 2-4 tiếng, không kịp yêu cầu 1 tiếng. minhchinh.com cập nhật nhanh hơn nhiều (thường trong vài chục phút), nên hệ thống luôn ưu tiên dùng bất kỳ nguồn nào có kết quả mới nhất trước.
+3. **Cơ chế chống trùng** (`already_predicted()`): nếu lượt +35 phút chưa có kết quả mới, sẽ tự bỏ qua (không báo/log gì); lượt +50 phút sẽ thử lại. Nếu lượt +35 đã thành công, lượt +50 tự nhận biết và bỏ qua để tránh trùng lặp.
 
 ## Bộ số "chọn ngược lại" (model balanced_signal)
 

@@ -2,22 +2,24 @@ name: Lotto 5/35 Predict & Notify
 
 on:
   schedule:
-    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7).
-    # We run ~1h after each draw to give the data source time to update:
-    # 14:00 ICT = 07:00 UTC, 22:00 ICT = 15:00 UTC
+    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7). We need a result
+    # within 1 hour of the draw, so we run at +35min (primary) and +50min
+    # (backup) -- fetch_data.py now always also checks the fast independent
+    # scraper (minhchinh.com, updates within minutes of a draw) in addition
+    # to the primary dataset (which can take 2-4h to publish), so +35min is
+    # comfortably enough margin in practice.
     #
     # NOTE: cron minute is intentionally NOT ":00" -- GitHub Actions'
     # scheduler queues everyone who requests the top of the hour at once,
     # which is the single most common cause of scheduled workflows firing
     # late or getting silently dropped during high load. Off-peak minutes
-    # (here :07 and :12) run far more reliably. We also add two backup
-    # triggers 30-40 min later in case the primary slot is skipped -- the
-    # pipeline is idempotent per draw (multi_log.resolve_all() only acts
-    # once a new draw is actually available), so an extra run is harmless.
-    - cron: "7 7 * * *"     # ~14:07 ICT (primary)
-    - cron: "37 7 * * *"    # ~14:37 ICT (backup, in case primary was dropped)
-    - cron: "12 15 * * *"   # ~22:12 ICT (primary)
-    - cron: "42 15 * * *"   # ~22:42 ICT (backup)
+    # run far more reliably. The pipeline is idempotent per draw
+    # (multi_log.resolve_all() / run_pipeline.already_predicted() dedup),
+    # so an extra run is harmless.
+    - cron: "35 6 * * *"    # ~13:35 ICT (primary, 35 min after the 13:00 draw)
+    - cron: "50 6 * * *"    # ~13:50 ICT (backup)
+    - cron: "35 14 * * *"   # ~21:35 ICT (primary, 35 min after the 21:00 draw)
+    - cron: "50 14 * * *"   # ~21:50 ICT (backup)
   workflow_dispatch: {}     # allows manual "Run workflow" button too
 
 permissions:
