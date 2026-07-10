@@ -189,10 +189,11 @@ def main():
     main_str = "-".join(f"{n:02d}" for n in pred["main_numbers"])
     special_str = f"{pred['special_number']:02d}"
 
-    print(f"\n=== 3 bộ vé (chọn ngẫu nhiên có thể tái tạo) cho draw #{target_id} ===")
+    print(f"\n=== Bộ vé cho draw #{target_id} ===")
     for i, t in enumerate(pred["tickets"], 1):
         t_main = "-".join(f"{n:02d}" for n in t["main"])
-        print(f"Vé #{i}: {t_main} + special {t['special']:02d}  (trace: {t['seed_trace_main']})")
+        label = t.get("label") or f"Ngẫu nhiên #{i}"
+        print(f"{label}: {t_main} + special {t['special']:02d}  (trace: {t['seed_trace_main']})")
     print(f"Jackpot: {jackpot}")
     print(f"Early alert: {early_alert}")
     print(f"Notify: {should_notify} (jackpot_round={jackpot_round})")
@@ -243,14 +244,17 @@ def main():
             "hơn bình thường, không liên quan đến việc chọn số nào."
         )
 
+        def _ticket_line(t, idx):
+            label = t.get("label") or f"Ngẫu nhiên #{idx}"
+            nums = "-".join(f"{n:02d}" for n in t["main"])
+            return f"{label}: {nums} + đặc biệt {t['special']:02d}"
+
         tickets_str = "\n".join(
-            f"Vé #{i}: {'-'.join(f'{n:02d}' for n in t['main'])} + đặc biệt {t['special']:02d}"
-            for i, t in enumerate(pred["tickets"], 1)
+            _ticket_line(t, i) for i, t in enumerate(pred["tickets"], 1)
         )
 
         message = (
             f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
-            f"3 bộ vé (chọn ngẫu nhiên có thể tái tạo lại đúng từ mã seed):\n"
             f"{tickets_str}\n"
             f"— Để so sánh —\n"
             f"Mốc công bằng (ngẫu nhiên): {_ref_str('random_fair')}\n"
@@ -258,13 +262,12 @@ def main():
             f"Giống nhanaz-data: {_ref_str('nhanaz')}\n"
             f"{ev_note}\n"
             f"Lý do gửi: {reason_text}.\n"
-            f"Lưu ý: đây LÀ ngẫu nhiên, không phải dự đoán có edge — mọi bộ số "
-            f"đều có xác suất trúng như nhau. Mã seed từng vé cho phép bất kỳ ai "
-            f"tự tái tạo lại đúng bộ số này. Chơi có trách nhiệm."
+            f"Lưu ý: mọi bộ số đều có xác suất trúng như nhau — mã seed/trace "
+            f"cho phép tái tạo lại đúng bộ số này. Chơi có trách nhiệm."
         )
         ntfy_send(
             NTFY_TOPIC,
-            title="🎯 Lotto 5/35 – 3 bộ vé kỳ tới",
+            title="🎯 Lotto 5/35 – Bộ vé kỳ tới",
             message=message,
             priority="high" if jackpot_round else "default",
             tags="game_die,bar_chart",

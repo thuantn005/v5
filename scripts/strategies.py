@@ -114,12 +114,43 @@ def pick_with_replacement(pool_min: int, pool_max: int, k: int, rng) -> list[int
     return [rng.randint(pool_min, pool_max) for _ in range(k)]
 
 
+def momentum_seeded(history, pool_min, pool_max, k, use_special, params=None):
+    """Momentum-inertia: numbers that appeared more recently get a higher base
+    score (linear recency weight over the last 30 draws). Mixed 40/60 with
+    seeded random noise so the ticket is fully reproducible from its trace.
+
+    The recency signal has no predictive edge — lottery draws are independent
+    — but produces a distinct, history-flavoured ticket that anyone can verify
+    and reproduce from the published trace string."""
+    params = params or {}
+    trace = params.get("trace") or "lotto535|momentum|unseeded"
+    seed = _derive_seed(trace)
+    rng = random.Random(seed)
+
+    pool = list(range(pool_min, pool_max + 1))
+
+    recency = {n: 0.0 for n in pool}
+    lookback = min(len(history), 30)
+    if lookback > 0:
+        for i, draw in enumerate(history[-lookback:]):
+            w = (i + 1) / lookback          # oldest = 1/30, newest = 1.0
+            appeared = [draw.special] if use_special else draw.numbers
+            for n in appeared:
+                if pool_min <= n <= pool_max:
+                    recency[n] += w
+        max_r = max(recency.values()) or 1.0
+        recency = {n: v / max_r for n, v in recency.items()}
+
+    # 40% recency momentum + 60% seeded random
+    return {n: 0.4 * recency[n] + 0.6 * rng.random() for n in pool}
+
+
 STRATEGIES = {
     "uniform_seeded": uniform_seeded,
+    "momentum_seeded": momentum_seeded,
 }
 
 DEFAULT_PARAMS = {
-    # seed is set per-run (per target draw + ticket index), never fixed here
-    # -- see ensemble.py's generate_tickets().
     "uniform_seeded": {"seed": None},
+    "momentum_seeded": {"seed": None},
 }

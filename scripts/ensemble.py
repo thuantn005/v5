@@ -29,7 +29,7 @@ the dashboard/log show all of them.
 import csv
 
 from model import parse_draws, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
-from strategies import uniform_seeded, pick_topk, dataset_fingerprint, seed_trace
+from strategies import uniform_seeded, momentum_seeded, pick_topk, dataset_fingerprint, seed_trace
 
 N_TICKETS = 3
 
@@ -75,18 +75,40 @@ def ensemble_predict(history, tuned_params=None):
     target_draw_id = str(int(history[-1].draw_id) + 1).zfill(width)
 
     tickets = generate_tickets(history, target_draw_id)
+    fp = dataset_fingerprint(history)
+
+    # Momentum ticket: 40% recency-weighted history + 60% seeded random
+    trace_m_main = f"lotto535|momentum|target={target_draw_id}|data={fp}|pool=main"
+    trace_m_spec = f"lotto535|momentum|target={target_draw_id}|data={fp}|pool=special"
+    m_main = momentum_seeded(history, MAIN_MIN, MAIN_MAX, MAIN_K, False, {"trace": trace_m_main})
+    m_spec = momentum_seeded(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True, {"trace": trace_m_spec})
+    momentum_ticket = {
+        "main": pick_topk(m_main, MAIN_K),
+        "special": pick_topk(m_spec, 1)[0],
+        "seed_trace_main": trace_m_main,
+        "seed_trace_special": trace_m_spec,
+        "dataset_fingerprint": fp,
+        "strategy": "momentum",
+        "label": "Quán tính (momentum)",
+    }
+    tickets.append(momentum_ticket)
+
     headline = tickets[0]
 
     per_strategy_picks = {
         f"ticket_{i + 1}": {"main": t["main"], "special": t["special"]}
-        for i, t in enumerate(tickets)
+        for i, t in enumerate(tickets[:3])
+    }
+    per_strategy_picks["ticket_momentum"] = {
+        "main": momentum_ticket["main"],
+        "special": momentum_ticket["special"],
     }
 
     return {
         "main_numbers": headline["main"],
         "special_number": headline["special"],
-        "confidence": 0.0,  # no meaningful concept for a seeded-random pick
-        "tickets": tickets,  # full detail incl. seed traces, for the dashboard/log
+        "confidence": 0.0,
+        "tickets": tickets,
         "per_strategy_picks": per_strategy_picks,
     }
 
