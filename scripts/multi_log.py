@@ -1,20 +1,22 @@
 """
 multi_log.py
 -------------
-Persistent, append-only log of every ensemble + per-strategy prediction,
-and the resolver that fills in real outcomes once they're known.
+Persistent, append-only log of the 3 tickets published each draw, and the
+resolver that fills in real outcomes once they're known.
 
 Format: state/ensemble_log.jsonl, one JSON object per line:
 {
   "generated_at": ISO8601, "based_on_draw_id", "based_on_draw_date",
   "target_draw_id",
-  "ensemble": {"main": [...], "special": int, "confidence": float},
-  "per_strategy": {"<name>": {"main": [...], "special": int}, ...},
-  "notified": bool, "jackpot_vnd": int|null,
+  "tickets": {"random_fair": {"main":[...], "special":int, "trace":...},
+              "random_repeat": {...}, "nhanaz": {...}},
+  "jackpot_vnd": int|null,
   "resolved": bool,
   "actual": {"main": [...], "special": int} | null,
-  "hits": {"ensemble": {"main_hits", "special_hit"}, "<name>": {...}, ...} | null
+  "hits": {"random_fair": {"main_hits", "special_hit"}, ...} | null
 }
+(Older entries used ensemble/per_strategy/references/hunter keys; resolve_all
+still handles them so historical rows keep resolving.)
 """
 
 import csv
@@ -79,15 +81,19 @@ def resolve_all():
             continue
 
         hits = {}
-        ens = entry["ensemble"]
-        hits["ensemble"] = match_count(ens["main"], ens["special"], actual)
-        for name, pick in entry.get("per_strategy", {}).items():
+        # current format: the 3 tickets
+        for key, t in (entry.get("tickets") or {}).items():
+            if t and t.get("main") and t.get("special") is not None:
+                hits[key] = match_count(t["main"], t["special"], actual)
+        # --- legacy formats (so historical rows keep resolving) ---
+        ens = entry.get("ensemble")
+        if ens and ens.get("main") and ens.get("special") is not None:
+            hits["ensemble"] = match_count(ens["main"], ens["special"], actual)
+        for name, pick in (entry.get("per_strategy") or {}).items():
             hits[name] = match_count(pick["main"], pick["special"], actual)
-        # reference / comparison predictions (random baselines + nhanaz mirror)
         for key, ref in (entry.get("references") or {}).items():
             if ref and ref.get("main") and ref.get("special") is not None:
                 hits[f"ref_{key}"] = match_count(ref["main"], ref["special"], actual)
-        # legacy: older log entries used a single "hunter" block
         hunter = entry.get("hunter")
         if hunter and hunter.get("main") and hunter.get("special") is not None:
             hits["jackpot_hunter"] = match_count(hunter["main"], hunter["special"], actual)

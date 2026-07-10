@@ -1,80 +1,68 @@
 """
 run_pipeline.py
 -----------------
-Full automated pipeline, run twice daily by GitHub Actions:
+Automated pipeline, run twice daily by GitHub Actions. The project has been
+reduced to "3 vé mỗi kỳ" (3 tickets per draw) -- there is no model/ensemble:
 
   1. (data/all.csv already refreshed by fetch_data.py, a separate step)
-  2. Auto-tune strategy parameters (tuning.py) -- only runs if >=7 days
-     since the last tuning run; otherwise reuses state/tuned_params.json.
-  3. Backtest every strategy honestly vs the exact random baseline
-     (backtest_all.py) -> state/model_leaderboard.json.
-  4. Calibrate the ensemble's notification threshold (ensemble_calibrate.py).
-  5. Compute the Ensemble Voting prediction for the next draw.
-  6. Check jackpot-sharing-round status + early "sắn kỳ chia giải" alert.
-  7. Decide whether to notify via ntfy (high ensemble confidence OR
-     jackpot-sharing round OR jackpot-threshold-crossing).
-  8. Log the full prediction (ensemble + every individual strategy) to
-     state/ensemble_log.jsonl.
-  9. Resolve any previously-logged predictions whose target draw has now
-     happened (multi_log.resolve_all()).
- 10. Generate dashboard data (generate_dashboard_data.py) for GitHub Pages.
+  2. Build the 3 tickets for the next draw (references.compute_tickets):
+       - random_fair   : fair random baseline (reproducible via trace code)
+       - random_repeat : random with replacement
+       - nhanaz        : mirror of the public nhanaz-data prediction
+  3. Check jackpot-sharing-round status + early / blind-spot alerts.
+  4. Send the "3 vé" ntfy notification (high priority on a sharing round).
+  5. Log the 3 tickets to state/ensemble_log.jsonl.
+  6. Resolve any previously-logged tickets whose draw has now happened, and
+     alert on any 5-main + special perfect match.
+  7. (generate_dashboard_data.py runs as a separate workflow step.)
 """
 
 import csv
-import json
 import os
 import sys
 from datetime import datetime, timezone
 
 from model import parse_draws
-from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
 from jackpot_watch import check_early_alert, check_scrape_alert
-from references import compute_references
+from references import compute_tickets
 from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
 
-import tuning
-import backtest_all
-import ensemble_calibrate
-
 DATA_PATH = "data/all.csv"
-CALIBRATION_PATH = "state/ensemble_calibration.json"
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "lotto535-thuan")
+
+# Tickets shown to the user, in display order.
+TICKET_ORDER = ["random_fair", "random_repeat", "nhanaz"]
 
 
 def ntfy_send(*args, **kwargs):
     """Send an ntfy notification, but NEVER let a notification failure abort
     the pipeline. A transient ntfy.sh outage / rate-limit / network blip must
-    not stop us from logging the prediction and resolving past results (both
-    happen after the notify blocks). Log the error and carry on."""
+    not stop us from logging the tickets and resolving past results."""
     try:
         _ntfy_send_raw(*args, **kwargs)
     except Exception as e:  # noqa: BLE001 -- notifications are best-effort
         print(f"WARNING: ntfy notification failed (continuing): {e}", file=sys.stderr)
 
 
-def _predicted_numbers(entry: dict, label: str):
-    """Return (main_list, special) that `label` predicted in this log entry."""
-    if label == "ensemble":
-        return entry["ensemble"]["main"], entry["ensemble"]["special"]
-    if label.startswith("ref_"):
-        r = (entry.get("references") or {}).get(label[len("ref_"):], {})
-        return r.get("main"), r.get("special")
-    pick = (entry.get("per_strategy") or {}).get(label, {})
-    return pick.get("main"), pick.get("special")
+def _ticket_str(ticket: dict) -> str:
+    if not ticket or not ticket.get("main"):
+        return "n/a"
+    return "-".join(f"{n:02d}" for n in ticket["main"]) + f" + {ticket['special']:02d}"
 
 
 def notify_perfect_wins(newly_resolved):
-    """When any logged prediction for a just-resolved draw matched all 5 main
+    """When any logged ticket for a just-resolved draw matched all 5 main
     numbers AND the special number, fire a celebratory ntfy. Runs off the
     entries resolve_all() reports as newly resolved, so each win alerts
-    exactly once (the run its result first became available)."""
+    exactly once."""
     for entry in newly_resolved:
         actual = entry.get("actual") or {}
         hits = entry.get("hits") or {}
+        tickets = entry.get("tickets") or {}
         winners = [
-            label for label, h in hits.items()
+            key for key, h in hits.items()
             if h and h.get("main_hits") == 5 and h.get("special_hit")
         ]
         if not winners:
@@ -83,23 +71,21 @@ def notify_perfect_wins(newly_resolved):
         actual_main = "-".join(f"{n:02d}" for n in actual.get("main", []))
         actual_special = f"{actual.get('special'):02d}" if actual.get("special") is not None else "??"
         lines = []
-        for label in winners:
-            main, special = _predicted_numbers(entry, label)
-            main_str = "-".join(f"{n:02d}" for n in (main or []))
-            sp_str = f"{special:02d}" if special is not None else "??"
-            lines.append(f"• {label}: {main_str} + {sp_str}")
+        for key in winners:
+            t = tickets.get(key, {})
+            lines.append(f"• {t.get('label', key)}: {_ticket_str(t)}")
 
         ntfy_send(
             NTFY_TOPIC,
-            title="🏆 TRÚNG! Dự đoán khớp 5 số chính + đặc biệt",
+            title="🏆 TRÚNG! Vé khớp 5 số chính + đặc biệt",
             message=(
                 f"Kỳ #{entry.get('target_draw_id')} ({actual.get('draw_date')}):\n"
                 f"Kết quả thật: {actual_main} + đặc biệt {actual_special}\n"
-                f"Bộ số đã dự đoán khớp HOÀN TOÀN (5/5 + ĐB):\n"
+                f"Vé đã khớp HOÀN TOÀN (5/5 + ĐB):\n"
                 + "\n".join(lines) +
                 "\n\nLưu ý trung thực: đây là trùng khớp may mắn, KHÔNG phải bằng "
-                "chứng model có khả năng dự đoán — xác suất mỗi bộ số vẫn là "
-                "1/324.632. Hãy kiểm tra lại vé thật và chơi có trách nhiệm."
+                "chứng có khả năng dự đoán — xác suất mỗi bộ số vẫn là 1/324.632. "
+                "Hãy kiểm tra lại vé thật và chơi có trách nhiệm."
             ),
             priority="max",
             tags="trophy,tada,moneybag",
@@ -112,19 +98,11 @@ def load_draws():
     return parse_draws(rows)
 
 
-def load_calibration():
-    if not os.path.exists(CALIBRATION_PATH):
-        return None
-    with open(CALIBRATION_PATH, encoding="utf-8") as f:
-        return json.load(f)
-
-
 def already_predicted(target_id: str) -> bool:
-    """True if we've already logged a prediction for this target draw.
-    The workflow now fires a primary + backup cron trigger per slot (to
-    survive GitHub's scheduler occasionally dropping/delaying a run), so
-    this guard is what stops the backup run from sending a duplicate
-    notification when the primary run already succeeded."""
+    """True if we've already logged tickets for this target draw. The workflow
+    fires a primary + backup cron trigger per slot (to survive GitHub's
+    scheduler occasionally dropping/delaying a run), so this guard stops the
+    backup run from sending a duplicate notification."""
     for entry in load_log():
         if entry.get("target_draw_id") == target_id:
             return True
@@ -134,79 +112,37 @@ def already_predicted(target_id: str) -> bool:
 def main():
     draws = load_draws()
     if len(draws) < 90:
-        print("Not enough historical draws yet to run the full pipeline.")
+        print("Not enough historical draws yet to run the pipeline.")
         return
-
-    target_id_preview = _next_draw_id(draws[-1].draw_id)
-    if already_predicted(target_id_preview):
-        print(f"Draw #{target_id_preview} was already predicted in an earlier "
-              f"run today (primary/backup dedup) -- skipping to avoid duplicate "
-              f"notifications. Still resolving any newly-available past results.")
-        notify_perfect_wins(resolve_all())
-        return
-
-    # --- Step 2: scheduled auto-tuning ---
-    print("=== Tuning ===")
-    tuning.main()
-
-    # --- Step 3: honest backtest of every strategy ---
-    print("\n=== Backtest all strategies ===")
-    backtest_all.main()
-
-    # --- Step 4: calibrate ensemble notify threshold ---
-    print("\n=== Calibrate ensemble ===")
-    ensemble_calibrate.main()
-
-    # --- Step 5: Ensemble Voting prediction ---
-    tuned_params = load_tuned_params()
-    pred = ensemble_predict(draws, tuned_params)
-    calibration = load_calibration()
-    threshold = calibration["notify_threshold_confidence"] if calibration else None
 
     last_draw = draws[-1]
     target_id = _next_draw_id(last_draw.draw_id)
 
-    # --- Step 5b: reference & fair-comparison predictions (replaces Hunter) ---
-    print("\n=== Reference / comparison predictions ===")
-    references = compute_references(target_id)
+    if already_predicted(target_id):
+        print(f"Draw #{target_id} was already predicted in an earlier run today "
+              f"(primary/backup dedup) -- skipping to avoid duplicate notifications. "
+              f"Still resolving any newly-available past results.")
+        notify_perfect_wins(resolve_all())
+        return
 
-    def _ref_str(key):
-        r = references.get(key, {})
-        if not r.get("main"):
-            return "n/a"
-        return "-".join(f"{n:02d}" for n in r["main"]) + f" + {r['special']:02d}"
+    # --- Step 2: build the 3 tickets ---
+    print(f"=== Tickets for draw #{target_id} ===")
+    tickets = compute_tickets(target_id)
+    for key in TICKET_ORDER:
+        t = tickets.get(key, {})
+        print(f"{t.get('label', key)}: {_ticket_str(t)}"
+              + (f"  [{t['trace']}]" if t.get("trace") else "")
+              + ("" if t.get("main") else "  (không lấy được)"))
 
-    print(f"Mốc công bằng (random): {_ref_str('random_fair')}")
-    print(f"Ngẫu nhiên có lặp:      {_ref_str('random_repeat')}")
-    print(f"Giống nhanaz-data:      {_ref_str('nhanaz')} "
-          f"(available={references.get('nhanaz', {}).get('available')})")
-
-    # --- Step 6: jackpot checks ---
+    # --- Step 3: jackpot checks ---
     jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time)
-    # Surface the "silent blind spot": if every jackpot source failed we
-    # can't tell whether the next draw is the sharing round -- alert once.
     scrape_alert = check_scrape_alert(jackpot["jackpot_vnd"])
     early_alert = check_early_alert(jackpot["jackpot_vnd"])
-
-    high_confidence = threshold is not None and pred["confidence"] >= threshold
     jackpot_round = jackpot["is_sharing_round"]
-    should_notify = high_confidence or jackpot_round
-
-    main_str = "-".join(f"{n:02d}" for n in pred["main_numbers"])
-    special_str = f"{pred['special_number']:02d}"
-
-    print(f"\n=== Ensemble prediction for draw #{target_id} ===")
-    print(f"Main: {main_str} + special {special_str} "
-          f"(confidence={pred['confidence']:.3f}, threshold={threshold})")
     print(f"Jackpot: {jackpot}")
-    print(f"Early alert: {early_alert}")
-    print(f"Notify: {should_notify} (high_confidence={high_confidence}, jackpot_round={jackpot_round})")
-    print(f"Scrape alert: {scrape_alert}")
+    print(f"Scrape alert: {scrape_alert} | Early alert: {early_alert}")
 
-    # --- Step 7 (blind-spot): jackpot scrape failed on every source ---
-    # Without a jackpot figure, is_sharing_round is forced False and both
-    # jackpot alerts stay silent. Warn once so the user can check manually
-    # instead of silently missing the sharing round.
+    # --- Step 3a (blind-spot): every jackpot source failed ---
     if scrape_alert["should_alert"]:
         ntfy_send(
             NTFY_TOPIC,
@@ -222,7 +158,7 @@ def main():
             tags="warning",
         )
 
-    # --- Step 7a: early jackpot-crossing alert (independent of main notify) ---
+    # --- Step 3b: early jackpot-crossing alert ---
     if early_alert["should_alert"]:
         jackpot_str = f"{early_alert['jackpot_vnd']:,}".replace(",", ".")
         ntfy_send(
@@ -237,83 +173,56 @@ def main():
             tags="rotating_light,moneybag",
         )
 
-    # --- Step 7b: main ensemble notify ---
-    if should_notify:
-        reasons = []
-        if high_confidence:
-            reasons.append("độ tin cậy ensemble ở mức top ~5% lịch sử")
-        if jackpot_round:
-            reasons.append(f"kỳ tới ({jackpot['next_draw_date']} 21:00) là kỳ CHIA GIẢI ĐỘC ĐẮC")
-        reason_text = " và ".join(reasons)
+    # --- Step 4: the "3 vé" notification (every draw) ---
+    ticket_lines = []
+    for key in TICKET_ORDER:
+        t = tickets.get(key, {})
+        line = f"• {t.get('label', key)}: {_ticket_str(t)}"
+        if t.get("trace"):
+            line += f"  [{t['trace']}]"
+        ticket_lines.append(line)
 
-        ev_note = ""
-        if jackpot_round:
-            ev_note = (
-                "\n💡 Góc nhìn 'săn jackpot' thật: kỳ chia giải là lúc quỹ Độc Đắc "
-                "được phân bổ xuống các giải thấp hơn NGAY CẢ KHI không ai khớp đủ "
-                "5/5 — đây là điều thật duy nhất làm giá trị kỳ vọng của kỳ này cao "
-                "hơn bình thường, không liên quan đến việc chọn số nào."
-                "\n➡️ Kỳ chia giải thu hút nhiều người chơi hơn nên rủi ro phải CHIA "
-                "giải nếu trúng cũng cao hơn. Bộ Ensemble đã có sẵn model "
-                "crowd_avoidance (né số đám đông) — đây là cách duy nhất có thật để "
-                "tối đa số tiền thực nhận nếu trúng, dù không tăng xác suất trúng."
-            )
-
-        leaderboard = None
-        try:
-            with open("state/model_leaderboard.json", encoding="utf-8") as f:
-                leaderboard = json.load(f)
-        except FileNotFoundError:
-            pass
-        top_model = leaderboard["ranking_by_avg_hits"][0]["strategy"] if leaderboard else "n/a"
-
-        message = (
-            f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
-            f"Bộ số Ensemble ({len(pred['per_strategy_picks'])} model): {main_str} + đặc biệt {special_str}\n"
-            f"— Để so sánh —\n"
-            f"Mốc công bằng (ngẫu nhiên): {_ref_str('random_fair')}\n"
-            f"Ngẫu nhiên có lặp lại: {_ref_str('random_repeat')}\n"
-            f"Giống nhanaz-data: {_ref_str('nhanaz')}\n"
-            f"Model dẫn đầu backtest hiện tại: {top_model} (tham khảo, không phải bảo chứng)"
-            f"{ev_note}\n"
-            f"Lý do gửi: {reason_text}.\n"
-            f"Lưu ý: KHÔNG có model nào làm tăng xác suất trúng thật — Ensemble "
-            f"không hơn 'mốc công bằng' ngẫu nhiên. Chơi có trách nhiệm."
-        )
-        ntfy_send(
-            NTFY_TOPIC,
-            title="🎯 Lotto 5/35 – Dự đoán Ensemble kỳ tới",
-            message=message,
-            priority="high" if jackpot_round else "default",
-            tags="game_die,bar_chart",
+    ev_note = ""
+    if jackpot_round:
+        ev_note = (
+            f"\n💡 Kỳ tới ({jackpot['next_draw_date']} 21:00) là kỳ CHIA GIẢI ĐỘC "
+            "ĐẮC: quỹ Độc Đắc được phân bổ xuống các giải thấp hơn ngay cả khi "
+            "không ai khớp đủ 5/5 — điều thật duy nhất làm kỳ vọng kỳ này cao hơn, "
+            "không liên quan tới việc chọn số nào."
         )
 
-    # --- Step 8: log the full prediction ---
-    per_strategy_serializable = {
-        name: {"main": pick["main"], "special": pick["special"]}
-        for name, pick in pred["per_strategy_picks"].items()
-    }
+    message = (
+        f"3 vé cho kỳ #{target_id} (dựa trên dữ liệu tới hết kỳ #{last_draw.draw_id} "
+        f"ngày {last_draw.draw_date}):\n"
+        + "\n".join(ticket_lines)
+        + ev_note +
+        "\n\nLưu ý trung thực: KHÔNG bộ số nào tăng xác suất trúng — 'mốc so sánh "
+        "công bằng' là chuẩn để thấy rõ điều đó. Xác suất Jackpot cố định "
+        "1/324.632. Chơi có trách nhiệm."
+    )
+    ntfy_send(
+        NTFY_TOPIC,
+        title="🎲 Lotto 5/35 – 3 vé kỳ tới",
+        message=message,
+        priority="high" if jackpot_round else "default",
+        tags="game_die,ticket",
+    )
+
+    # --- Step 5: log the 3 tickets ---
     append_prediction({
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "based_on_draw_id": last_draw.draw_id,
         "based_on_draw_date": last_draw.draw_date,
         "target_draw_id": target_id,
-        "ensemble": {
-            "main": pred["main_numbers"],
-            "special": pred["special_number"],
-            "confidence": round(pred["confidence"], 4),
-        },
-        "references": references,
-        "per_strategy": per_strategy_serializable,
-        "notified": should_notify,
+        "tickets": tickets,
         "jackpot_vnd": jackpot["jackpot_vnd"],
         "resolved": False,
         "actual": None,
         "hits": None,
     })
 
-    # --- Step 9: resolve past predictions (+ alert on any 5-main+special win) ---
-    print("\n=== Resolving past predictions ===")
+    # --- Step 6: resolve past tickets (+ alert on any 5-main+special win) ---
+    print("\n=== Resolving past tickets ===")
     notify_perfect_wins(resolve_all())
 
 
