@@ -310,6 +310,69 @@ def neural_perceptron(history, pool_min, pool_max, k, use_special, params=None):
     return {n: scores[n] / max_s for n in pool}
 
 
+def indian_per_slot(history, pool_min, pool_max, k, use_special, params=None):
+    """Indian mathematics per-slot fusion.
+
+    Main pool (k=5) — each slot owned by a dedicated Indian algorithm:
+      Slot 1 → Vedic Chakra    (digital root frequency, Ankashastra)
+      Slot 2 → Virahanka       (Indian Fibonacci, 7th century CE)
+      Slot 3 → Ramanujan σ/n  (abundancy ratio + prime-factor bonus)
+      Slot 4 → Aryabhata 4320  (maha-yuga astronomical cycle)
+      Slot 5 → Neural Perceptron (transition weight matrix W)
+
+    Each model scores the FULL pool independently; per-slot picks exclude
+    numbers already claimed by a higher-priority slot — no duplicates.
+
+    Special (k=1): weighted consensus of all 5 Indian models on 1-12 pool.
+    """
+    pool = list(range(pool_min, pool_max + 1))
+
+    _slot_fns = [
+        vedic_chakra,
+        vedic_virahanka,
+        ramanujan_sigma,
+        aryabhata_cycle,
+        neural_perceptron,
+    ]
+
+    # Normalised score from each model
+    all_scores = []
+    for fn in _slot_fns:
+        s = fn(history, pool_min, pool_max, k, use_special)
+        max_s = max(s.values()) or 1.0
+        all_scores.append({n: s[n] / max_s for n in pool})
+
+    if k == 1 or use_special:
+        # Consensus for single pick (special number 1-12)
+        return {n: sum(sc[n] for sc in all_scores) / len(all_scores) for n in pool}
+
+    # Per-slot: model i claims slot i
+    chosen = []
+    remaining = set(pool)
+    for i in range(min(k, len(_slot_fns))):
+        ms = all_scores[i]
+        best = max(remaining, key=lambda n: (ms[n], -n))
+        chosen.append(best)
+        remaining.discard(best)
+
+    # Safety fill if k > number of slot models (shouldn't happen for k=5)
+    if k > len(_slot_fns) and remaining:
+        consensus = {n: sum(sc[n] for sc in all_scores) / len(all_scores)
+                     for n in remaining}
+        for _ in range(k - len(_slot_fns)):
+            if not remaining:
+                break
+            best = max(remaining, key=lambda n: (consensus[n], -n))
+            chosen.append(best)
+            remaining.discard(best)
+
+    # Encode chosen numbers as descending scores so pick_topk returns them in order
+    result = {n: 0.0 for n in pool}
+    for rank, n in enumerate(chosen):
+        result[n] = 1.0 - rank * 0.1   # 1.0 → 0.6 for slots 1-5
+    return result
+
+
 STRATEGIES = {
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
@@ -319,6 +382,7 @@ STRATEGIES = {
     "ramanujan_sigma": ramanujan_sigma,
     "aryabhata_cycle": aryabhata_cycle,
     "neural_perceptron": neural_perceptron,
+    "indian_per_slot": indian_per_slot,
 }
 
 DEFAULT_PARAMS = {
@@ -330,4 +394,5 @@ DEFAULT_PARAMS = {
     "ramanujan_sigma": {},
     "aryabhata_cycle": {},
     "neural_perceptron": {},
+    "indian_per_slot": {},
 }

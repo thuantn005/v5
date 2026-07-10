@@ -19,7 +19,7 @@ OUTPUT_PATH = "docs/data.json"
 TICKET_KEYS = ["ticket_1", "ticket_2", "ticket_3", "ticket_momentum",
                "ticket_momentum_top", "ticket_vedic_chakra", "ticket_virahanka",
                "ticket_ramanujan", "ticket_aryabhata", "ticket_neural",
-               "random_fair"]
+               "ticket_indian_per_slot", "random_fair"]
 TICKET_LABELS = {
     "random_fair": "Mốc so sánh công bằng",
     "ticket_1": "Ngẫu nhiên #1",
@@ -32,6 +32,7 @@ TICKET_LABELS = {
     "ticket_ramanujan": "Số học Ramanujan (σ/n)",
     "ticket_aryabhata": "Chu kỳ Aryabhata (4320)",
     "ticket_neural": "Mạng nơ-ron (Perceptron)",
+    "ticket_indian_per_slot": "Hợp nhất Toán Ấn Độ (mỗi số 1 model)",
 }
 
 

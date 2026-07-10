@@ -32,6 +32,7 @@ from model import parse_draws, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAI
 from strategies import (uniform_seeded, momentum_seeded, momentum_pure,
                         vedic_chakra, vedic_virahanka,
                         ramanujan_sigma, aryabhata_cycle, neural_perceptron,
+                        indian_per_slot,
                         pick_topk, dataset_fingerprint, seed_trace)
 
 N_TICKETS = 3
@@ -171,6 +172,27 @@ def ensemble_predict(history, tuned_params=None):
         "special": pick_topk(np_spec, 1)[0],
         "trace": trace_np,
         "label": "Mạng nơ-ron (Perceptron)",
+    }
+
+    # Indian per-slot fusion: each of 5 main slots owned by a dedicated Indian
+    # mathematics model; special = weighted consensus of all 5 models.
+    #   Slot 1 → Vedic Chakra (digital root / Ankashastra)
+    #   Slot 2 → Virahanka (Indian Fibonacci, 7th c. CE)
+    #   Slot 3 → Ramanujan σ/n (abundancy + prime-factor bonus)
+    #   Slot 4 → Aryabhata 4320 (maha-yuga astronomical cycle)
+    #   Slot 5 → Neural Perceptron (transition weight matrix)
+    ips_main = indian_per_slot(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    ips_spec = indian_per_slot(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_ips = f"lotto535|indian-per-slot|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_indian_per_slot"] = {
+        "main": pick_topk(ips_main, MAIN_K),
+        "special": pick_topk(ips_spec, 1)[0],
+        "trace": trace_ips,
+        "label": "Hợp nhất Toán Ấn Độ (mỗi số 1 model)",
+        "slot_labels": [
+            "Vedic Chakra", "Virahanka", "Ramanujan σ/n",
+            "Aryabhata 4320", "Neural Perceptron",
+        ],
     }
 
     return {
