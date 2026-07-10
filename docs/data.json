@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-07-10T16:36:33.635259+00:00",
+  "generated_at": "2026-07-10T20:17:54.579728+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-10T15:16:11.769674+00:00",
+    "generated_at": "2026-07-10T15:26:39.650186+00:00",
     "based_on_draw_id": "00754",
     "based_on_draw_date": "2026-07-10",
     "target_draw_id": "00755",
     "ensemble": {
       "main": [
-        3,
-        7,
-        9,
-        16,
-        31
+        2,
+        8,
+        21,
+        22,
+        23
       ],
-      "special": 7,
+      "special": 9,
       "confidence": 0.0
     },
     "references": {
@@ -61,86 +61,6 @@
       }
     },
     "per_strategy": {
-      "ticket_1": {
-        "main": [
-          3,
-          7,
-          9,
-          16,
-          31
-        ],
-        "special": 7
-      },
-      "ticket_2": {
-        "main": [
-          6,
-          13,
-          21,
-          22,
-          29
-        ],
-        "special": 8
-      },
-      "ticket_3": {
-        "main": [
-          6,
-          9,
-          12,
-          23,
-          25
-        ],
-        "special": 7
-      },
-      "ticket_momentum": {
-        "main": [
-          6,
-          8,
-          11,
-          25,
-          27
-        ],
-        "special": 5
-      },
-      "ticket_vedic_chakra": {
-        "main": [
-          2,
-          4,
-          11,
-          20,
-          29
-        ],
-        "special": 1
-      },
-      "ticket_virahanka": {
-        "main": [
-          20,
-          26,
-          29,
-          32,
-          35
-        ],
-        "special": 12
-      },
-      "ticket_ramanujan": {
-        "main": [
-          12,
-          18,
-          20,
-          24,
-          30
-        ],
-        "special": 12
-      },
-      "ticket_aryabhata": {
-        "main": [
-          6,
-          11,
-          21,
-          26,
-          31
-        ],
-        "special": 1
-      },
       "ticket_neural": {
         "main": [
           2,
@@ -151,15 +71,17 @@
         ],
         "special": 9
       },
-      "ticket_indian_per_slot": {
+      "random_fair": {
         "main": [
-          2,
-          8,
-          21,
-          30,
-          35
+          5,
+          20,
+          22,
+          26,
+          34
         ],
-        "special": 12
+        "special": 5,
+        "trace": "L535-00755-FAIR",
+        "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)"
       }
     },
     "notified": false,
@@ -168,102 +90,6 @@
     "actual": null,
     "hits": null,
     "tickets": {
-      "ticket_1": {
-        "main": [
-          3,
-          7,
-          9,
-          16,
-          31
-        ],
-        "special": 7,
-        "label": "Ngẫu nhiên #1",
-        "trace": null
-      },
-      "ticket_2": {
-        "main": [
-          6,
-          13,
-          21,
-          22,
-          29
-        ],
-        "special": 8,
-        "label": "Ngẫu nhiên #2",
-        "trace": null
-      },
-      "ticket_3": {
-        "main": [
-          6,
-          9,
-          12,
-          23,
-          25
-        ],
-        "special": 7,
-        "label": "Ngẫu nhiên #3",
-        "trace": null
-      },
-      "ticket_momentum": {
-        "main": [
-          6,
-          8,
-          11,
-          25,
-          27
-        ],
-        "special": 5,
-        "label": "Quán tính (momentum)",
-        "trace": null
-      },
-      "ticket_vedic_chakra": {
-        "main": [
-          2,
-          4,
-          11,
-          20,
-          29
-        ],
-        "special": 1,
-        "label": "Vòng số Vedic (Chakra)",
-        "trace": null
-      },
-      "ticket_virahanka": {
-        "main": [
-          20,
-          26,
-          29,
-          32,
-          35
-        ],
-        "special": 12,
-        "label": "Dãy Virahanka (Fibonacci Ấn Độ)",
-        "trace": null
-      },
-      "ticket_ramanujan": {
-        "main": [
-          12,
-          18,
-          20,
-          24,
-          30
-        ],
-        "special": 12,
-        "label": "Số học Ramanujan (σ/n)",
-        "trace": null
-      },
-      "ticket_aryabhata": {
-        "main": [
-          6,
-          11,
-          21,
-          26,
-          31
-        ],
-        "special": 1,
-        "label": "Chu kỳ Aryabhata (4320)",
-        "trace": null
-      },
       "ticket_neural": {
         "main": [
           2,
@@ -274,18 +100,6 @@
         ],
         "special": 9,
         "label": "Mạng nơ-ron (Perceptron)",
-        "trace": null
-      },
-      "ticket_indian_per_slot": {
-        "main": [
-          2,
-          8,
-          21,
-          30,
-          35
-        ],
-        "special": 12,
-        "label": "Hợp nhất Toán Ấn Độ (mỗi số 1 model)",
         "trace": null
       },
       "random_fair": {
@@ -329,152 +143,39 @@
       },
       "ensemble": {
         "main": [
-          3,
-          7,
-          9,
-          16,
-          31
+          2,
+          8,
+          21,
+          22,
+          23
         ],
-        "special": 7,
+        "special": 9,
         "label": "Ensemble"
       }
     }
   },
   "ticket_keys": [
-    "ticket_1",
-    "ticket_2",
-    "ticket_3",
-    "ticket_momentum",
-    "ticket_vedic_chakra",
-    "ticket_virahanka",
-    "ticket_ramanujan",
-    "ticket_aryabhata",
     "ticket_neural",
-    "ticket_indian_per_slot",
     "random_fair"
   ],
   "performance_over_time": {
     "labels": [
-      "00753",
-      "00754"
+      "00753"
     ],
     "series": {
-      "ticket_1": [
-        null,
-        0.0
-      ],
-      "ticket_2": [
-        null,
-        0.0
-      ],
-      "ticket_3": [
-        null,
-        0.0
-      ],
-      "ticket_momentum": [
-        null,
-        1.0
-      ],
-      "ticket_vedic_chakra": [
-        null,
-        1.0
-      ],
-      "ticket_virahanka": [
-        null,
-        1.0
-      ],
-      "ticket_ramanujan": [
-        null,
-        0.0
-      ],
-      "ticket_aryabhata": [
-        null,
-        1.0
-      ],
       "ticket_neural": [
-        null,
-        null
-      ],
-      "ticket_indian_per_slot": [
-        null,
         null
       ],
       "random_fair": [
-        1.0,
         1.0
       ]
     },
     "labels_by_key": {
-      "random_fair": "Mốc so sánh công bằng",
-      "ticket_1": "Ngẫu nhiên #1",
-      "ticket_2": "Ngẫu nhiên #2",
-      "ticket_3": "Ngẫu nhiên #3",
-      "ticket_momentum": "Quán tính (momentum)",
-      "ticket_vedic_chakra": "Vòng số Vedic (Chakra)",
-      "ticket_virahanka": "Dãy Virahanka (Fibonacci Ấn Độ)",
-      "ticket_ramanujan": "Số học Ramanujan (σ/n)",
-      "ticket_aryabhata": "Chu kỳ Aryabhata (4320)",
       "ticket_neural": "Mạng nơ-ron (Perceptron)",
-      "ticket_indian_per_slot": "Hợp nhất Toán Ấn Độ (mỗi số 1 model)"
+      "random_fair": "Mốc so sánh công bằng"
     }
   },
   "ticket_accuracy": {
-    "ticket_1": {
-      "label": "Ngẫu nhiên #1",
-      "n": 1,
-      "avg_main_hits": 0,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_2": {
-      "label": "Ngẫu nhiên #2",
-      "n": 1,
-      "avg_main_hits": 0,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_3": {
-      "label": "Ngẫu nhiên #3",
-      "n": 1,
-      "avg_main_hits": 0,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_momentum": {
-      "label": "Quán tính (momentum)",
-      "n": 1,
-      "avg_main_hits": 1,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_vedic_chakra": {
-      "label": "Vòng số Vedic (Chakra)",
-      "n": 1,
-      "avg_main_hits": 1,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_virahanka": {
-      "label": "Dãy Virahanka (Fibonacci Ấn Độ)",
-      "n": 1,
-      "avg_main_hits": 1,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_ramanujan": {
-      "label": "Số học Ramanujan (σ/n)",
-      "n": 1,
-      "avg_main_hits": 0,
-      "special_hit_rate": 1,
-      "expected_random_main_hits": 0.7143
-    },
-    "ticket_aryabhata": {
-      "label": "Chu kỳ Aryabhata (4320)",
-      "n": 1,
-      "avg_main_hits": 1,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
     "random_fair": {
       "label": "Mốc so sánh công bằng",
       "n": 1,
@@ -549,7 +250,7 @@
           "special_hit": false
         },
         {
-          "label": "Ngẫu nhiên #1",
+          "label": "ticket_1",
           "main": [
             6,
             23,
@@ -562,7 +263,7 @@
           "special_hit": false
         },
         {
-          "label": "Ngẫu nhiên #2",
+          "label": "ticket_2",
           "main": [
             2,
             26,
@@ -575,7 +276,7 @@
           "special_hit": false
         },
         {
-          "label": "Ngẫu nhiên #3",
+          "label": "ticket_3",
           "main": [
             1,
             3,
@@ -588,7 +289,7 @@
           "special_hit": false
         },
         {
-          "label": "Quán tính (momentum)",
+          "label": "ticket_momentum",
           "main": [
             11,
             27,
@@ -614,7 +315,7 @@
           "special_hit": false
         },
         {
-          "label": "Vòng số Vedic (Chakra)",
+          "label": "ticket_vedic_chakra",
           "main": [
             2,
             4,
@@ -627,7 +328,7 @@
           "special_hit": false
         },
         {
-          "label": "Dãy Virahanka (Fibonacci Ấn Độ)",
+          "label": "ticket_virahanka",
           "main": [
             8,
             11,
@@ -640,7 +341,7 @@
           "special_hit": false
         },
         {
-          "label": "Số học Ramanujan (σ/n)",
+          "label": "ticket_ramanujan",
           "main": [
             12,
             18,
@@ -653,7 +354,7 @@
           "special_hit": true
         },
         {
-          "label": "Chu kỳ Aryabhata (4320)",
+          "label": "ticket_aryabhata",
           "main": [
             6,
             11,
