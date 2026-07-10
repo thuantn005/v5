@@ -190,10 +190,8 @@ def main():
     special_str = f"{pred['special_number']:02d}"
 
     print(f"\n=== Bộ vé cho draw #{target_id} ===")
-    for i, t in enumerate(pred["tickets"], 1):
-        t_main = "-".join(f"{n:02d}" for n in t["main"])
-        label = t.get("label") or f"Ngẫu nhiên #{i}"
-        print(f"{label}: {t_main} + special {t['special']:02d}  (trace: {t['seed_trace_main']})")
+    t_main = "-".join(f"{n:02d}" for n in pred["main_numbers"])
+    print(f"🧠 Mạng nơ-ron (Neural): {t_main} + special {pred['special_number']:02d}")
     print(f"Jackpot: {jackpot}")
     print(f"Early alert: {early_alert}")
     print(f"Notify: {should_notify} (jackpot_round={jackpot_round})")
@@ -244,26 +242,17 @@ def main():
             "hơn bình thường, không liên quan đến việc chọn số nào."
         )
 
-        def _ticket_line(t, idx):
-            label = t.get("label") or f"Ngẫu nhiên #{idx}"
-            nums = "-".join(f"{n:02d}" for n in t["main"])
-            return f"{label}: {nums} + đặc biệt {t['special']:02d}"
-
-        tickets_str = "\n".join(
-            _ticket_line(t, i) for i, t in enumerate(pred["tickets"], 1)
-        )
+        neural_str = "-".join(f"{n:02d}" for n in pred["main_numbers"])
+        neural_line = f"🧠 Mạng nơ-ron (Neural): {neural_str} + đặc biệt {pred['special_number']:02d}"
 
         message = (
             f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
-            f"{tickets_str}\n"
-            f"— Để so sánh —\n"
-            f"Mốc công bằng (ngẫu nhiên): {_ref_str('random_fair')}\n"
-            f"Ngẫu nhiên có lặp lại: {_ref_str('random_repeat')}\n"
-            f"Giống nhanaz-data: {_ref_str('nhanaz')}\n"
+            f"{neural_line}\n"
+            f"— Mốc so sánh —\n"
+            f"🎯 Ngẫu nhiên chuẩn: {_ref_str('random_fair')}\n"
             f"{ev_note}\n"
             f"Lý do gửi: {reason_text}.\n"
-            f"Lưu ý: mọi bộ số đều có xác suất trúng như nhau — mã seed/trace "
-            f"cho phép tái tạo lại đúng bộ số này. Chơi có trách nhiệm."
+            f"Lưu ý: mọi bộ số đều có xác suất trúng như nhau. Chơi có trách nhiệm."
         )
         ntfy_send(
             NTFY_TOPIC,
@@ -278,6 +267,16 @@ def main():
         name: {"main": pick["main"], "special": pick["special"]}
         for name, pick in pred["per_strategy_picks"].items()
     }
+    # Include random_fair in per_strategy so resolve_all() tracks its hits
+    # alongside ticket_neural for honest dashboard comparison.
+    rf = references.get("random_fair")
+    if rf and rf.get("main"):
+        per_strategy_serializable["random_fair"] = {
+            "main": rf["main"], "special": rf["special"],
+            "trace": rf.get("trace"),
+            "label": rf.get("label", "Mốc so sánh công bằng"),
+        }
+
     append_prediction({
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "based_on_draw_id": last_draw.draw_id,

@@ -85,17 +85,8 @@ function ballHTML(n, special=false) {
 }
 
 const TICKET_META = {
-  ticket_1:        ['🎰 Ngẫu nhiên #1', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
-  ticket_2:        ['🎰 Ngẫu nhiên #2', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
-  ticket_3:        ['🎰 Ngẫu nhiên #3', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
-  ticket_momentum:     ['⚡ Quán tính (momentum)', '40% số xuất hiện gần nhất (30 kỳ) + 60% ngẫu nhiên có seed — tái tạo được từ trace'],
-ticket_vedic_chakra: ['🔵 Vòng số Vedic (Chakra)', 'Toán Ấn Độ cổ đại: chọn số có căn số (digital root) xuất hiện nhiều nhất trong 30 kỳ — Ankashastra'],
-  ticket_virahanka:    ['🌀 Dãy Virahanka (Fibonacci Ấn Độ)', 'Toán học Ấn Độ thế kỷ 7: sinh dãy Fibonacci từ tổng các kỳ quay gần nhất, ánh xạ vào 1–35'],
-  ticket_ramanujan:    ['∑ Số học Ramanujan (σ/n)', 'Hàm tổng ước σ(n)/n của Ramanujan: số có độ phong phú cao nhất + bonus số chia sẻ ước nguyên tố với kỳ vừa rồi'],
-  ticket_aryabhata:    ['🌙 Chu kỳ Aryabhata (4320)', 'Hằng số thiên văn 4320 từ hệ thống maha-yuga của Aryabhata (476 CN): tạo hoán vị xác định theo số kỳ quay'],
-  ticket_neural:       ['🧠 Mạng nơ-ron (Perceptron)', 'Ma trận trọng số W[output][input] học từ 100 kỳ gần nhất: P(số xuất hiện tiếp | số vừa ra). Score = 0.7·W·x + 0.3·prior'],
-  ticket_indian_per_slot: ['🇮🇳 Hợp nhất Toán Ấn Độ (mỗi số 1 model)', 'Mỗi trong 5 số chính được dự đoán riêng lẻ bởi 1 model: S1=Vedic Chakra · S2=Virahanka · S3=Ramanujan σ/n · S4=Aryabhata 4320 · S5=Neural. Số đặc biệt: đồng thuận cả 5 model'],
-  random_fair:         ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, không lặp — chuẩn để đối chiếu'],
+  ticket_neural: ['🧠 Mạng nơ-ron (Perceptron)', 'Ma trận trọng số W[output][input] học từ 100 kỳ gần nhất: P(số xuất hiện tiếp | số vừa ra). Score = 0.7·W·x + 0.3·prior'],
+  random_fair:   ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, không lặp — chuẩn để đối chiếu'],
 };
 
 function renderLatestPrediction(data) {

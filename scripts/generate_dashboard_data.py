@@ -16,22 +16,10 @@ from multi_log import load_log
 
 OUTPUT_PATH = "docs/data.json"
 
-TICKET_KEYS = ["ticket_1", "ticket_2", "ticket_3", "ticket_momentum",
-               "ticket_vedic_chakra", "ticket_virahanka",
-               "ticket_ramanujan", "ticket_aryabhata", "ticket_neural",
-               "ticket_indian_per_slot", "random_fair"]
+TICKET_KEYS = ["ticket_neural", "random_fair"]
 TICKET_LABELS = {
-    "random_fair": "Mốc so sánh công bằng",
-    "ticket_1": "Ngẫu nhiên #1",
-    "ticket_2": "Ngẫu nhiên #2",
-    "ticket_3": "Ngẫu nhiên #3",
-    "ticket_momentum": "Quán tính (momentum)",
-    "ticket_vedic_chakra": "Vòng số Vedic (Chakra)",
-    "ticket_virahanka": "Dãy Virahanka (Fibonacci Ấn Độ)",
-    "ticket_ramanujan": "Số học Ramanujan (σ/n)",
-    "ticket_aryabhata": "Chu kỳ Aryabhata (4320)",
     "ticket_neural": "Mạng nơ-ron (Perceptron)",
-    "ticket_indian_per_slot": "Hợp nhất Toán Ấn Độ (mỗi số 1 model)",
+    "random_fair": "Mốc so sánh công bằng",
 }
 
 
