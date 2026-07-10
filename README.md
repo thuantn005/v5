@@ -1,11 +1,9 @@
 # Vietlott Lotto 5/35 – "3 vé mỗi kỳ" + Theo dõi trung thực
 
-Mỗi kỳ quay, hệ thống tự động xuất **4 vé** — 1 vé **Ensemble** (giữ riêng) và
-3 vé tham chiếu/so sánh — gửi qua [ntfy](https://ntfy.sh), đối chiếu với kết quả
-thật và hiển thị trên **Dashboard** (GitHub Pages). Không cách chọn số nào vượt
-được may rủi; các vé chỉ để theo dõi/minh hoạ điều đó một cách trung thực. "Mốc
-so sánh công bằng" (vé ngẫu nhiên) là chuẩn để thấy rõ Ensemble **không** hơn
-ngẫu nhiên.
+Mỗi kỳ quay, hệ thống tự động xuất **2 vé** — 1 vé Neural Perceptron và 1 mốc ngẫu
+nhiên công bằng — gửi qua [ntfy](https://ntfy.sh), đối chiếu với kết quả thật và
+hiển thị trên **Dashboard** (GitHub Pages). Không cách chọn số nào vượt được may
+rủi; các vé chỉ để theo dõi/minh hoạ điều đó một cách trung thực.
 
 ## ⚠️ Đọc trước khi dùng
 
@@ -19,10 +17,8 @@ thấy rõ: 3 vé đều bám quanh kỳ vọng ngẫu nhiên, không cái nào 
 
 | Vé | Ý nghĩa |
 |---|---|
-| **Ensemble** (`ensemble`, `ensemble.py`) | Gộp 3 model `gap_zscore` + `momentum` + `crowd_avoidance` (nhóm tương quan + trọng số p-value; không có backtest nên trọng số ~đều). Giữ riêng như 1 vé để **so trực tiếp với mốc ngẫu nhiên** — và nó không hơn. |
-| **Mốc so sánh công bằng** (`random_fair`, `references.py`) | 5 số **khác nhau** chọn ngẫu nhiên đều — *null model đúng*. Mọi vé xác suất như nhau, nên đây là thước đo trung thực để đối chiếu. |
-| **Chọn ngẫu nhiên có thể lặp lại** (`random_repeat`) | 5 số lấy mẫu **có hoàn lại** (cho phép trùng) — mốc *tệ hơn* có chủ đích: số trùng làm phí vị trí nên kỳ vọng khớp thấp hơn mốc công bằng. |
-| **Giống nhanaz-data** (`nhanaz`) | Mô phỏng dự đoán của trang công khai [nhanaz-data](https://nhanaz-data.github.io/vietlott-prediction-web/?product=lotto535#du-doan): lấy **đồng thuận** (5 số được nhiều chiến lược của họ gợi ý nhất) từ sổ ledger đã khóa. Nếu không tải được → `available: false`. |
+| **Mạng nơ-ron** (`ticket_neural`, `ensemble.py`) | Ma trận trọng số W[output][input] học từ 100 kỳ gần nhất: P(số xuất hiện tiếp \| số vừa ra). Score = 0.7·W·x + 0.3·prior. Backtest walk-forward avg_hits=0.7565 (baseline 0.7143), p=0.1304 (chưa có ý nghĩa thống kê). |
+| **Mốc so sánh công bằng** (`random_fair`, `references.py`) | 5 số **khác nhau** chọn ngẫu nhiên đều — *null model đúng*. Mọi vé xác suất như nhau, nên đây là thước đo trung thực để đối chiếu. Kèm mã lưu vết để tái tạo. |
 
 ### Mã lưu vết (reproducible)
 
@@ -52,7 +48,7 @@ scripts/
   jackpot_check.py              # Xác định đúng kỳ "chia giải" Độc Đắc (jackpot > 12 tỷ)
   jackpot_watch.py              # Báo sớm khi jackpot vượt 12 tỷ + báo "mù" khi scrape lỗi
   notify_ntfy.py                # Gửi push notification qua ntfy.sh
-  fetch_data.py / fallback_scraper.py  # Tải/dự phòng dữ liệu kết quả
+  fetch_data.py                 # Cào kết quả kỳ quay trực tiếp từ web (minhchinh.com + vietlott.vn)
   generate_dashboard_data.py    # Tổng hợp docs/data.json cho Dashboard
 
 data/all.csv                    # Dữ liệu lịch sử (tự cập nhật)
@@ -107,11 +103,17 @@ commit — bước tự commit hằng ngày giữ lịch luôn sống.
 **Kích hoạt Pages** (1 lần): Settings → Pages → Deploy from a branch → `main` /
 `/docs` → Save.
 
-## Nguồn dữ liệu (dự phòng 2 tầng)
+## Nguồn dữ liệu kết quả kỳ quay
 
-- **Tầng 1** (`fetch_data.py`): 3 mirror của dataset [`NhanAZ-Data/vietlott-data-research`](https://github.com/NhanAZ-Data/vietlott-data-research) (GitHub raw, jsdelivr, statically) — thay thế toàn bộ `data/all.csv` bằng bản mới nhất.
-- **Tầng 2** (`fallback_scraper.py`): chỉ khi cả 3 mirror lỗi — cào trực tiếp "15 kỳ gần nhất" từ `minhchinh.com` và **chỉ bổ sung** kỳ mới (gắn nhãn nguồn rõ ràng).
-- Cả 2 tầng lỗi → giữ nguyên dữ liệu cũ, không crash.
+`fetch_data.py` cào trực tiếp từ **2 nguồn độc lập** (không phụ thuộc kho dữ liệu bên thứ ba):
+
+| Nguồn | Phạm vi | Ưu tiên |
+|---|---|---|
+| `minhchinh.com` | ~15 kỳ gần nhất, có giờ quay | Nguồn chính |
+| `vietlott.vn` | Kỳ mới nhất, có mã kỳ chính thức | Bổ sung |
+
+- `data/all.csv` đã có đủ lịch sử đầy đủ (commit vào repo). Script chỉ **bổ sung** kỳ mới (chưa có) — an toàn khi chạy nhiều lần.
+- Cả 2 nguồn lỗi → giữ nguyên dữ liệu cũ, không crash.
 - **Giá trị Jackpot** (`jackpot_check.py`): 5 nguồn dự phòng; tất cả lỗi → `jackpot_vnd: null`, không đoán bừa.
 
 ## Chạy thử local
