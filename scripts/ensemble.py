@@ -29,7 +29,7 @@ the dashboard/log show all of them.
 import csv
 
 from model import parse_draws, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
-from strategies import uniform_seeded, momentum_seeded, momentum_pure, pick_topk, dataset_fingerprint, seed_trace
+from strategies import uniform_seeded, momentum_seeded, momentum_pure, vedic_chakra, vedic_virahanka, pick_topk, dataset_fingerprint, seed_trace
 
 N_TICKETS = 3
 
@@ -113,6 +113,28 @@ def ensemble_predict(history, tuned_params=None):
         "special": pick_topk(mp_spec, 1)[0],
         "trace": trace_top,
         "label": "Quán tính xuất sắc nhất",
+    }
+
+    # Vedic Chakra: numbers whose digit root appeared most in last 30 draws
+    vc_main = vedic_chakra(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    vc_spec = vedic_chakra(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_vc = f"lotto535|vedic-chakra|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_vedic_chakra"] = {
+        "main": pick_topk(vc_main, MAIN_K),
+        "special": pick_topk(vc_spec, 1)[0],
+        "trace": trace_vc,
+        "label": "Vòng số Vedic (Chakra)",
+    }
+
+    # Virahanka (Indian Fibonacci): sequence seeded from recent draw sums
+    vv_main = vedic_virahanka(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    vv_spec = vedic_virahanka(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_vv = f"lotto535|virahanka|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_virahanka"] = {
+        "main": pick_topk(vv_main, MAIN_K),
+        "special": pick_topk(vv_spec, 1)[0],
+        "trace": trace_vv,
+        "label": "Dãy Virahanka (Fibonacci Ấn Độ)",
     }
 
     return {

@@ -164,14 +164,71 @@ def momentum_pure(history, pool_min, pool_max, k, use_special, params=None):
     return recency
 
 
+def _digit_root(n: int) -> int:
+    """Reduce n to a single digit by repeated digit-sum (Vedic Ankashastra)."""
+    while n > 9:
+        n = sum(int(d) for d in str(n))
+    return n
+
+
+def vedic_chakra(history, pool_min, pool_max, k, use_special, params=None):
+    """Vedic Chakra (Ankashastra): scores numbers by the frequency of their
+    digital root in recent winning draws. Numbers whose 'vibration' (digit root)
+    appeared most often in the last 30 draws get the highest score.
+    Fully deterministic from draw history."""
+    pool = list(range(pool_min, pool_max + 1))
+    root_freq = {r: 0 for r in range(1, 10)}
+    lookback = min(len(history), 30)
+    for draw in history[-lookback:]:
+        nums = [draw.special] if use_special else draw.numbers
+        for n in nums:
+            r = _digit_root(n) or 9
+            root_freq[r] = root_freq.get(r, 0) + 1
+    max_f = max(root_freq.values()) or 1
+    return {n: root_freq.get(_digit_root(n) or 9, 0) / max_f for n in pool}
+
+
+def vedic_virahanka(history, pool_min, pool_max, k, use_special, params=None):
+    """Virahanka sequence (Indian predecessor to Fibonacci, 7th century CE):
+    seeds a Fibonacci-like sequence from the sums of recent draws, maps each
+    term into the pool. Numbers appearing earlier in the sequence score higher.
+    Fully deterministic from draw history."""
+    pool = list(range(pool_min, pool_max + 1))
+    pool_size = pool_max - pool_min + 1
+
+    if len(history) < 2:
+        a, b = pool_min, pool_min + 1
+    elif use_special:
+        a, b = history[-1].special, history[-2].special
+    else:
+        a, b = sum(history[-1].numbers), sum(history[-2].numbers)
+
+    scores = {n: 0.0 for n in pool}
+    step = 0
+    curr_a, curr_b = int(a), int(b)
+    while step < pool_size * 4:
+        val = ((curr_a - 1) % pool_size) + pool_min
+        if scores[val] == 0.0:          # first time this number appears
+            scores[val] = 1.0 / (step + 1)
+        curr_a, curr_b = curr_b, curr_a + curr_b
+        step += 1
+        if all(v > 0 for v in scores.values()):
+            break
+    return scores
+
+
 STRATEGIES = {
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
     "momentum_pure": momentum_pure,
+    "vedic_chakra": vedic_chakra,
+    "vedic_virahanka": vedic_virahanka,
 }
 
 DEFAULT_PARAMS = {
     "uniform_seeded": {"seed": None},
     "momentum_seeded": {"seed": None},
     "momentum_pure": {},
+    "vedic_chakra": {},
+    "vedic_virahanka": {},
 }

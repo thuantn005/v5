@@ -17,7 +17,8 @@ from multi_log import load_log
 OUTPUT_PATH = "docs/data.json"
 
 TICKET_KEYS = ["ticket_1", "ticket_2", "ticket_3", "ticket_momentum",
-               "ticket_momentum_top", "random_fair"]
+               "ticket_momentum_top", "ticket_vedic_chakra", "ticket_virahanka",
+               "random_fair"]
 TICKET_LABELS = {
     "random_fair": "Mốc so sánh công bằng",
     "ticket_1": "Ngẫu nhiên #1",
@@ -25,6 +26,8 @@ TICKET_LABELS = {
     "ticket_3": "Ngẫu nhiên #3",
     "ticket_momentum": "Quán tính (momentum)",
     "ticket_momentum_top": "Quán tính xuất sắc nhất",
+    "ticket_vedic_chakra": "Vòng số Vedic (Chakra)",
+    "ticket_virahanka": "Dãy Virahanka (Fibonacci Ấn Độ)",
 }
 
 
@@ -125,7 +128,8 @@ def _normalize_latest(entry: dict) -> dict:
             tickets[k] = {
                 "main": pick["main"],
                 "special": pick["special"],
-                "label": TICKET_LABELS.get(k, k),
+                "label": pick.get("label") or TICKET_LABELS.get(k, k),
+                "trace": pick.get("trace"),
             }
     for k, ref in (entry.get("references") or {}).items():
         if ref and ref.get("main") and ref.get("special") is not None:
