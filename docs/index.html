@@ -85,14 +85,12 @@ function ballHTML(n, special=false) {
 }
 
 const TICKET_META = {
-  ensemble:        ['🧠 Ensemble', 'Gộp nhiều model — giữ riêng để so, KHÔNG hơn ngẫu nhiên'],
-  random_fair:     ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, KHÔNG lặp — chuẩn để đối chiếu'],
-  random_repeat:   ['🎲 Ngẫu nhiên (có lặp)', 'Lấy mẫu có hoàn lại — có thể trùng số'],
-  nhanaz:          ['🔗 Giống nhanaz-data', 'Đồng thuận dự đoán công khai của nhanaz-data'],
   ticket_1:        ['🎰 Ngẫu nhiên #1', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
   ticket_2:        ['🎰 Ngẫu nhiên #2', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
   ticket_3:        ['🎰 Ngẫu nhiên #3', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
   ticket_momentum: ['⚡ Quán tính (momentum)', '40% số xuất hiện gần nhất (30 kỳ) + 60% ngẫu nhiên có seed — tái tạo được từ trace'],
+  random_fair:     ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, không lặp — chuẩn để đối chiếu'],
+  nhanaz:          ['🔗 Giống nhanaz-data', 'Đồng thuận dự đoán công khai của nhanaz-data'],
 };
 
 function renderLatestPrediction(data) {

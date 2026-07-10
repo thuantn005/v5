@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T12:45:35.797960+00:00",
+  "generated_at": "2026-07-10T13:14:13.316343+00:00",
   "latest_prediction": {
     "generated_at": "2026-07-10T12:43:20.144606+00:00",
     "based_on_draw_id": "00753",
@@ -200,72 +200,44 @@
           35
         ],
         "special": 2,
-        "label": "Ensemble (3 model)"
+        "label": "Ensemble"
       }
     }
   },
   "ticket_keys": [
-    "ensemble",
-    "random_fair",
-    "random_repeat",
-    "nhanaz",
     "ticket_1",
     "ticket_2",
     "ticket_3",
-    "ticket_momentum"
+    "ticket_momentum",
+    "random_fair",
+    "nhanaz"
   ],
   "performance_over_time": {
     "labels": [
-      "00751",
-      "00752",
       "00753"
     ],
     "series": {
-      "ensemble": [
-        1.0,
-        0.5,
-        0.5
-      ],
-      "random_fair": [
-        null,
-        null,
-        1.0
-      ],
-      "random_repeat": [
-        null,
-        null,
-        1.0
-      ],
-      "nhanaz": [
-        null,
-        null,
-        0.0
-      ],
       "ticket_1": [
-        null,
-        null,
         null
       ],
       "ticket_2": [
-        null,
-        null,
         null
       ],
       "ticket_3": [
-        null,
-        null,
         null
       ],
       "ticket_momentum": [
-        null,
-        null,
         null
+      ],
+      "random_fair": [
+        1.0
+      ],
+      "nhanaz": [
+        0.0
       ]
     },
     "labels_by_key": {
-      "ensemble": "Ensemble (3 model)",
       "random_fair": "Mốc so sánh công bằng",
-      "random_repeat": "Ngẫu nhiên (có lặp)",
       "nhanaz": "Giống nhanaz-data",
       "ticket_1": "Ngẫu nhiên #1",
       "ticket_2": "Ngẫu nhiên #2",
@@ -274,22 +246,8 @@
     }
   },
   "ticket_accuracy": {
-    "ensemble": {
-      "label": "Ensemble (3 model)",
-      "n": 2,
-      "avg_main_hits": 0.5,
-      "special_hit_rate": 0.5,
-      "expected_random_main_hits": 0.7143
-    },
     "random_fair": {
       "label": "Mốc so sánh công bằng",
-      "n": 1,
-      "avg_main_hits": 1,
-      "special_hit_rate": 0,
-      "expected_random_main_hits": 0.7143
-    },
-    "random_repeat": {
-      "label": "Ngẫu nhiên (có lặp)",
       "n": 1,
       "avg_main_hits": 1,
       "special_hit_rate": 0,
@@ -324,19 +282,6 @@
             11,
             21,
             24
-          ],
-          "special": 9,
-          "main_hits": 1,
-          "special_hit": false
-        },
-        {
-          "label": "Chọn ngẫu nhiên (có thể lặp lại)",
-          "main": [
-            19,
-            25,
-            26,
-            34,
-            34
           ],
           "special": 9,
           "main_hits": 1,
