@@ -46,6 +46,13 @@
   .pill.yes { background: #12331f; color: var(--good); }
   .pill.no { background: #331212; color: var(--bad); }
   .muted { color: var(--muted); }
+  .hit { color: var(--good); }
+  .draw-block { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+  .draw-head { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
+  .draw-block details summary { cursor: pointer; font-size: 0.8rem; padding: 2px 0; }
+  .draw-block table.preds { margin-top: 8px; }
+  table.preds td { white-space: nowrap; }
+  table.preds .meta-row td { background: rgba(255,255,255,0.03); }
   canvas { max-height: 320px; }
   .loading { color: var(--muted); padding: 40px; text-align: center; }
   .strategy-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
@@ -174,16 +181,47 @@ function renderDrawHistory(data) {
   if (!hist || hist.length === 0) {
     return '<div class="card"><h2>📊 Lịch sử các kỳ quay</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
   }
-  let rows = hist.map(h => `<tr>
-    <td>#${h.target_draw_id}</td><td>${h.draw_date}</td>
-    <td>${h.actual_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.actual_special).padStart(2,'0')}</td>
-    <td>${h.ensemble_predicted_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.ensemble_predicted_special).padStart(2,'0')}</td>
-    <td>${h.ensemble_main_hits}/5${h.ensemble_special_hit ? ' + ĐB' : ''}</td>
-  </tr>`).join('');
+
+  // Render a set of numbers, bolding the ones that matched the actual draw.
+  const nums = (arr, actualSet) => arr.map(n => {
+    const s = String(n).padStart(2, '0');
+    return actualSet.has(n) ? `<strong class="hit">${s}</strong>` : s;
+  }).join('-');
+
+  const blocks = hist.map(h => {
+    const actualSet = new Set(h.actual_main);
+    const preds = h.predictions || [{
+      label: 'Ensemble', main: h.ensemble_predicted_main, special: h.ensemble_predicted_special,
+      main_hits: h.ensemble_main_hits, special_hit: h.ensemble_special_hit,
+    }];
+    const predRows = preds.map(p => {
+      const isMeta = (p.label === 'Ensemble' || p.label === 'Jackpot Hunter');
+      const specialHit = p.special_hit && p.special === h.actual_special;
+      const hitTxt = (p.main_hits == null ? '—' : `${p.main_hits}/5`) + (specialHit ? ' + ĐB' : '');
+      return `<tr class="${isMeta ? 'meta-row' : ''}">
+        <td>${isMeta ? '<strong>'+p.label+'</strong>' : p.label}</td>
+        <td>${nums(p.main, actualSet)} + ${specialHit ? '<strong class="hit">'+String(p.special).padStart(2,'0')+'</strong>' : String(p.special).padStart(2,'0')}</td>
+        <td>${hitTxt}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="draw-block">
+      <div class="draw-head">
+        <span><strong>#${h.target_draw_id}</strong> · ${h.draw_date}</span>
+        <span>Kết quả thật: <strong class="hit">${h.actual_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.actual_special).padStart(2,'0')}</strong></span>
+        <span class="muted">Ensemble: ${h.ensemble_main_hits == null ? '—' : h.ensemble_main_hits+'/5'}${h.ensemble_special_hit ? ' + ĐB' : ''}</span>
+      </div>
+      <details>
+        <summary class="muted">Xem dự đoán của tất cả model (${preds.length})</summary>
+        <table class="preds"><thead><tr><th>Model</th><th>Bộ số đã dự đoán</th><th>Khớp</th></tr></thead>
+        <tbody>${predRows}</tbody></table>
+      </details>
+    </div>`;
+  }).join('');
+
   return `<div class="card">
     <h2>📊 Lịch sử các kỳ quay & kết quả</h2>
-    <table><thead><tr><th>Kỳ</th><th>Ngày</th><th>Kết quả thật</th><th>Ensemble đã dự đoán</th><th>Khớp</th></tr></thead>
-    <tbody>${rows}</tbody></table>
+    <p class="muted">Số <strong class="hit">in đậm</strong> = trùng kết quả thật. Mở mỗi kỳ để xem dự đoán của cả 12 model + Ensemble + Jackpot Hunter.</p>
+    ${blocks}
   </div>`;
 }
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-09T20:35:26.667083+00:00",
+  "generated_at": "2026-07-10T00:35:09.434452+00:00",
   "latest_prediction": {
     "generated_at": "2026-07-09T18:13:27.919905+00:00",
     "based_on_draw_id": "00752",
@@ -550,7 +550,165 @@
       ],
       "ensemble_predicted_special": 4,
       "ensemble_main_hits": 0,
-      "ensemble_special_hit": true
+      "ensemble_special_hit": true,
+      "predictions": [
+        {
+          "label": "Ensemble",
+          "main": [
+            15,
+            18,
+            26,
+            29,
+            34
+          ],
+          "special": 4,
+          "main_hits": 0,
+          "special_hit": true
+        },
+        {
+          "label": "Jackpot Hunter",
+          "main": [
+            17,
+            19,
+            24,
+            26,
+            31
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "cold_numbers",
+          "main": [
+            3,
+            7,
+            12,
+            16,
+            30
+          ],
+          "special": 11,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "long_absence",
+          "main": [
+            9,
+            18,
+            19,
+            26,
+            32
+          ],
+          "special": 11,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "markov_chain",
+          "main": [
+            6,
+            14,
+            15,
+            26,
+            34
+          ],
+          "special": 1,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "pattern",
+          "main": [
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "balanced_signal",
+          "main": [
+            6,
+            15,
+            18,
+            27,
+            29
+          ],
+          "special": 6,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "crowd_avoidance",
+          "main": [
+            31,
+            32,
+            33,
+            34,
+            35
+          ],
+          "special": 1,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "exponential_decay",
+          "main": [
+            6,
+            15,
+            22,
+            27,
+            34
+          ],
+          "special": 4,
+          "main_hits": 0,
+          "special_hit": true
+        },
+        {
+          "label": "hot_numbers",
+          "main": [
+            6,
+            15,
+            27,
+            33,
+            34
+          ],
+          "special": 4,
+          "main_hits": 0,
+          "special_hit": true
+        },
+        {
+          "label": "not_repeat",
+          "main": [
+            17,
+            18,
+            22,
+            23,
+            26
+          ],
+          "special": 9,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "pair_frequency",
+          "main": [
+            15,
+            22,
+            26,
+            27,
+            33
+          ],
+          "special": 9,
+          "main_hits": 0,
+          "special_hit": false
+        }
+      ]
     },
     {
       "target_draw_id": "00751",
@@ -572,7 +730,165 @@
       ],
       "ensemble_predicted_special": 9,
       "ensemble_main_hits": 1,
-      "ensemble_special_hit": false
+      "ensemble_special_hit": false,
+      "predictions": [
+        {
+          "label": "Ensemble",
+          "main": [
+            15,
+            18,
+            22,
+            26,
+            33
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "Jackpot Hunter",
+          "main": [
+            19,
+            24,
+            32,
+            33,
+            35
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "not_repeat",
+          "main": [
+            10,
+            17,
+            22,
+            26,
+            33
+          ],
+          "special": 9,
+          "main_hits": 2,
+          "special_hit": false
+        },
+        {
+          "label": "balanced_signal",
+          "main": [
+            6,
+            15,
+            18,
+            27,
+            29
+          ],
+          "special": 6,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "cold_numbers",
+          "main": [
+            3,
+            7,
+            12,
+            25,
+            30
+          ],
+          "special": 11,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "crowd_avoidance",
+          "main": [
+            31,
+            32,
+            33,
+            34,
+            35
+          ],
+          "special": 1,
+          "main_hits": 1,
+          "special_hit": true
+        },
+        {
+          "label": "hot_numbers",
+          "main": [
+            15,
+            22,
+            27,
+            33,
+            34
+          ],
+          "special": 4,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "markov_chain",
+          "main": [
+            15,
+            26,
+            27,
+            29,
+            33
+          ],
+          "special": 3,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "pair_frequency",
+          "main": [
+            15,
+            22,
+            26,
+            27,
+            33
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "exponential_decay",
+          "main": [
+            15,
+            22,
+            27,
+            29,
+            34
+          ],
+          "special": 4,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "long_absence",
+          "main": [
+            9,
+            18,
+            19,
+            26,
+            32
+          ],
+          "special": 11,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "pattern",
+          "main": [
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "special": 9,
+          "main_hits": 0,
+          "special_hit": false
+        }
+      ]
     }
   ],
   "n_resolved_predictions": 2

@@ -73,15 +73,45 @@ def build_model_accuracy(resolved_entries):
 def build_draw_history(resolved_entries, limit=50):
     rows = []
     for e in reversed(resolved_entries[-limit:]):
+        hits = e.get("hits", {})
+
+        def entry(label, main, special, hits_key):
+            h = hits.get(hits_key) or {}
+            return {
+                "label": label,
+                "main": main,
+                "special": special,
+                "main_hits": h.get("main_hits"),
+                "special_hit": bool(h.get("special_hit")) if h else None,
+            }
+
+        # Every prediction made for this draw: ensemble, hunter, and each
+        # individual strategy -- so the dashboard can show all of them, not
+        # just the ensemble.
+        predictions = [entry("Ensemble", e["ensemble"]["main"], e["ensemble"]["special"], "ensemble")]
+        hunter = e.get("hunter")
+        if hunter:
+            predictions.append(entry("Jackpot Hunter", hunter["main"], hunter["special"], "jackpot_hunter"))
+        for name, pick in (e.get("per_strategy") or {}).items():
+            predictions.append(entry(name, pick["main"], pick["special"], name))
+
+        # Sort the individual strategies by how well they did this draw (best
+        # first); keep Ensemble + Hunter pinned at the top.
+        head, tail = predictions[:2] if hunter else predictions[:1], \
+            predictions[2:] if hunter else predictions[1:]
+        tail.sort(key=lambda p: (-(p["main_hits"] or 0), p["label"]))
+
         rows.append({
             "target_draw_id": e["target_draw_id"],
             "draw_date": e["actual"]["draw_date"],
             "actual_main": e["actual"]["main"],
             "actual_special": e["actual"]["special"],
+            # kept for backward compatibility with the summary row
             "ensemble_predicted_main": e["ensemble"]["main"],
             "ensemble_predicted_special": e["ensemble"]["special"],
-            "ensemble_main_hits": e["hits"]["ensemble"]["main_hits"],
-            "ensemble_special_hit": bool(e["hits"]["ensemble"]["special_hit"]),
+            "ensemble_main_hits": hits.get("ensemble", {}).get("main_hits"),
+            "ensemble_special_hit": bool(hits.get("ensemble", {}).get("special_hit")),
+            "predictions": head + tail,
         })
     return rows
 
