@@ -29,7 +29,10 @@ the dashboard/log show all of them.
 import csv
 
 from model import parse_draws, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
-from strategies import uniform_seeded, momentum_seeded, momentum_pure, vedic_chakra, vedic_virahanka, pick_topk, dataset_fingerprint, seed_trace
+from strategies import (uniform_seeded, momentum_seeded, momentum_pure,
+                        vedic_chakra, vedic_virahanka,
+                        ramanujan_sigma, aryabhata_cycle,
+                        pick_topk, dataset_fingerprint, seed_trace)
 
 N_TICKETS = 3
 
@@ -135,6 +138,28 @@ def ensemble_predict(history, tuned_params=None):
         "special": pick_topk(vv_spec, 1)[0],
         "trace": trace_vv,
         "label": "Dãy Virahanka (Fibonacci Ấn Độ)",
+    }
+
+    # Ramanujan Sigma: abundancy σ(n)/n + shared prime factor bonus with last draw
+    rs_main = ramanujan_sigma(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    rs_spec = ramanujan_sigma(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_rs = f"lotto535|ramanujan-sigma|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_ramanujan"] = {
+        "main": pick_topk(rs_main, MAIN_K),
+        "special": pick_topk(rs_spec, 1)[0],
+        "trace": trace_rs,
+        "label": "Số học Ramanujan (σ/n)",
+    }
+
+    # Aryabhata cycle: deterministic permutation via constant 4320 × draw_id
+    ac_main = aryabhata_cycle(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    ac_spec = aryabhata_cycle(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_ac = f"lotto535|aryabhata|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_aryabhata"] = {
+        "main": pick_topk(ac_main, MAIN_K),
+        "special": pick_topk(ac_spec, 1)[0],
+        "trace": trace_ac,
+        "label": "Chu kỳ Aryabhata (4320)",
     }
 
     return {

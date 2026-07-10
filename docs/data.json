@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-10T13:24:51.265904+00:00",
+  "generated_at": "2026-07-10T13:36:18.254110+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-10T13:24:43.135870+00:00",
+    "generated_at": "2026-07-10T13:36:04.133213+00:00",
     "based_on_draw_id": "00753",
     "based_on_draw_date": "2026-07-10",
     "target_draw_id": "00754",
@@ -130,6 +130,26 @@
           32
         ],
         "special": 6
+      },
+      "ticket_ramanujan": {
+        "main": [
+          12,
+          18,
+          20,
+          24,
+          30
+        ],
+        "special": 12
+      },
+      "ticket_aryabhata": {
+        "main": [
+          6,
+          11,
+          16,
+          21,
+          26
+        ],
+        "special": 1
       }
     },
     "notified": false,
@@ -222,6 +242,30 @@
         "label": "Dãy Virahanka (Fibonacci Ấn Độ)",
         "trace": null
       },
+      "ticket_ramanujan": {
+        "main": [
+          12,
+          18,
+          20,
+          24,
+          30
+        ],
+        "special": 12,
+        "label": "Số học Ramanujan (σ/n)",
+        "trace": null
+      },
+      "ticket_aryabhata": {
+        "main": [
+          6,
+          11,
+          16,
+          21,
+          26
+        ],
+        "special": 1,
+        "label": "Chu kỳ Aryabhata (4320)",
+        "trace": null
+      },
       "random_fair": {
         "main": [
           2,
@@ -282,6 +326,8 @@
     "ticket_momentum_top",
     "ticket_vedic_chakra",
     "ticket_virahanka",
+    "ticket_ramanujan",
+    "ticket_aryabhata",
     "random_fair"
   ],
   "performance_over_time": {
@@ -310,6 +356,12 @@
       "ticket_virahanka": [
         null
       ],
+      "ticket_ramanujan": [
+        null
+      ],
+      "ticket_aryabhata": [
+        null
+      ],
       "random_fair": [
         1.0
       ]
@@ -322,7 +374,9 @@
       "ticket_momentum": "Quán tính (momentum)",
       "ticket_momentum_top": "Quán tính xuất sắc nhất",
       "ticket_vedic_chakra": "Vòng số Vedic (Chakra)",
-      "ticket_virahanka": "Dãy Virahanka (Fibonacci Ấn Độ)"
+      "ticket_virahanka": "Dãy Virahanka (Fibonacci Ấn Độ)",
+      "ticket_ramanujan": "Số học Ramanujan (σ/n)",
+      "ticket_aryabhata": "Chu kỳ Aryabhata (4320)"
     }
   },
   "ticket_accuracy": {

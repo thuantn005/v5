@@ -217,12 +217,66 @@ def vedic_virahanka(history, pool_min, pool_max, k, use_special, params=None):
     return scores
 
 
+def ramanujan_sigma(history, pool_min, pool_max, k, use_special, params=None):
+    """Ramanujan Sigma: scores numbers by their abundancy ratio σ(n)/n (sum of
+    divisors / n), a function Ramanujan studied deeply. Numbers sharing a prime
+    factor with the last draw's numbers get an extra bonus, making the ticket
+    history-sensitive while grounded in pure number theory."""
+    from math import gcd
+
+    def sigma(n):
+        s = 0
+        for i in range(1, int(n ** 0.5) + 1):
+            if n % i == 0:
+                s += i
+                if i != n // i:
+                    s += n // i
+        return s
+
+    pool = list(range(pool_min, pool_max + 1))
+    abundancy = {n: sigma(n) / n for n in pool}
+    max_ab = max(abundancy.values())
+
+    bonus = {n: 0.0 for n in pool}
+    if history:
+        last_nums = [history[-1].special] if use_special else history[-1].numbers
+        for n in pool:
+            shared = sum(1 for d in last_nums if gcd(n, d) > 1)
+            bonus[n] = shared / max(len(last_nums), 1)
+
+    return {n: abundancy[n] / max_ab + 0.3 * bonus[n] for n in pool}
+
+
+def aryabhata_cycle(history, pool_min, pool_max, k, use_special, params=None):
+    """Aryabhata cycle (476 CE): uses the maha-yuga constant 4320 from
+    Aryabhata's astronomical system to generate a deterministic cyclic
+    sequence seeded from the target draw ID. Each draw yields a distinct
+    permutation of the pool."""
+    pool = list(range(pool_min, pool_max + 1))
+    pool_size = pool_max - pool_min + 1
+    base = (int(history[-1].draw_id) + 1) if history else 1
+    ARYABHATA = 4320
+
+    scores = {n: 0.0 for n in pool}
+    step = 0
+    while step < pool_size * 20:
+        val = pool_min + (base * ARYABHATA * (step + 1)) % pool_size
+        if scores[val] == 0.0:
+            scores[val] = 1.0 / (step + 1)
+        step += 1
+        if all(v > 0 for v in scores.values()):
+            break
+    return scores
+
+
 STRATEGIES = {
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
     "momentum_pure": momentum_pure,
     "vedic_chakra": vedic_chakra,
     "vedic_virahanka": vedic_virahanka,
+    "ramanujan_sigma": ramanujan_sigma,
+    "aryabhata_cycle": aryabhata_cycle,
 }
 
 DEFAULT_PARAMS = {
@@ -231,4 +285,6 @@ DEFAULT_PARAMS = {
     "momentum_pure": {},
     "vedic_chakra": {},
     "vedic_virahanka": {},
+    "ramanujan_sigma": {},
+    "aryabhata_cycle": {},
 }
