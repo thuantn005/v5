@@ -39,7 +39,6 @@ TRAIN_FRACTION = 0.7
 PARAM_GRID = {
     "hot_numbers": {"window": [50, 100, 150]},
     "bayesian_frequency": {"window": [100, 200, 300], "alpha": [0.5, 1.0, 2.0]},
-    "chi_square_uniformity": {"window": [100, 200, 300]},
     "exponential_decay": {"half_life": [15, 30, 60]},
     "pair_frequency": {"window": [100, 150, 200]},
     "markov_chain": {"window": [100, 200, 300]},

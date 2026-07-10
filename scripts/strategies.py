@@ -75,43 +75,10 @@ def bayesian_frequency(history, pool_min, pool_max, k, use_special, params=None)
     return {n: (counts.get(n, 0) + alpha) / denom for n in pool}
 
 
-# ---------------------------------------------------------------------
-# 3. Chi-square uniformity -- standardized Pearson residual of each number's
-#    observed frequency vs the uniform expectation.
-#
-#    Replaces the old `long_absence` ("largest gap -> due"), another
-#    gambler's-fallacy signal. The chi-square goodness-of-fit test is the
-#    correct statistical tool for the underlying question "are the draws
-#    uniform?" -- and its honest answer for a fair lottery is YES (no
-#    structure). Per number we expose the signed Pearson residual
-#        r(n) = (observed - expected) / sqrt(expected)
-#    (favoring recently over-represented numbers), and stash the overall
-#    chi-square statistic + rough p-value on the returned dict's owner via
-#    module-level LAST_CHI2 for transparency. The residuals are noise on a
-#    fair game; the backtest verifies no edge.
-# ---------------------------------------------------------------------
-LAST_CHI2: dict = {}
-
-
-def chi_square_uniformity(history, pool_min, pool_max, k, use_special, params=None):
-    params = params or {}
-    window = params.get("window", 200)
-    pool = list(_pool_range(pool_min, pool_max))
-    counts = _counts_in_window(history, _pool_range(pool_min, pool_max), window, use_special)
-    total = sum(counts.get(n, 0) for n in pool)
-    expected = total / len(pool) if pool else 0.0
-    if expected <= 0:
-        return {n: 0.0 for n in pool}
-    residuals = {}
-    chi2 = 0.0
-    for n in pool:
-        obs = counts.get(n, 0)
-        r = (obs - expected) / math.sqrt(expected)
-        residuals[n] = r
-        chi2 += r * r
-    LAST_CHI2["stat"] = chi2
-    LAST_CHI2["dof"] = len(pool) - 1
-    return residuals
+# NOTE: chi_square_uniformity was removed as a redundant duplicate -- its
+# per-number picks were identical to bayesian_frequency (both are frequency
+# residual/estimate signals, correlation >= 0.9), so it added a second copy
+# of the same vote without a distinct signal. bayesian_frequency covers it.
 
 
 # ---------------------------------------------------------------------
@@ -442,7 +409,6 @@ def pick_topk(scores: dict[int, float], k: int) -> list[int]:
 STRATEGIES = {
     "hot_numbers": hot_numbers,
     "bayesian_frequency": bayesian_frequency,
-    "chi_square_uniformity": chi_square_uniformity,
     "exponential_decay": exponential_decay,
     "pair_frequency": pair_frequency,
     "markov_chain": markov_chain,
@@ -460,7 +426,6 @@ STRATEGIES = {
 DEFAULT_PARAMS = {
     "hot_numbers": {"window": 100},
     "bayesian_frequency": {"window": 200, "alpha": 1.0},
-    "chi_square_uniformity": {"window": 200},
     "exponential_decay": {"half_life": 30},
     "pair_frequency": {"window": 150},
     "markov_chain": {"window": 200},

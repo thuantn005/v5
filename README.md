@@ -1,6 +1,6 @@
 # Vietlott Lotto 5/35 – Multi-Model Ensemble Auto Backtest & Notify
 
-Tự động lấy dữ liệu, chạy **12 model dự đoán độc lập**, tự tối ưu tham số theo lịch, backtest trung thực (so với baseline ngẫu nhiên bằng lý thuyết hypergeometric, không dùng ROI dễ gây hiểu lầm), kết hợp **Ensemble Voting**, gửi thông báo qua [ntfy](https://ntfy.sh), và xuất **Dashboard** trên GitHub Pages.
+Tự động lấy dữ liệu, chạy **11 model dự đoán độc lập**, tự tối ưu tham số theo lịch, backtest trung thực (so với baseline ngẫu nhiên bằng lý thuyết hypergeometric, không dùng ROI dễ gây hiểu lầm), kết hợp **Ensemble Voting**, gửi thông báo qua [ntfy](https://ntfy.sh), và xuất **Dashboard** trên GitHub Pages.
 
 ## ⚠️ Đọc trước khi dùng
 
@@ -19,15 +19,15 @@ Repo tham khảo `vietvudanh/vietlott-data` xếp hạng model bằng ROI mô ph
 ```
 scripts/
   model.py                    # Draw parsing + công thức "balanced signal" gốc (3 cửa sổ z-score)
-  strategies.py                # 12 model: hot_numbers/bayesian_frequency/chi_square_uniformity/
-                                #   exponential_decay/pair_frequency/markov_chain/entropy_diversity/
-                                #   pattern/balanced_signal/crowd_avoidance/gap_zscore/momentum
+  strategies.py                # 11 model: hot_numbers/bayesian_frequency/exponential_decay/
+                                #   pair_frequency/markov_chain/entropy_diversity/pattern/
+                                #   balanced_signal/crowd_avoidance/gap_zscore/momentum
                                 #   (+ random_repeat: chỉ dùng để backtest so sánh)
   jackpot_hunter.py             # Chế độ "Jackpot Hunter": né số công cụ tham khảo công khai (giảm rủi ro chia giải)
   tuning.py                    # Auto-tune tham số từng model (grid search, train/holdout,
                                 #   chỉ chạy lại mỗi 7 ngày -- "theo lịch")
   backtest_all.py              # Backtest walk-forward mọi model, so p-value với baseline ngẫu nhiên
-  ensemble.py                  # Ensemble Voting: gộp điểm 12 model (nhóm tương quan + trọng số p-value) -> 1 bộ số
+  ensemble.py                  # Ensemble Voting: gộp điểm 11 model (nhóm tương quan + trọng số p-value) -> 1 bộ số
   ensemble_calibrate.py        # Backtest + tính ngưỡng thông báo cho ensemble
   multi_log.py                 # Log JSONL mọi dự đoán (ensemble + từng model) + đối chiếu kết quả thật
   jackpot_check.py             # Xác định đúng kỳ "chia giải" Độc Đắc (21h ngày kế tiếp, jackpot > 12 tỷ)
@@ -44,7 +44,7 @@ state/
   tuning_schedule.json          # Lần tuning gần nhất (kiểm soát lịch tự tối ưu)
   model_leaderboard.json        # Bảng xếp hạng backtest mới nhất (trung thực, có p-value)
   ensemble_calibration.json     # Ngưỡng thông báo của ensemble
-  ensemble_log.jsonl            # Lịch sử mọi dự đoán (ensemble + 12 model) + kết quả thật đối chiếu
+  ensemble_log.jsonl            # Lịch sử mọi dự đoán (ensemble + 11 model) + kết quả thật đối chiếu
   jackpot_state.json             # Trạng thái chu kỳ jackpot (chống spam báo sớm)
 docs/
   index.html                     # Dashboard (GitHub Pages)
@@ -52,7 +52,7 @@ docs/
 .github/workflows/predict.yml    # Lịch chạy tự động 2 lần/ngày (~2h sau mỗi kỳ quay)
 ```
 
-## 10 Model chiến lược
+## 11 Model chiến lược
 
 Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvudanh/vietlott-data/tree/main/src/machine_learning/strategies) (gốc cho Power 6/55), điều chỉnh cho Lotto 5/35 (pool 1-35, chọn 5 số):
 
@@ -60,7 +60,6 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 |---|---|
 | `hot_numbers` | Ưu tiên số xuất hiện nhiều nhất trong cửa sổ gần đây |
 | `bayesian_frequency` 🆕 | Ước lượng xác suất từng số theo hậu nghiệm Bayes (Laplace/add-α smoothing) — **thay** `cold_numbers`, bỏ ngụy biện "số ít về là 'đến kỳ'" |
-| `chi_square_uniformity` 🆕 | Phần dư Pearson so với phân phối đều (kiểm định chi-square độ đồng nhất) — **thay** `long_absence`, bỏ ngụy biện "số gan lâu là 'đến kỳ'" |
 | `exponential_decay` | Trọng số giảm dần theo cấp số nhân, kỳ càng gần càng nặng |
 | `pair_frequency` | Ưu tiên số hay đi cùng các số đang "hot" |
 | `markov_chain` | Xác suất chuyển trạng thái: số nào hay về sau các số của kỳ gần nhất |
@@ -71,7 +70,7 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 | **★ `gap_zscore`** | **(Bổ sung)** Số "gan" xét theo **nhịp riêng của từng số**: lệch bao nhiêu so với khoảng cách trung bình của chính nó (z-score), không phải gan tuyệt đối |
 | **★ `momentum`** | **(Bổ sung)** Số có tần suất cửa sổ ngắn **đang tăng** vượt baseline cửa sổ dài của chính nó (xu hướng/gia tốc), khác với "hot" mức tuyệt đối |
 
-> **Nâng cấp kỹ thuật (không tăng tỷ lệ trúng):** 3 model cũ mang tính "ngụy biện con bạc" (`cold_numbers`, `long_absence`, `not_repeat` — đều giả định "số đến kỳ") đã được thay bằng 3 phiên bản **chặt chẽ về thống kê**, và thêm **2 tín hiệu bổ sung** đánh dấu ★ (`gap_zscore`, `momentum`) → **tổng 12 model**. Đây là code đúng đắn/đa dạng hơn, **không** làm tăng xác suất trúng — xổ số vẫn ngẫu nhiên. `random_repeat` (chọn ngẫu nhiên **có lặp lại**) được thêm vào **chỉ để backtest so sánh** (không nằm trong ensemble): nó cho thấy lấy mẫu có hoàn lại **kém hơn** baseline vì các số trùng làm phí vị trí.
+> **Nâng cấp kỹ thuật (không tăng tỷ lệ trúng):** các model cũ mang tính "ngụy biện con bạc" (`cold_numbers`, `long_absence`, `not_repeat` — đều giả định "số đến kỳ") đã bị bỏ; `cold_numbers`→`bayesian_frequency`, `not_repeat`→`entropy_diversity`, còn `long_absence` bỏ hẳn. Thêm **2 tín hiệu bổ sung** ★ (`gap_zscore`, `momentum`). Từng có `chi_square_uniformity` nhưng đã **loại vì trùng hệt `bayesian_frequency`** → còn **11 model**. Đây là code đúng đắn/đa dạng hơn, **không** làm tăng xác suất trúng — xổ số vẫn ngẫu nhiên. `random_repeat` (chọn ngẫu nhiên **có lặp lại**) được thêm **chỉ để backtest so sánh** (không nằm trong ensemble): nó cho thấy lấy mẫu có hoàn lại **kém hơn** baseline vì các số trùng làm phí vị trí.
 
 ## 🏹 Chế độ "Jackpot Hunter"
 
@@ -93,7 +92,7 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 `ensemble.py` chuẩn hóa (min-max) điểm mỗi model về [0,1], rồi gộp lại với **2 tinh chỉnh** thay cho trung bình cộng đều thuần túy:
 
-1. **Nhóm model tương quan** (correlation grouping): nhiều model gần như trùng nhau (ví dụ `bayesian_frequency` và `chi_square_uniformity` cùng dựa trên tần suất → tương quan ~1). Nếu để nguyên, một cụm 2-3 model giống nhau sẽ "bỏ phiếu" áp đảo một model khác biệt chỉ vì trùng lặp. Nên trước khi gộp, các model có vector điểm tương quan ≥ 0.9 được gom thành 1 nhóm và **thu về 1 đại diện** (trung bình nhóm) → mỗi *tín hiệu độc lập* chỉ có 1 phiếu thực.
+1. **Nhóm model tương quan** (correlation grouping): các model họ tần suất/gần đây (ví dụ `hot_numbers`, `bayesian_frequency`, `exponential_decay`) dễ cho bộ số gần giống nhau → tương quan cao. Nếu để nguyên, một cụm model giống nhau sẽ "bỏ phiếu" áp đảo một model khác biệt chỉ vì trùng lặp. Nên trước khi gộp, các model có vector điểm tương quan ≥ 0.9 được gom thành 1 nhóm và **thu về 1 đại diện** (trung bình nhóm) → mỗi *tín hiệu độc lập* chỉ có 1 phiếu thực. (Bản trùng rõ nhất, `chi_square_uniformity`, đã được loại hẳn khỏi bộ model.)
 2. **Trọng số theo p-value**: mỗi nhóm được nhân trọng số `(1 − p_value)` từ backtest gần nhất, để model "khó phân biệt với ngẫu nhiên hơn" đếm nhẹ hơn.
 
 > ⚠️ **Trung thực:** sau hiệu chỉnh Bonferroni (xem dưới), **không model nào đạt ý nghĩa thống kê** — nên trọng số p-value chủ yếu khuếch đại dao động ngẫu nhiên, đúng cái rủi ro "fit nhiễu" mà bản cũ cảnh báo. Vì vậy dải trọng số được **giữ hẹp có chủ đích** (sàn ~0.1) và hiển thị công khai trên dashboard để không bị hiểu nhầm thành "có edge". Khi nào một model thật sự đạt ý nghĩa-sau-hiệu-chỉnh qua nhiều giai đoạn, trọng số này mới phản ánh điều gì đó thật; hiện tại nó gần như đều.
@@ -102,7 +101,7 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 `backtest_all.py` (→ `state/model_leaderboard.json`) ngoài trung bình số trúng & p-value hai phía, còn báo cáo:
 - **Khoảng tin cậy 95%** (`avg_main_hits_ci95`) cho trung bình trúng — nếu khoảng này bao trùm mốc ngẫu nhiên 0.7143 thì model **không phân biệt được** với may rủi.
-- **Hiệu chỉnh đa kiểm định Bonferroni**: test 12 model cùng lúc thì ~1 model sẽ trông "có ý nghĩa" ở mức 0.05 thuần do may. `significant_after_bonferroni` dùng ngưỡng chặt hơn `0.05/12 ≈ 0.0042` — đây mới là mốc trung thực. (Thực tế: không model nào vượt.)
+- **Hiệu chỉnh đa kiểm định Bonferroni**: test 11 model cùng lúc thì ~1 model sẽ trông "có ý nghĩa" ở mức 0.05 thuần do may. `significant_after_bonferroni` dùng ngưỡng chặt hơn `0.05/11 ≈ 0.0045` — đây mới là mốc trung thực. (Thực tế: không model nào vượt.)
 
 ## Vì sao workflow đôi khi không chạy đúng giờ đã đặt (và cách đã khắc phục)
 
