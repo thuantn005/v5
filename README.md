@@ -19,8 +19,9 @@ Repo tham khảo `vietvudanh/vietlott-data` xếp hạng model bằng ROI mô ph
 ```
 scripts/
   model.py                    # Draw parsing + công thức "balanced signal" gốc (3 cửa sổ z-score)
-  strategies.py                # 10 model: hot/cold/long_absence/exponential_decay/pair_frequency/
-                                #   markov_chain/not_repeat/pattern/balanced_signal/crowd_avoidance
+  strategies.py                # 10 model: hot_numbers/bayesian_frequency/chi_square_uniformity/
+                                #   exponential_decay/pair_frequency/markov_chain/entropy_diversity/
+                                #   pattern/balanced_signal/crowd_avoidance (+ random_repeat: chỉ backtest)
   jackpot_hunter.py             # Chế độ "Jackpot Hunter": né số công cụ tham khảo công khai (giảm rủi ro chia giải)
   tuning.py                    # Auto-tune tham số từng model (grid search, train/holdout,
                                 #   chỉ chạy lại mỗi 7 ngày -- "theo lịch")
@@ -57,15 +58,17 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 | Model | Ý tưởng |
 |---|---|
 | `hot_numbers` | Ưu tiên số xuất hiện nhiều nhất trong cửa sổ gần đây |
-| `cold_numbers` | Ưu tiên số xuất hiện ít nhất (ngược lại hot) |
-| `long_absence` | Ưu tiên số "gan" lâu nhất chưa về |
+| `bayesian_frequency` 🆕 | Ước lượng xác suất từng số theo hậu nghiệm Bayes (Laplace/add-α smoothing) — **thay** `cold_numbers`, bỏ ngụy biện "số ít về là 'đến kỳ'" |
+| `chi_square_uniformity` 🆕 | Phần dư Pearson so với phân phối đều (kiểm định chi-square độ đồng nhất) — **thay** `long_absence`, bỏ ngụy biện "số gan lâu là 'đến kỳ'" |
 | `exponential_decay` | Trọng số giảm dần theo cấp số nhân, kỳ càng gần càng nặng |
 | `pair_frequency` | Ưu tiên số hay đi cùng các số đang "hot" |
 | `markov_chain` | Xác suất chuyển trạng thái: số nào hay về sau các số của kỳ gần nhất |
-| `not_repeat` | Né số vừa về ở vài kỳ gần nhất |
+| `entropy_diversity` 🆕 | Dựng vé **trải đều** tối đa entropy phủ dải số (1 đại diện/bucket) — **thay** `not_repeat`, là heuristic dựng vé, không phải dự đoán |
 | `pattern` | Ưu tiên "vùng số" (bucket khoảng) xuất hiện nhiều bất thường |
 | `crowd_avoidance` | Ưu tiên số ngoài "vùng ngày sinh" (1-31) — không tăng tỷ lệ trúng, chỉ giảm rủi ro CHIA giải nếu trúng |
 | `balanced_signal` | Công thức 3 cửa sổ z-score tham khảo từ nhanaz-data (đã dùng từ trước) |
+
+> **Nâng cấp kỹ thuật (không tăng tỷ lệ trúng):** 3 model cũ mang tính "ngụy biện con bạc" (`cold_numbers`, `long_absence`, `not_repeat` — đều giả định "số đến kỳ") đã được thay bằng 3 phiên bản **chặt chẽ về thống kê**. Đây là code đúng đắn hơn, **không** làm tăng xác suất trúng — xổ số vẫn ngẫu nhiên. `random_repeat` (chọn ngẫu nhiên **có lặp lại**) được thêm vào **chỉ để backtest so sánh** (không nằm trong ensemble): nó cho thấy lấy mẫu có hoàn lại **kém hơn** baseline vì các số trùng làm phí vị trí.
 
 ## 🏹 Chế độ "Jackpot Hunter"
 
@@ -73,8 +76,8 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 - **Sự thật duy nhất có ý nghĩa kinh tế thật**: Vietlott chia đều giải Độc Đắc nếu nhiều vé cùng trúng trong 1 kỳ (pari-mutuel). Nếu nhiều người dùng chung 1 công cụ dự đoán công khai (như nhanaz-data) và cùng trúng, họ phải chia nhau giải thưởng.
 - Script tự tải **sổ dự đoán đã khóa trước, có hash chain chống sửa** của `nhanaz-data/vietlott-prediction-web` (`predictions/ledger.jsonl`) — không đoán mò, dùng đúng số họ đã công bố công khai cho kỳ tới.
-- Lấy bộ số Ensemble của hệ thống này làm nền, rồi **loại trừ hoàn toàn** mọi số nằm trong dự đoán công khai đó, chọn lại từ phần còn lại.
-- Nếu không tải được sổ dự đoán tham khảo (mạng lỗi, repo đổi cấu trúc), tự động dùng nguyên bộ Ensemble và báo rõ `reference_available: false` — không đoán bừa.
+- Lấy bộ số Ensemble của hệ thống này làm nền, rồi **loại trừ hoàn toàn** mọi số nằm trong dự đoán công khai đó, và trong phần còn lại **ưu tiên số ít bị đám đông chọn** (blend `crowd_avoidance`: né vùng ngày sinh 1-31, số tháng 1-12, số "may mắn") để giảm thêm rủi ro chia giải.
+- Nếu không tải được sổ dự đoán tham khảo (mạng lỗi, repo đổi cấu trúc), vẫn **áp mô hình né đám đông** lên bộ Ensemble (không còn bỏ trống lớp bảo vệ như trước) và báo rõ `reference_available: false` — không đoán bừa.
 - Bộ số Hunter xuất hiện riêng trong thông báo ntfy (khi có gửi tin) và trong dashboard, tách biệt với bộ Ensemble chính.
 
 **Nhắc lại**: bộ Hunter không có xác suất trúng cao hơn bộ Ensemble hay bất kỳ bộ nào khác — nó chỉ khác về mặt "nếu trúng thì đỡ phải chia" (giả định người khác dùng chung công cụ tham khảo và cùng trúng).
@@ -85,7 +88,18 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 ## Ensemble Voting
 
-`ensemble.py` chuẩn hóa (min-max) điểm số mỗi model về [0,1] rồi lấy **trung bình cộng đều** (không theo trọng số hiệu năng quá khứ, vì `model_leaderboard.json` cho thấy không model nào có edge thật đáng tin để ưu tiên trọng số cao hơn — làm vậy sẽ chỉ là fit nhiễu). Bộ số cuối cùng = 5 số có điểm ensemble cao nhất.
+`ensemble.py` chuẩn hóa (min-max) điểm mỗi model về [0,1], rồi gộp lại với **2 tinh chỉnh** thay cho trung bình cộng đều thuần túy:
+
+1. **Nhóm model tương quan** (correlation grouping): nhiều model gần như trùng nhau (ví dụ `bayesian_frequency` và `chi_square_uniformity` cùng dựa trên tần suất → tương quan ~1). Nếu để nguyên, một cụm 2-3 model giống nhau sẽ "bỏ phiếu" áp đảo một model khác biệt chỉ vì trùng lặp. Nên trước khi gộp, các model có vector điểm tương quan ≥ 0.9 được gom thành 1 nhóm và **thu về 1 đại diện** (trung bình nhóm) → mỗi *tín hiệu độc lập* chỉ có 1 phiếu thực.
+2. **Trọng số theo p-value**: mỗi nhóm được nhân trọng số `(1 − p_value)` từ backtest gần nhất, để model "khó phân biệt với ngẫu nhiên hơn" đếm nhẹ hơn.
+
+> ⚠️ **Trung thực:** sau hiệu chỉnh Bonferroni (xem dưới), **không model nào đạt ý nghĩa thống kê** — nên trọng số p-value chủ yếu khuếch đại dao động ngẫu nhiên, đúng cái rủi ro "fit nhiễu" mà bản cũ cảnh báo. Vì vậy dải trọng số được **giữ hẹp có chủ đích** (sàn ~0.1) và hiển thị công khai trên dashboard để không bị hiểu nhầm thành "có edge". Khi nào một model thật sự đạt ý nghĩa-sau-hiệu-chỉnh qua nhiều giai đoạn, trọng số này mới phản ánh điều gì đó thật; hiện tại nó gần như đều.
+
+## Độ chặt chẽ thống kê của backtest
+
+`backtest_all.py` (→ `state/model_leaderboard.json`) ngoài trung bình số trúng & p-value hai phía, còn báo cáo:
+- **Khoảng tin cậy 95%** (`avg_main_hits_ci95`) cho trung bình trúng — nếu khoảng này bao trùm mốc ngẫu nhiên 0.7143 thì model **không phân biệt được** với may rủi.
+- **Hiệu chỉnh đa kiểm định Bonferroni**: test 10 model cùng lúc thì ~1 model sẽ trông "có ý nghĩa" ở mức 0.05 thuần do may. `significant_after_bonferroni` dùng ngưỡng chặt hơn `0.05/10 = 0.005` — đây mới là mốc trung thực. (Thực tế: không model nào vượt.)
 
 ## Vì sao workflow đôi khi không chạy đúng giờ đã đặt (và cách đã khắc phục)
 

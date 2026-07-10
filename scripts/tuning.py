@@ -38,14 +38,15 @@ TRAIN_FRACTION = 0.7
 # chances to fit train-set noise).
 PARAM_GRID = {
     "hot_numbers": {"window": [50, 100, 150]},
-    "cold_numbers": {"window": [50, 100, 150]},
-    "long_absence": {},  # no tunable params
+    "bayesian_frequency": {"window": [100, 200, 300], "alpha": [0.5, 1.0, 2.0]},
+    "chi_square_uniformity": {"window": [100, 200, 300]},
     "exponential_decay": {"half_life": [15, 30, 60]},
     "pair_frequency": {"window": [100, 150, 200]},
     "markov_chain": {"window": [100, 200, 300]},
-    "not_repeat": {"avoid_last_n": [2, 3, 5]},
+    "entropy_diversity": {"window": [100, 150, 200], "n_buckets": [5, 7]},
     "pattern": {"window": [100, 200, 300]},
     "balanced_signal": {},  # formula fixed to published reference
+    "crowd_avoidance": {},  # bias model is fixed, not fit to draw history
 }
 
 

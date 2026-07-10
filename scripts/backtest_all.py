@@ -25,7 +25,10 @@ import statistics
 from collections import Counter
 
 from model import parse_draws, match_count, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K, Draw
-from strategies import STRATEGIES, DEFAULT_PARAMS, pick_topk, random_baseline
+from strategies import (
+    STRATEGIES, DEFAULT_PARAMS, pick_topk, random_baseline,
+    random_repeat, pick_with_replacement,
+)
 
 DATA_PATH = "data/all.csv"
 OUTPUT_PATH = "state/model_leaderboard.json"
@@ -104,17 +107,46 @@ def evaluate(main_hits_list, special_hits_list):
     var = _hypergeom_variance(POOL_N, DRAWN_K, PICK_K)
     p_value = _z_test_mean(avg_main, n, EXPECTED_RANDOM_HITS, var)
 
+    # Empirical 95% confidence interval for the observed average main hits
+    # (normal approximation, from the sample's own spread). If this interval
+    # comfortably straddles 0.7143, the strategy is indistinguishable from
+    # random -- a far more intuitive read than the p-value alone.
+    sample_sd = statistics.pstdev(main_hits_list) if n > 1 else 0.0
+    se = sample_sd / math.sqrt(n) if n > 0 else 0.0
+    ci95 = [round(avg_main - 1.96 * se, 4), round(avg_main + 1.96 * se, 4)]
+
     return {
         "n_backtested": n,
         "avg_main_hits": round(avg_main, 4),
+        "avg_main_hits_se": round(se, 4),
+        "avg_main_hits_ci95": ci95,
         "expected_random_main_hits": round(EXPECTED_RANDOM_HITS, 4),
         "diff_vs_random": round(avg_main - EXPECTED_RANDOM_HITS, 4),
         "p_value_vs_random": round(p_value, 4),
         "significant_at_0.05": p_value < 0.05,
+        # significant_after_bonferroni is filled in by main() once the total
+        # number of tested hypotheses is known (multiple-comparison control).
+        "significant_after_bonferroni": None,
         "special_hit_rate": round(special_rate, 4),
         "expected_random_special_rate": round(SPECIAL_RANDOM_RATE, 4),
         "main_hit_distribution": {str(k): dist.get(k, 0) for k in range(6)},
     }
+
+
+def backtest_random_repeat(draws, rng):
+    """Walk-forward backtest for the 'random WITH replacement' pick. Because
+    duplicates are allowed, we count DISTINCT matched main numbers, which
+    naturally penalizes wasted (duplicate) slots."""
+    main_hits_list, special_hits_list = [], []
+    history = []
+    for d in draws:
+        if len(history) >= MIN_HISTORY:
+            pred_main = pick_with_replacement(MAIN_MIN, MAIN_MAX, MAIN_K, rng)
+            pred_special = pick_with_replacement(SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, rng)[0]
+            main_hits_list.append(len(set(pred_main) & set(d.numbers)))
+            special_hits_list.append(1 if pred_special == d.special else 0)
+        history.append(d)
+    return main_hits_list, special_hits_list
 
 
 def main():
@@ -147,6 +179,30 @@ def main():
     print(f"{'random_baseline':20s}: avg_hits={results['random_baseline']['avg_main_hits']:.4f} "
           f"(random~{EXPECTED_RANDOM_HITS:.4f}), p={results['random_baseline']['p_value_vs_random']:.4f}")
 
+    # Random WITH replacement -- included to show it is strictly worse (wasted
+    # duplicate slots), NOT part of the ensemble.
+    rng_rep = random.Random(43)
+    rep_main, rep_special = [], []
+    for _ in range(n_repeats):
+        m, s = backtest_random_repeat(draws, rng_rep)
+        rep_main.extend(m)
+        rep_special.extend(s)
+    results["random_repeat"] = evaluate(rep_main, rep_special)
+    print(f"{'random_repeat':20s}: avg_hits={results['random_repeat']['avg_main_hits']:.4f} "
+          f"(random~{EXPECTED_RANDOM_HITS:.4f}) -- with-replacement, expected < baseline")
+
+    # --- Multiple-comparison control (Bonferroni) ---
+    # We test many strategies at once; at alpha=0.05 each, we'd expect ~1 in
+    # 20 to look "significant" purely by chance. Bonferroni divides alpha by
+    # the number of hypotheses so a strategy must clear a much stricter bar
+    # before we call its deviation real.
+    tested = [name for name in results if name not in ("random_baseline", "random_repeat")]
+    n_hyp = max(1, len(tested))
+    bonferroni_alpha = 0.05 / n_hyp
+    for name, r in results.items():
+        if r:
+            r["significant_after_bonferroni"] = r["p_value_vs_random"] < bonferroni_alpha
+
     # Rank by avg_main_hits (informational only -- see README caveat about
     # not over-interpreting small differences as real skill)
     ranking = sorted(
@@ -157,14 +213,20 @@ def main():
     output = {
         "results": results,
         "ranking_by_avg_hits": [{"strategy": n, "avg_main_hits": v} for n, v in ranking],
+        "n_hypotheses_tested": n_hyp,
+        "bonferroni_alpha": round(bonferroni_alpha, 5),
         "note": (
-            "Rankings here reflect avg main-number hits vs the exact random "
-            "baseline (5/35 pick, expected 0.7143 hits), with a two-sided "
-            "p-value. Even a genuinely random strategy will show some "
-            "positive or negative deviation by chance across ~700 draws -- "
-            "check p_value_vs_random before treating a ranking difference "
-            "as a real edge. None of these strategies change actual jackpot "
-            "odds, which are fixed at 1-in-324,632 regardless of numbers chosen."
+            "Rankings reflect avg main-number hits vs the exact random baseline "
+            "(5/35 pick, expected 0.7143 hits), with a two-sided p-value and a "
+            "95% confidence interval (avg_main_hits_ci95). Across ~700 draws a "
+            "genuinely random strategy still deviates by chance, and testing "
+            f"{n_hyp} strategies at once means ~1 would look 'significant' at "
+            "0.05 by luck alone -- so significant_after_bonferroni (alpha = "
+            f"0.05/{n_hyp} = {round(bonferroni_alpha, 5)}) is the honest bar; a "
+            "CI that straddles 0.7143 means indistinguishable from random. "
+            "random_repeat samples WITH replacement and should score BELOW the "
+            "baseline (duplicates waste slots). None of these change the actual "
+            "jackpot odds, fixed at 1-in-324,632 regardless of numbers chosen."
         ),
     }
 

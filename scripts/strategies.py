@@ -26,12 +26,9 @@ pair-synergy-aware greedy picker.
 
 from __future__ import annotations
 import math
-import statistics
 from collections import Counter, defaultdict
 
-from model import Draw, _clip, _binomial_z, _counts_in_window, _gap, score_pool as _balanced_signal_score_pool
-
-Z_CLIP = 4.0
+from model import Draw, _counts_in_window, score_pool as _balanced_signal_score_pool
 
 
 def _pool_range(pool_min: int, pool_max: int):
@@ -53,22 +50,67 @@ def hot_numbers(history, pool_min, pool_max, k, use_special, params=None):
 
 
 # ---------------------------------------------------------------------
-# 2. Cold numbers -- lowest raw frequency (inverse of hot)
+# 2. Bayesian frequency -- posterior mean draw-probability of each number
+#    under a Dirichlet/Laplace prior (add-alpha smoothing).
+#
+#    Replaces the old `cold_numbers`, which was a gambler's-fallacy signal
+#    ("rarely drawn -> due"). This is the statistically sound alternative:
+#    it just estimates each number's underlying probability honestly. With
+#    a symmetric prior the estimate is
+#        p_hat(n) = (count(n) + alpha) / (window_draws*k + alpha*pool_size)
+#    which shrinks small-sample frequencies toward the uniform 1/pool_size.
+#    For a fair lottery every p_hat converges to uniform -- so this makes NO
+#    directional "due"/"hot" claim; it simply reports the best-calibrated
+#    frequency estimate, and the backtest confirms it's ~random.
 # ---------------------------------------------------------------------
-def cold_numbers(history, pool_min, pool_max, k, use_special, params=None):
+def bayesian_frequency(history, pool_min, pool_max, k, use_special, params=None):
     params = params or {}
-    window = params.get("window", 100)
+    window = params.get("window", 200)
+    alpha = params.get("alpha", 1.0)  # Laplace (add-one) by default
+    pool = list(_pool_range(pool_min, pool_max))
     counts = _counts_in_window(history, _pool_range(pool_min, pool_max), window, use_special)
-    max_c = max(counts.values()) if counts else 0
-    return {n: float(max_c - c) for n, c in counts.items()}
+    total = sum(counts.get(n, 0) for n in pool)
+    denom = total + alpha * len(pool)
+    return {n: (counts.get(n, 0) + alpha) / denom for n in pool}
 
 
 # ---------------------------------------------------------------------
-# 3. Long absence -- numbers most overdue (largest gap since last seen)
+# 3. Chi-square uniformity -- standardized Pearson residual of each number's
+#    observed frequency vs the uniform expectation.
+#
+#    Replaces the old `long_absence` ("largest gap -> due"), another
+#    gambler's-fallacy signal. The chi-square goodness-of-fit test is the
+#    correct statistical tool for the underlying question "are the draws
+#    uniform?" -- and its honest answer for a fair lottery is YES (no
+#    structure). Per number we expose the signed Pearson residual
+#        r(n) = (observed - expected) / sqrt(expected)
+#    (favoring recently over-represented numbers), and stash the overall
+#    chi-square statistic + rough p-value on the returned dict's owner via
+#    module-level LAST_CHI2 for transparency. The residuals are noise on a
+#    fair game; the backtest verifies no edge.
 # ---------------------------------------------------------------------
-def long_absence(history, pool_min, pool_max, k, use_special, params=None):
-    gaps = _gap(history, _pool_range(pool_min, pool_max), use_special)
-    return {n: float(g) for n, g in gaps.items()}
+LAST_CHI2: dict = {}
+
+
+def chi_square_uniformity(history, pool_min, pool_max, k, use_special, params=None):
+    params = params or {}
+    window = params.get("window", 200)
+    pool = list(_pool_range(pool_min, pool_max))
+    counts = _counts_in_window(history, _pool_range(pool_min, pool_max), window, use_special)
+    total = sum(counts.get(n, 0) for n in pool)
+    expected = total / len(pool) if pool else 0.0
+    if expected <= 0:
+        return {n: 0.0 for n in pool}
+    residuals = {}
+    chi2 = 0.0
+    for n in pool:
+        obs = counts.get(n, 0)
+        r = (obs - expected) / math.sqrt(expected)
+        residuals[n] = r
+        chi2 += r * r
+    LAST_CHI2["stat"] = chi2
+    LAST_CHI2["dof"] = len(pool) - 1
+    return residuals
 
 
 # ---------------------------------------------------------------------
@@ -164,25 +206,53 @@ def markov_chain(history, pool_min, pool_max, k, use_special, params=None):
 
 
 # ---------------------------------------------------------------------
-# 7. Not-repeat -- deliberately avoid numbers drawn very recently
+# 7. Entropy diversity -- score numbers to build a well-SPREAD ticket that
+#    maximizes coverage entropy across the number range.
+#
+#    Replaces the old `not_repeat` ("avoid numbers seen recently"), a
+#    gambler's-fallacy signal. This one makes no prediction claim at all:
+#    it is a ticket-construction heuristic. We split the pool into equal
+#    range-buckets, measure how concentrated recent draws have been per
+#    bucket, and favor numbers in the LESS-filled buckets so the greedy
+#    top-k picker naturally spreads across the range (higher Shannon
+#    entropy of the bucket distribution = more diverse coverage). It does
+#    NOT change odds; a spread ticket and a clustered ticket win equally
+#    often. Within a bucket, ties break toward individually rarer numbers.
 # ---------------------------------------------------------------------
-def not_repeat(history, pool_min, pool_max, k, use_special, params=None):
+def entropy_diversity(history, pool_min, pool_max, k, use_special, params=None):
     params = params or {}
-    avoid_last_n = params.get("avoid_last_n", 3)
+    window = params.get("window", 150)
+    n_buckets = params.get("n_buckets", 5)
     pool = list(_pool_range(pool_min, pool_max))
-    recently_drawn = set()
-    for d in history[-avoid_last_n:]:
-        recently_drawn.update(_values(d, use_special))
+    n_pool = len(pool)
+    n_buckets = max(1, min(n_buckets, n_pool))
+    bucket_size = max(1, n_pool // n_buckets)
 
-    # Base score = overall frequency (so it's not pure noise), penalized
-    # heavily if drawn within the last `avoid_last_n` draws.
-    counts = _counts_in_window(history, _pool_range(pool_min, pool_max), 100, use_special)
-    max_c = max(counts.values()) if counts else 1
-    scores = {}
+    def bucket_of(n):
+        return min((n - pool_min) // bucket_size, n_buckets - 1)
+
+    counts = _counts_in_window(history, _pool_range(pool_min, pool_max), window, use_special)
+    bucket_fill = Counter()
+    by_bucket = defaultdict(list)
     for n in pool:
-        base = counts.get(n, 0)
-        penalty = max_c * 2 if n in recently_drawn else 0
-        scores[n] = float(base - penalty)
+        b = bucket_of(n)
+        bucket_fill[b] += counts.get(n, 0)
+        by_bucket[b].append(n)
+
+    max_fill = max(bucket_fill.values()) if bucket_fill else 1
+    # Give exactly ONE representative per bucket a top tier, so the greedy
+    # top-k picker lands one number in each bucket (a maximally SPREAD ticket)
+    # rather than dumping all 5 into the single emptiest bucket. Within a
+    # bucket the rarest-recently number is the representative; a big
+    # rank-based tier keeps every bucket's rep above every non-rep, and
+    # bucket sparsity orders the reps among themselves.
+    TIER = 1000.0
+    scores = {}
+    for b, members in by_bucket.items():
+        sparsity = max_fill - bucket_fill.get(b, 0)
+        members_sorted = sorted(members, key=lambda n: (counts.get(n, 0), n))
+        for rank, n in enumerate(members_sorted):
+            scores[n] = (TIER * (len(members_sorted) - rank)) + sparsity
     return scores
 
 
@@ -239,6 +309,23 @@ def balanced_signal(history, pool_min, pool_max, k, use_special, params=None):
 #     raise YOUR odds, but it can raise your expected payout *conditional
 #     on winning*.
 # ---------------------------------------------------------------------
+def crowd_desirability(n: int, birthday_max: int = 31) -> float:
+    """How heavily the general public tends to pick number `n` (higher =
+    more crowded = more sharing risk). Based on well-documented lottery
+    player biases, not on draw history (the crowd doesn't see the future
+    either). Used by crowd_avoidance() and jackpot_hunter.py."""
+    d = 0.0
+    if n <= birthday_max:
+        d += 1.0            # inside the 1-31 "day of month / birthday" range
+    if n <= 12:
+        d += 0.6            # also a valid month number -> extra popular
+    if n <= 9:
+        d += 0.3            # single digits are over-picked
+    if n in (3, 7, 8, 9):
+        d += 0.2            # commonly-considered "lucky" numbers
+    return d
+
+
 def crowd_avoidance(history, pool_min, pool_max, k, use_special, params=None):
     params = params or {}
     birthday_max = params.get("birthday_max", 31)
@@ -247,13 +334,11 @@ def crowd_avoidance(history, pool_min, pool_max, k, use_special, params=None):
         # No 'safe zone' exists for this pool (e.g. the 1-12 special number,
         # which maps onto calendar months -- no obvious less-crowded zone).
         return {n: 0.5 for n in pool}
-    # Smooth gradient (not a hard cutoff): monotonically favors larger
-    # numbers, since 32-35 are never picked by birthday-based players at
-    # all, and even within 1-31, higher day-numbers (29-31, not valid in
-    # every month) are mildly less crowded than 1-12 (which double as
-    # "month" picks and get extra attention from casual players).
-    scores = {n: float(n) for n in pool}
-    return scores
+    # Score = negative crowd desirability, so the LESS-crowded numbers
+    # (32-35 first, then the mid-high range) rank highest. This never
+    # changes hit probability -- it only lifts expected payout *conditional
+    # on winning* by cutting the odds of splitting the prize.
+    return {n: -crowd_desirability(n, birthday_max) for n in pool}
 
 
 # ---------------------------------------------------------------------
@@ -266,6 +351,28 @@ def random_baseline(history, pool_min, pool_max, k, use_special, params=None, rn
     return {n: rng.random() for n in pool}
 
 
+# ---------------------------------------------------------------------
+# 14. Random WITH replacement -- like random_baseline, but the actual pick
+#     samples k numbers WITH replacement (duplicates allowed), so a "ticket"
+#     may cover FEWER than k distinct numbers. It exists purely to make an
+#     honest teaching point in the backtest: sampling with replacement is
+#     strictly WORSE than a normal distinct-number ticket, because every
+#     duplicate wastes a slot -- expected distinct main hits drop below the
+#     0.7143 random-without-replacement baseline. NOT part of the ensemble
+#     (it would only inject noise), only backtested for comparison, exactly
+#     like random_baseline.
+# ---------------------------------------------------------------------
+def random_repeat(history, pool_min, pool_max, k, use_special, params=None, rng=None):
+    import random
+    rng = rng or random
+    return {n: rng.random() for n in _pool_range(pool_min, pool_max)}
+
+
+def pick_with_replacement(pool_min: int, pool_max: int, k: int, rng) -> list[int]:
+    """Sample k numbers uniformly WITH replacement (duplicates possible)."""
+    return [rng.randint(pool_min, pool_max) for _ in range(k)]
+
+
 def pick_topk(scores: dict[int, float], k: int) -> list[int]:
     """Simple greedy top-k picker (no synergy adjustment) -- used for every
     strategy except balanced_signal, which has its own synergy-aware picker
@@ -274,14 +381,19 @@ def pick_topk(scores: dict[int, float], k: int) -> list[int]:
     return sorted(n for n, _ in ranked[:k])
 
 
+# The 10 active ensemble strategies. Three former gambler's-fallacy models
+# (cold_numbers, long_absence, not_repeat) were replaced by statistically
+# principled counterparts (bayesian_frequency, chi_square_uniformity,
+# entropy_diversity). None of these change real win probability; they are
+# distinct, defensible signals/heuristics for the ensemble and dashboard.
 STRATEGIES = {
     "hot_numbers": hot_numbers,
-    "cold_numbers": cold_numbers,
-    "long_absence": long_absence,
+    "bayesian_frequency": bayesian_frequency,
+    "chi_square_uniformity": chi_square_uniformity,
     "exponential_decay": exponential_decay,
     "pair_frequency": pair_frequency,
     "markov_chain": markov_chain,
-    "not_repeat": not_repeat,
+    "entropy_diversity": entropy_diversity,
     "pattern": pattern,
     "balanced_signal": balanced_signal,
     "crowd_avoidance": crowd_avoidance,
@@ -291,12 +403,12 @@ STRATEGIES = {
 # state/tuned_params.json, see tuning.py)
 DEFAULT_PARAMS = {
     "hot_numbers": {"window": 100},
-    "cold_numbers": {"window": 100},
-    "long_absence": {},
+    "bayesian_frequency": {"window": 200, "alpha": 1.0},
+    "chi_square_uniformity": {"window": 200},
     "exponential_decay": {"half_life": 30},
     "pair_frequency": {"window": 150},
     "markov_chain": {"window": 200},
-    "not_repeat": {"avoid_last_n": 3},
+    "entropy_diversity": {"window": 150, "n_buckets": 5},
     "pattern": {"window": 200},
     "balanced_signal": {},
     "crowd_avoidance": {"birthday_max": 31},

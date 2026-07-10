@@ -194,6 +194,10 @@ def main():
                 "được phân bổ xuống các giải thấp hơn NGAY CẢ KHI không ai khớp đủ "
                 "5/5 — đây là điều thật duy nhất làm giá trị kỳ vọng của kỳ này cao "
                 "hơn bình thường, không liên quan đến việc chọn số nào."
+                "\n➡️ Khuyến nghị cho kỳ chia giải: ưu tiên bộ JACKPOT HUNTER ở trên "
+                "(né số đám đông hay chọn). Kỳ chia giải thu hút nhiều người chơi hơn, "
+                "nên rủi ro phải CHIA giải nếu trúng cũng cao hơn — né đám đông là "
+                "cách duy nhất có thật để tối đa số tiền thực nhận nếu trúng."
             )
 
         leaderboard = None
@@ -206,7 +210,7 @@ def main():
 
         message = (
             f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
-            f"Bộ số Ensemble (10 model): {main_str} + đặc biệt {special_str}\n"
+            f"Bộ số Ensemble ({len(pred['per_strategy_picks'])} model): {main_str} + đặc biệt {special_str}\n"
             f"Bộ số Jackpot Hunter (né số công cụ tham khảo công khai gợi ý, "
             f"giảm rủi ro chia giải nếu trúng): {hunter_main_str} + đặc biệt {hunter_special_str}\n"
             f"Model dẫn đầu backtest hiện tại: {top_model} (tham khảo, không phải bảo chứng)"

@@ -33,7 +33,7 @@ import json
 import requests
 
 from ensemble import ensemble_scores, load_tuned_params
-from strategies import pick_topk
+from strategies import pick_topk, crowd_avoidance, DEFAULT_PARAMS
 from model import MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
 
 LEDGER_URL = (
@@ -41,6 +41,37 @@ LEDGER_URL = (
     "vietlott-prediction-web/main/predictions/ledger.jsonl"
 )
 PRODUCT = "lotto535"
+
+# How much the Hunter pick leans on crowd-avoidance vs our own ensemble
+# score when ranking the numbers that survive the reference-exclusion.
+# 0 = pure ensemble (old behavior), 1 = pure crowd-avoidance. 0.5 balances
+# "informed by our analysis" with "less likely to be shared if it wins".
+CROWD_WEIGHT = 0.5
+
+
+def _minmax(scores: dict[int, float]) -> dict[int, float]:
+    vals = list(scores.values())
+    if not vals:
+        return {}
+    lo, hi = min(vals), max(vals)
+    if hi - lo < 1e-12:
+        return {n: 0.5 for n in scores}
+    return {n: (v - lo) / (hi - lo) for n, v in scores.items()}
+
+
+def _crowd_blended(ensemble_map: dict[int, float], history, pool_min, pool_max,
+                   k, use_special) -> dict[int, float]:
+    """Blend our ensemble score with a crowd-avoidance score so that, among
+    numbers of similar ensemble merit, the LESS-crowded ones rank higher --
+    lifting expected payout conditional on winning without touching win
+    probability. For the special pool crowd_avoidance is uniform, so this is
+    a no-op there."""
+    crowd = crowd_avoidance(history, pool_min, pool_max, k, use_special,
+                            DEFAULT_PARAMS.get("crowd_avoidance", {}))
+    ens_n = _minmax(ensemble_map)
+    crowd_n = _minmax(crowd)
+    return {n: (1 - CROWD_WEIGHT) * ens_n.get(n, 0.0) + CROWD_WEIGHT * crowd_n.get(n, 0.0)
+            for n in ensemble_map}
 
 
 def fetch_reference_predictions() -> dict | None:
@@ -91,12 +122,18 @@ def hunter_predict(history, tuned_params=None) -> dict:
     reference = fetch_reference_predictions()
 
     if reference is None:
+        # No reference ledger -- we can still reduce crowd-collision risk via
+        # the crowd-avoidance model alone (a real improvement over the old
+        # behavior, which fell back to the plain ensemble with no protection).
+        main_blend = _crowd_blended(main_ensemble, history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+        special_blend = _crowd_blended(special_ensemble, history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
         return {
-            "main_numbers": pick_topk(main_ensemble, 5),
-            "special_number": pick_topk(special_ensemble, 1)[0],
+            "main_numbers": pick_topk(main_blend, 5),
+            "special_number": pick_topk(special_blend, 1)[0],
             "excluded_main": [],
             "excluded_special": [],
             "reference_available": False,
+            "crowd_weight": CROWD_WEIGHT,
         }
 
     remaining_main = {n: s for n, s in main_ensemble.items() if n not in reference["main"]}
@@ -109,13 +146,20 @@ def hunter_predict(history, tuned_params=None) -> dict:
     if not remaining_special:
         remaining_special = special_ensemble
 
+    # Among the numbers that survive reference-exclusion, prefer the
+    # less-crowded ones (blend crowd-avoidance in) to further cut the odds of
+    # splitting the prize with other players/tools we can't see.
+    main_blend = _crowd_blended(remaining_main, history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    special_blend = _crowd_blended(remaining_special, history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+
     return {
-        "main_numbers": pick_topk(remaining_main, 5),
-        "special_number": pick_topk(remaining_special, 1)[0],
+        "main_numbers": pick_topk(main_blend, 5),
+        "special_number": pick_topk(special_blend, 1)[0],
         "excluded_main": sorted(reference["main"]),
         "excluded_special": sorted(reference["special"]),
         "reference_available": True,
         "reference_generated_at": reference["generated_at"],
+        "crowd_weight": CROWD_WEIGHT,
     }
 
 
