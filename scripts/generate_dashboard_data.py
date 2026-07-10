@@ -16,8 +16,9 @@ from multi_log import load_log
 
 OUTPUT_PATH = "docs/data.json"
 
-TICKET_KEYS = ["random_fair", "random_repeat", "nhanaz"]
+TICKET_KEYS = ["ensemble", "random_fair", "random_repeat", "nhanaz"]
 TICKET_LABELS = {
+    "ensemble": "Ensemble (3 model)",
     "random_fair": "Mốc so sánh công bằng",
     "random_repeat": "Ngẫu nhiên (có lặp)",
     "nhanaz": "Giống nhanaz-data",

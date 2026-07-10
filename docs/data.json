@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T04:44:51.089499+00:00",
+  "generated_at": "2026-07-10T04:54:03.119826+00:00",
   "latest_prediction": {
     "generated_at": "2026-07-10T04:44:51.015078+00:00",
     "based_on_draw_id": "00752",
@@ -55,24 +55,50 @@
     "hits": null
   },
   "ticket_keys": [
+    "ensemble",
     "random_fair",
     "random_repeat",
     "nhanaz"
   ],
   "performance_over_time": {
-    "labels": [],
+    "labels": [
+      "00751",
+      "00752"
+    ],
     "series": {
-      "random_fair": [],
-      "random_repeat": [],
-      "nhanaz": []
+      "ensemble": [
+        1.0,
+        0.5
+      ],
+      "random_fair": [
+        null,
+        null
+      ],
+      "random_repeat": [
+        null,
+        null
+      ],
+      "nhanaz": [
+        null,
+        null
+      ]
     },
     "labels_by_key": {
+      "ensemble": "Ensemble (3 model)",
       "random_fair": "Mốc so sánh công bằng",
       "random_repeat": "Ngẫu nhiên (có lặp)",
       "nhanaz": "Giống nhanaz-data"
     }
   },
-  "ticket_accuracy": {},
+  "ticket_accuracy": {
+    "ensemble": {
+      "label": "Ensemble (3 model)",
+      "n": 2,
+      "avg_main_hits": 0.5,
+      "special_hit_rate": 0.5,
+      "expected_random_main_hits": 0.7143
+    }
+  },
   "draw_history": [
     {
       "target_draw_id": "00752",

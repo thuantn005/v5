@@ -1,11 +1,12 @@
 """
 run_pipeline.py
 -----------------
-Automated pipeline, run twice daily by GitHub Actions. The project has been
-reduced to "3 vé mỗi kỳ" (3 tickets per draw) -- there is no model/ensemble:
+Automated pipeline, run twice daily by GitHub Actions. Each draw it publishes
+4 tickets (an Ensemble kept separately + 3 comparison tickets):
 
   1. (data/all.csv already refreshed by fetch_data.py, a separate step)
-  2. Build the 3 tickets for the next draw (references.compute_tickets):
+  2. Build the tickets for the next draw:
+       - ensemble      : vote of gap_zscore + momentum + crowd_avoidance
        - random_fair   : fair random baseline (reproducible via trace code)
        - random_repeat : random with replacement
        - nhanaz        : mirror of the public nhanaz-data prediction
@@ -26,14 +27,18 @@ from model import parse_draws
 from jackpot_check import check_jackpot
 from jackpot_watch import check_early_alert, check_scrape_alert
 from references import compute_tickets
+from ensemble import ensemble_predict
 from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
 
 DATA_PATH = "data/all.csv"
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "lotto535-thuan")
 
-# Tickets shown to the user, in display order.
-TICKET_ORDER = ["random_fair", "random_repeat", "nhanaz"]
+# Tickets shown to the user, in display order. "ensemble" is kept as a
+# separate 4th ticket (the multi-model voting pick); the other three are the
+# random baselines + nhanaz mirror. None of them beat random -- the fair
+# ticket is the yardstick that makes that plain.
+TICKET_ORDER = ["ensemble", "random_fair", "random_repeat", "nhanaz"]
 
 
 def ntfy_send(*args, **kwargs):
@@ -125,9 +130,16 @@ def main():
         notify_perfect_wins(resolve_all())
         return
 
-    # --- Step 2: build the 3 tickets ---
+    # --- Step 2: build the tickets (Ensemble + 3 references) ---
     print(f"=== Tickets for draw #{target_id} ===")
     tickets = compute_tickets(target_id)
+    ens = ensemble_predict(draws)
+    tickets["ensemble"] = {
+        "label": "Ensemble (gộp 3 model: gap_zscore + momentum + crowd_avoidance)",
+        "main": ens["main_numbers"],
+        "special": ens["special_number"],
+        "confidence": round(ens["confidence"], 4),
+    }
     for key in TICKET_ORDER:
         t = tickets.get(key, {})
         print(f"{t.get('label', key)}: {_ticket_str(t)}"
@@ -192,7 +204,7 @@ def main():
         )
 
     message = (
-        f"3 vé cho kỳ #{target_id} (dựa trên dữ liệu tới hết kỳ #{last_draw.draw_id} "
+        f"4 vé cho kỳ #{target_id} (dựa trên dữ liệu tới hết kỳ #{last_draw.draw_id} "
         f"ngày {last_draw.draw_date}):\n"
         + "\n".join(ticket_lines)
         + ev_note +
@@ -202,7 +214,7 @@ def main():
     )
     ntfy_send(
         NTFY_TOPIC,
-        title="🎲 Lotto 5/35 – 3 vé kỳ tới",
+        title="🎲 Lotto 5/35 – 4 vé kỳ tới",
         message=message,
         priority="high" if jackpot_round else "default",
         tags="game_die,ticket",

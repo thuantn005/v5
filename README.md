@@ -1,9 +1,11 @@
 # Vietlott Lotto 5/35 – "3 vé mỗi kỳ" + Theo dõi trung thực
 
-Mỗi kỳ quay, hệ thống tự động xuất **đúng 3 vé**, gửi qua [ntfy](https://ntfy.sh),
-đối chiếu với kết quả thật và hiển thị trên **Dashboard** (GitHub Pages).
-**Không có model dự đoán nào** — vì Lotto 5/35 là trò chơi ngẫu nhiên và không
-cách chọn số nào vượt được may rủi. 3 vé chỉ để minh hoạ điều đó một cách trung thực.
+Mỗi kỳ quay, hệ thống tự động xuất **4 vé** — 1 vé **Ensemble** (giữ riêng) và
+3 vé tham chiếu/so sánh — gửi qua [ntfy](https://ntfy.sh), đối chiếu với kết quả
+thật và hiển thị trên **Dashboard** (GitHub Pages). Không cách chọn số nào vượt
+được may rủi; các vé chỉ để theo dõi/minh hoạ điều đó một cách trung thực. "Mốc
+so sánh công bằng" (vé ngẫu nhiên) là chuẩn để thấy rõ Ensemble **không** hơn
+ngẫu nhiên.
 
 ## ⚠️ Đọc trước khi dùng
 
@@ -13,11 +15,12 @@ này **không** làm tăng cơ hội trúng; dùng để giải trí và học t
 để ra quyết định tài chính. "Mốc so sánh công bằng" (vé ngẫu nhiên) là chuẩn để
 thấy rõ: 3 vé đều bám quanh kỳ vọng ngẫu nhiên, không cái nào "giỏi" hơn.
 
-## 3 vé mỗi kỳ (`references.py`)
+## Các vé mỗi kỳ
 
 | Vé | Ý nghĩa |
 |---|---|
-| **Mốc so sánh công bằng** (`random_fair`) | 5 số **khác nhau** chọn ngẫu nhiên đều — *null model đúng*. Mọi vé xác suất như nhau, nên đây là thước đo trung thực để đối chiếu. |
+| **Ensemble** (`ensemble`, `ensemble.py`) | Gộp 3 model `gap_zscore` + `momentum` + `crowd_avoidance` (nhóm tương quan + trọng số p-value; không có backtest nên trọng số ~đều). Giữ riêng như 1 vé để **so trực tiếp với mốc ngẫu nhiên** — và nó không hơn. |
+| **Mốc so sánh công bằng** (`random_fair`, `references.py`) | 5 số **khác nhau** chọn ngẫu nhiên đều — *null model đúng*. Mọi vé xác suất như nhau, nên đây là thước đo trung thực để đối chiếu. |
 | **Chọn ngẫu nhiên có thể lặp lại** (`random_repeat`) | 5 số lấy mẫu **có hoàn lại** (cho phép trùng) — mốc *tệ hơn* có chủ đích: số trùng làm phí vị trí nên kỳ vọng khớp thấp hơn mốc công bằng. |
 | **Giống nhanaz-data** (`nhanaz`) | Mô phỏng dự đoán của trang công khai [nhanaz-data](https://nhanaz-data.github.io/vietlott-prediction-web/?product=lotto535#du-doan): lấy **đồng thuận** (5 số được nhiều chiến lược của họ gợi ý nhất) từ sổ ledger đã khóa. Nếu không tải được → `available: false`. |
 
@@ -41,8 +44,10 @@ random_repeat : trace = L535-<draw>-REPEAT  | seed = int(draw) + 1_000_000
 ```
 scripts/
   model.py                      # Parse dữ liệu kỳ quay + match_count (đếm số khớp)
-  references.py                 # LÕI: tạo 3 vé + mã lưu vết; fetch đồng thuận nhanaz-data
-  run_pipeline.py               # Điều phối: tạo 3 vé -> thông báo -> log -> đối chiếu
+  strategies.py                 # 3 model active (gap_zscore/momentum/crowd_avoidance) cho vé Ensemble
+  ensemble.py                   # Gộp 3 model thành 1 vé Ensemble (nhóm tương quan + trọng số p-value)
+  references.py                 # Tạo 3 vé so sánh + mã lưu vết; fetch đồng thuận nhanaz-data
+  run_pipeline.py               # Điều phối: tạo 4 vé -> thông báo -> log -> đối chiếu
   multi_log.py                  # Log JSONL 3 vé mỗi kỳ + đối chiếu kết quả thật
   jackpot_check.py              # Xác định đúng kỳ "chia giải" Độc Đắc (jackpot > 12 tỷ)
   jackpot_watch.py              # Báo sớm khi jackpot vượt 12 tỷ + báo "mù" khi scrape lỗi

@@ -63,11 +63,11 @@
   <div class="subtitle" id="generated-at">Đang tải...</div>
 
   <div class="banner">
-    ⚠️ <b>Lưu ý quan trọng:</b> Mỗi kỳ hệ thống chỉ xuất <b>3 vé</b> (ngẫu nhiên có lặp,
-    mốc so sánh công bằng, và bản mô phỏng nhanaz-data) — <b>không có model dự đoán nào</b>.
+    ⚠️ <b>Lưu ý quan trọng:</b> Mỗi kỳ hệ thống xuất <b>4 vé</b>: 1 vé <b>Ensemble</b> (gộp 3 model)
+    giữ riêng, cùng 3 vé so sánh (mốc công bằng ngẫu nhiên, ngẫu nhiên có lặp, mô phỏng nhanaz-data).
     Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ; xác suất trúng Jackpot luôn cố định
     1/324.632 bất kể chọn số cách nào. "Mốc so sánh công bằng" chính là chuẩn để thấy rõ:
-    không cách chọn nào vượt được ngẫu nhiên. Chỉ nên xem đây là công cụ giải trí / học thống kê.
+    Ensemble và mọi cách chọn đều KHÔNG vượt được ngẫu nhiên. Chỉ nên xem đây là công cụ giải trí / học thống kê.
   </div>
 
   <div class="grid" id="app">
@@ -85,6 +85,7 @@ function ballHTML(n, special=false) {
 }
 
 const TICKET_META = {
+  ensemble:      ['🧠 Ensemble (gộp 3 model)', 'gap_zscore + momentum + crowd_avoidance — giữ riêng để so, KHÔNG hơn ngẫu nhiên'],
   random_fair:   ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, KHÔNG lặp — chuẩn để đối chiếu'],
   random_repeat: ['🎲 Chọn ngẫu nhiên (có thể lặp lại)', 'Lấy mẫu có hoàn lại — có thể trùng số'],
   nhanaz:        ['🔗 Giống nhanaz-data', 'Đồng thuận dự đoán công khai của nhanaz-data'],
@@ -125,7 +126,7 @@ function drawPerformanceChart(data) {
   if (!pot || !pot.labels || pot.labels.length === 0) return;
   const ctx = document.getElementById('perfChart');
   if (!ctx) return;
-  const colors = {random_fair:'#3ecf8e', random_repeat:'#ff6b6b', nhanaz:'#4f8cff'};
+  const colors = {ensemble:'#a56bff', random_fair:'#3ecf8e', random_repeat:'#ff6b6b', nhanaz:'#4f8cff'};
   const labelsByKey = pot.labels_by_key || {};
   const datasets = Object.entries(pot.series).map(([key, series]) => ({
     label: labelsByKey[key] || key, data: series, borderColor: colors[key] || '#a56bff',
