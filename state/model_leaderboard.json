@@ -48,6 +48,30 @@
         "5": 0
       }
     },
+    "momentum_pure": {
+      "n_backtested": 693,
+      "avg_main_hits": 0.7446,
+      "avg_main_hits_se": 0.0277,
+      "avg_main_hits_ci95": [
+        0.6903,
+        0.7988
+      ],
+      "expected_random_main_hits": 0.7143,
+      "diff_vs_random": 0.0303,
+      "p_value_vs_random": 0.2778,
+      "significant_at_0.05": false,
+      "significant_after_bonferroni": false,
+      "special_hit_rate": 0.0678,
+      "expected_random_special_rate": 0.0833,
+      "main_hit_distribution": {
+        "0": 287,
+        "1": 304,
+        "2": 94,
+        "3": 8,
+        "4": 0,
+        "5": 0
+      }
+    },
     "random_baseline": {
       "n_backtested": 6930,
       "avg_main_hits": 0.7153,
@@ -103,6 +127,10 @@
       "avg_main_hits": 0.7475
     },
     {
+      "strategy": "momentum_pure",
+      "avg_main_hits": 0.7446
+    },
+    {
       "strategy": "uniform_seeded",
       "avg_main_hits": 0.7186
     },
@@ -115,7 +143,7 @@
       "avg_main_hits": 0.6745
     }
   ],
-  "n_hypotheses_tested": 2,
-  "bonferroni_alpha": 0.025,
-  "note": "Rankings reflect avg main-number hits vs the exact random baseline (5/35 pick, expected 0.7143 hits), with a two-sided p-value and a 95% confidence interval (avg_main_hits_ci95). Across ~700 draws a genuinely random strategy still deviates by chance, and testing 2 strategies at once means ~1 would look 'significant' at 0.05 by luck alone -- so significant_after_bonferroni (alpha = 0.05/2 = 0.025) is the honest bar; a CI that straddles 0.7143 means indistinguishable from random. random_repeat samples WITH replacement and should score BELOW the baseline (duplicates waste slots). None of these change the actual jackpot odds, fixed at 1-in-324,632 regardless of numbers chosen."
+  "n_hypotheses_tested": 3,
+  "bonferroni_alpha": 0.01667,
+  "note": "Rankings reflect avg main-number hits vs the exact random baseline (5/35 pick, expected 0.7143 hits), with a two-sided p-value and a 95% confidence interval (avg_main_hits_ci95). Across ~700 draws a genuinely random strategy still deviates by chance, and testing 3 strategies at once means ~1 would look 'significant' at 0.05 by luck alone -- so significant_after_bonferroni (alpha = 0.05/3 = 0.01667) is the honest bar; a CI that straddles 0.7143 means indistinguishable from random. random_repeat samples WITH replacement and should score BELOW the baseline (duplicates waste slots). None of these change the actual jackpot odds, fixed at 1-in-324,632 regardless of numbers chosen."
 }
