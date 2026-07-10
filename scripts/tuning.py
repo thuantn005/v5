@@ -47,6 +47,8 @@ PARAM_GRID = {
     "pattern": {"window": [100, 200, 300]},
     "balanced_signal": {},  # formula fixed to published reference
     "crowd_avoidance": {},  # bias model is fixed, not fit to draw history
+    "gap_zscore": {},       # no tunable params
+    "momentum": {"short_window": [20, 30, 45], "long_window": [90, 120, 180]},
 }
 
 

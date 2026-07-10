@@ -26,6 +26,7 @@ pair-synergy-aware greedy picker.
 
 from __future__ import annotations
 import math
+import statistics
 from collections import Counter, defaultdict
 
 from model import Draw, _counts_in_window, score_pool as _balanced_signal_score_pool
@@ -298,6 +299,58 @@ def balanced_signal(history, pool_min, pool_max, k, use_special, params=None):
 
 
 # ---------------------------------------------------------------------
+# ★ gap_zscore -- overdue RELATIVE TO EACH NUMBER'S OWN rhythm.
+#   (One of two extra signals added on top of the principled 10.) Unlike a
+#   raw "gan" gap, this measures how far a number's CURRENT gap is from that
+#   specific number's historical average gap, in units of its own gap
+#   standard deviation -- so a number that usually reappears every ~5 draws
+#   but has been absent 15 scores high, while a genuinely rare number
+#   sitting at its usual long gap does not. Still does not beat random (see
+#   backtest); it is a conceptually distinct feature for the ensemble.
+# ---------------------------------------------------------------------
+def gap_zscore(history, pool_min, pool_max, k, use_special, params=None):
+    pool = list(_pool_range(pool_min, pool_max))
+    last_idx = {n: None for n in pool}
+    gaps = {n: [] for n in pool}
+    for idx, d in enumerate(history):
+        for n in _values(d, use_special):
+            if n in last_idx:
+                if last_idx[n] is not None:
+                    gaps[n].append(idx - last_idx[n])
+                last_idx[n] = idx
+    total = len(history)
+    scores = {}
+    for n in pool:
+        cur_gap = (total - 1 - last_idx[n]) if last_idx[n] is not None else total
+        seq = gaps[n]
+        if len(seq) >= 2:
+            mean_g = statistics.mean(seq)
+            sd = statistics.pstdev(seq) or 1.0
+            scores[n] = (cur_gap - mean_g) / sd
+        else:
+            scores[n] = 0.0
+    return scores
+
+
+# ---------------------------------------------------------------------
+# ★ momentum -- numbers whose SHORT-window frequency is rising above their
+#   own LONG-window baseline (trend/acceleration), rather than raw level
+#   like hot_numbers. Positive = heating up recently. The second of the two
+#   extra signals. Also does not change real odds.
+# ---------------------------------------------------------------------
+def momentum(history, pool_min, pool_max, k, use_special, params=None):
+    params = params or {}
+    short_w = params.get("short_window", 30)
+    long_w = params.get("long_window", 120)
+    pool = list(_pool_range(pool_min, pool_max))
+    short_counts = _counts_in_window(history, _pool_range(pool_min, pool_max), short_w, use_special)
+    long_counts = _counts_in_window(history, _pool_range(pool_min, pool_max), long_w, use_special)
+    ns = max(1, min(short_w, len(history)))
+    nl = max(1, min(long_w, len(history)))
+    return {n: short_counts.get(n, 0) / ns - long_counts.get(n, 0) / nl for n in pool}
+
+
+# ---------------------------------------------------------------------
 # 10. Crowd avoidance -- favors numbers LESS likely to be picked by other
 #     players (avoids the 1-31 "birthday range" many casual players lean
 #     on). This does NOT change hit probability -- it's about reducing
@@ -397,6 +450,9 @@ STRATEGIES = {
     "pattern": pattern,
     "balanced_signal": balanced_signal,
     "crowd_avoidance": crowd_avoidance,
+    # ★ two extra distinct signals (own-rhythm overdue + recent trend)
+    "gap_zscore": gap_zscore,
+    "momentum": momentum,
 }
 
 # Default tunable parameters per strategy (used unless overridden by
@@ -412,4 +468,6 @@ DEFAULT_PARAMS = {
     "pattern": {"window": 200},
     "balanced_signal": {},
     "crowd_avoidance": {"birthday_max": 31},
+    "gap_zscore": {},
+    "momentum": {"short_window": 30, "long_window": 120},
 }
