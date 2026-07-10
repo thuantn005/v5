@@ -54,6 +54,58 @@ def ntfy_send(*args, **kwargs):
         print(f"WARNING: ntfy notification failed (continuing): {e}", file=sys.stderr)
 
 
+def _predicted_numbers(entry: dict, label: str):
+    """Return (main_list, special) that `label` predicted in this log entry."""
+    if label == "ensemble":
+        return entry["ensemble"]["main"], entry["ensemble"]["special"]
+    if label == "jackpot_hunter":
+        h = entry.get("hunter") or {}
+        return h.get("main"), h.get("special")
+    pick = (entry.get("per_strategy") or {}).get(label, {})
+    return pick.get("main"), pick.get("special")
+
+
+def notify_perfect_wins(newly_resolved):
+    """When any logged prediction for a just-resolved draw matched all 5 main
+    numbers AND the special number, fire a celebratory ntfy. Runs off the
+    entries resolve_all() reports as newly resolved, so each win alerts
+    exactly once (the run its result first became available)."""
+    for entry in newly_resolved:
+        actual = entry.get("actual") or {}
+        hits = entry.get("hits") or {}
+        winners = [
+            label for label, h in hits.items()
+            if h and h.get("main_hits") == 5 and h.get("special_hit")
+        ]
+        if not winners:
+            continue
+
+        actual_main = "-".join(f"{n:02d}" for n in actual.get("main", []))
+        actual_special = f"{actual.get('special'):02d}" if actual.get("special") is not None else "??"
+        lines = []
+        for label in winners:
+            main, special = _predicted_numbers(entry, label)
+            main_str = "-".join(f"{n:02d}" for n in (main or []))
+            sp_str = f"{special:02d}" if special is not None else "??"
+            lines.append(f"• {label}: {main_str} + {sp_str}")
+
+        ntfy_send(
+            NTFY_TOPIC,
+            title="🏆 TRÚNG! Dự đoán khớp 5 số chính + đặc biệt",
+            message=(
+                f"Kỳ #{entry.get('target_draw_id')} ({actual.get('draw_date')}):\n"
+                f"Kết quả thật: {actual_main} + đặc biệt {actual_special}\n"
+                f"Bộ số đã dự đoán khớp HOÀN TOÀN (5/5 + ĐB):\n"
+                + "\n".join(lines) +
+                "\n\nLưu ý trung thực: đây là trùng khớp may mắn, KHÔNG phải bằng "
+                "chứng model có khả năng dự đoán — xác suất mỗi bộ số vẫn là "
+                "1/324.632. Hãy kiểm tra lại vé thật và chơi có trách nhiệm."
+            ),
+            priority="max",
+            tags="trophy,tada,moneybag",
+        )
+
+
 def load_draws():
     with open(DATA_PATH, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
@@ -90,7 +142,7 @@ def main():
         print(f"Draw #{target_id_preview} was already predicted in an earlier "
               f"run today (primary/backup dedup) -- skipping to avoid duplicate "
               f"notifications. Still resolving any newly-available past results.")
-        resolve_all()
+        notify_perfect_wins(resolve_all())
         return
 
     # --- Step 2: scheduled auto-tuning ---
@@ -258,9 +310,9 @@ def main():
         "hits": None,
     })
 
-    # --- Step 9: resolve past predictions ---
+    # --- Step 9: resolve past predictions (+ alert on any 5-main+special win) ---
     print("\n=== Resolving past predictions ===")
-    resolve_all()
+    notify_perfect_wins(resolve_all())
 
 
 if __name__ == "__main__":

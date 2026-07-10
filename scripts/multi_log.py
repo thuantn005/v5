@@ -57,17 +57,19 @@ def save_log(entries: list[dict]):
 
 def resolve_all():
     """Fill in actual results + hits for every unresolved log entry whose
-    target draw has now happened. Returns number of entries resolved."""
+    target draw has now happened. Returns the list of entries resolved on
+    THIS call (so callers can e.g. notify on a jackpot-level hit exactly
+    once, the run the result first becomes available)."""
     entries = load_log()
     if not entries:
         print("No ensemble_log.jsonl yet -- nothing to resolve.")
-        return 0
+        return []
 
     with open(DATA_PATH, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     draws_by_id = {d.draw_id: d for d in parse_draws(rows)}
 
-    resolved_count = 0
+    newly_resolved = []
     for entry in entries:
         if entry.get("resolved"):
             continue
@@ -82,9 +84,6 @@ def resolve_all():
         for name, pick in entry.get("per_strategy", {}).items():
             hits[name] = match_count(pick["main"], pick["special"], actual)
         hunter = entry.get("hunter")
-        if hunter:
-            hits["jackpot_hunter"] = match_count(hunter["main"], hunter["special"], actual)
-        hunter = entry.get("hunter")
         if hunter and hunter.get("main") and hunter.get("special") is not None:
             hits["jackpot_hunter"] = match_count(hunter["main"], hunter["special"], actual)
 
@@ -95,12 +94,12 @@ def resolve_all():
         }
         entry["hits"] = hits
         entry["resolved"] = True
-        resolved_count += 1
+        newly_resolved.append(entry)
 
-    if resolved_count:
+    if newly_resolved:
         save_log(entries)
-    print(f"Resolved {resolved_count} entries in ensemble_log.jsonl")
-    return resolved_count
+    print(f"Resolved {len(newly_resolved)} entries in ensemble_log.jsonl")
+    return newly_resolved
 
 
 if __name__ == "__main__":

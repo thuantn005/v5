@@ -127,6 +127,10 @@ Có 3 tầng thông báo:
 2. **Báo đúng ngày**: khi đến chính xác kỳ 21h ngày chia giải, kèm bộ số ensemble.
 3. **Báo mù** (`jackpot_watch.check_scrape_alert`): nếu **mọi nguồn tra cứu jackpot đều lỗi** (site sập / đổi HTML), hệ thống không thể tự xác định kỳ chia giải — gửi cảnh báo 1 lần để bạn kiểm tra thủ công, tránh im lặng bỏ lỡ. Tự tắt khi tra cứu hoạt động lại.
 
+## 🏆 Báo khi dự đoán TRÚNG (5 số chính + đặc biệt)
+
+Khi đối chiếu kết quả thật (`multi_log.resolve_all()`), nếu **bất kỳ** bộ số đã dự đoán (Ensemble, Jackpot Hunter, hoặc từng model) khớp **đủ 5 số chính VÀ số đặc biệt**, `run_pipeline.notify_perfect_wins()` gửi 1 thông báo ntfy ưu tiên cao nhất (priority `max`), liệt kê model nào trúng + bộ số. Báo **đúng 1 lần** cho mỗi kỳ (chạy trên các kỳ vừa được resolve trả về). Thông báo kèm lưu ý trung thực: đây là trùng khớp may rủi, **không** phải bằng chứng model biết dự đoán — xác suất mỗi bộ vẫn 1/324.632.
+
 ## Dashboard (GitHub Pages)
 
 `docs/index.html` đọc `docs/data.json` (tự sinh mỗi lần workflow chạy) và hiển thị:
