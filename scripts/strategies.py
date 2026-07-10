@@ -401,38 +401,26 @@ def pick_topk(scores: dict[int, float], k: int) -> list[int]:
     return sorted(n for n, _ in ranked[:k])
 
 
-# The 10 active ensemble strategies. Three former gambler's-fallacy models
-# (cold_numbers, long_absence, not_repeat) were replaced by statistically
-# principled counterparts (bayesian_frequency, chi_square_uniformity,
-# entropy_diversity). None of these change real win probability; they are
-# distinct, defensible signals/heuristics for the ensemble and dashboard.
+# ACTIVE ensemble roster: trimmed to 3 deliberately-distinct signals.
+#   - gap_zscore     : overdue relative to each number's own rhythm
+#   - momentum       : short-window frequency rising vs its own long baseline
+#   - crowd_avoidance: less-crowded numbers (the one real-EV lever: cuts the
+#                      odds of splitting the prize, without changing win odds)
+# The other strategy functions above (hot_numbers, bayesian_frequency,
+# exponential_decay, pair_frequency, markov_chain, entropy_diversity, pattern,
+# balanced_signal) remain defined as an INACTIVE library -- re-add a line here
+# (and to DEFAULT_PARAMS / tuning.PARAM_GRID) to switch one back on. As with
+# every model, none of these change the real 1-in-324,632 win probability.
 STRATEGIES = {
-    "hot_numbers": hot_numbers,
-    "bayesian_frequency": bayesian_frequency,
-    "exponential_decay": exponential_decay,
-    "pair_frequency": pair_frequency,
-    "markov_chain": markov_chain,
-    "entropy_diversity": entropy_diversity,
-    "pattern": pattern,
-    "balanced_signal": balanced_signal,
-    "crowd_avoidance": crowd_avoidance,
-    # ★ two extra distinct signals (own-rhythm overdue + recent trend)
     "gap_zscore": gap_zscore,
     "momentum": momentum,
+    "crowd_avoidance": crowd_avoidance,
 }
 
 # Default tunable parameters per strategy (used unless overridden by
 # state/tuned_params.json, see tuning.py)
 DEFAULT_PARAMS = {
-    "hot_numbers": {"window": 100},
-    "bayesian_frequency": {"window": 200, "alpha": 1.0},
-    "exponential_decay": {"half_life": 30},
-    "pair_frequency": {"window": 150},
-    "markov_chain": {"window": 200},
-    "entropy_diversity": {"window": 150, "n_buckets": 5},
-    "pattern": {"window": 200},
-    "balanced_signal": {},
-    "crowd_avoidance": {"birthday_max": 31},
     "gap_zscore": {},
     "momentum": {"short_window": 30, "long_window": 120},
+    "crowd_avoidance": {"birthday_max": 31},
 }
