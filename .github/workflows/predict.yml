@@ -2,24 +2,31 @@ name: Lotto 5/35 Predict & Notify
 
 on:
   schedule:
-    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7). We need a result
-    # within 1 hour of the draw, so we run at +35min (primary) and +50min
-    # (backup) -- fetch_data.py now always also checks the fast independent
-    # scraper (minhchinh.com, updates within minutes of a draw) in addition
-    # to the primary dataset (which can take 2-4h to publish), so +35min is
-    # comfortably enough margin in practice.
+    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7). We run ~2 HOURS
+    # after each draw (15:00 and 23:00 ICT) so both the fast scraper AND the
+    # slower primary dataset (which can take 2-4h to publish) have had ample
+    # time -- and the jackpot figure, which drives the "kỳ chia giải" alerts,
+    # is far more likely to be published by then.
     #
-    # NOTE: cron minute is intentionally NOT ":00" -- GitHub Actions'
-    # scheduler queues everyone who requests the top of the hour at once,
-    # which is the single most common cause of scheduled workflows firing
-    # late or getting silently dropped during high load. Off-peak minutes
-    # run far more reliably. The pipeline is idempotent per draw
-    # (multi_log.resolve_all() / run_pipeline.already_predicted() dedup),
-    # so an extra run is harmless.
-    - cron: "35 6 * * *"    # ~13:35 ICT (primary, 35 min after the 13:00 draw)
-    - cron: "50 6 * * *"    # ~13:50 ICT (backup)
-    - cron: "35 14 * * *"   # ~21:35 ICT (primary, 35 min after the 21:00 draw)
-    - cron: "50 14 * * *"   # ~21:50 ICT (backup)
+    # Reliability notes (why it's laid out this way):
+    #  - cron minute is intentionally NOT ":00". GitHub Actions queues every
+    #    top-of-hour request at once, the single most common cause of a
+    #    scheduled run firing very late or getting silently dropped.
+    #  - GitHub's free scheduler is best-effort: runs can be delayed by
+    #    minutes to several HOURS under load (we have observed ~5h drift).
+    #    This is a platform limitation we cannot remove -- so we (a) fire a
+    #    primary + backup trigger per draw, and (b) rely on the pipeline
+    #    being idempotent per draw (run_pipeline.already_predicted() /
+    #    multi_log.resolve_all() dedup), so a late/extra/dropped run is
+    #    harmless: whichever attempt actually lands does the work exactly
+    #    once, and the 2h margin absorbs the drift.
+    #  - Scheduled workflows only run from the DEFAULT branch (main) and are
+    #    auto-disabled after 60 days with no repo commits; the daily
+    #    auto-commit step below keeps the schedule alive.
+    - cron: "7 8 * * *"     # ~15:07 ICT (primary, 2h after the 13:00 draw)
+    - cron: "27 8 * * *"    # ~15:27 ICT (backup)
+    - cron: "7 16 * * *"    # ~23:07 ICT (primary, 2h after the 21:00 draw)
+    - cron: "27 16 * * *"   # ~23:27 ICT (backup)
   workflow_dispatch: {}     # allows manual "Run workflow" button too
 
 permissions:

@@ -47,7 +47,7 @@ state/
 docs/
   index.html                     # Dashboard (GitHub Pages)
   data.json                      # Dữ liệu cho dashboard (tự sinh mỗi lần chạy)
-.github/workflows/predict.yml    # Lịch chạy tự động 2 lần/ngày
+.github/workflows/predict.yml    # Lịch chạy tự động 2 lần/ngày (~2h sau mỗi kỳ quay)
 ```
 
 ## 10 Model chiến lược
@@ -89,13 +89,13 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 ## Vì sao workflow đôi khi không chạy đúng giờ đã đặt (và cách đã khắc phục)
 
-GitHub Actions chạy `schedule` theo kiểu **best-effort**, không đảm bảo đúng giờ tuyệt đối — đặc biệt hay bị trễ hoặc bỏ lỡ nếu đặt vào **đúng phút 00** của giờ, vì đó là lúc hàng loạt workflow khác trên toàn GitHub cùng kích hoạt, gây nghẽn hàng đợi (giới hạn nền tảng, GitHub công bố công khai).
+GitHub Actions chạy `schedule` theo kiểu **best-effort**, không đảm bảo đúng giờ tuyệt đối — hay bị trễ (thực tế quan sát được có lúc trễ tới ~5 tiếng) hoặc bỏ lỡ, đặc biệt nếu đặt vào **đúng phút 00** của giờ, vì đó là lúc hàng loạt workflow khác trên toàn GitHub cùng kích hoạt gây nghẽn hàng đợi (giới hạn nền tảng, GitHub công bố công khai).
 
-**Yêu cầu: phải có kết quả trong vòng 1 tiếng sau mỗi kỳ quay.** Đã khắc phục bằng 3 cách:
+**Lịch: chạy ~2 tiếng sau mỗi kỳ quay** (15:00 & 23:00 giờ VN). Chọn 2 tiếng để cả nguồn nhanh lẫn nguồn chính (có thể trễ 2-4 tiếng) và **giá trị jackpot** (dùng cho cảnh báo kỳ chia giải) đều kịp công bố. Độ tin cậy được đảm bảo bằng 3 cách:
 
-1. **Chạy sớm hơn nhiều**: primary chạy ở phút **+35** sau mỗi kỳ quay (13:35 & 21:35 giờ VN), backup ở phút **+50** (13:50 & 21:50) — cả hai đều nằm trong khung 1 tiếng.
-2. **`fetch_data.py` giờ LUÔN kiểm tra cả nguồn nhanh** (`fallback_scraper.py` cào trực tiếp minhchinh.com) **song song với nguồn chính** (NhanAZ-Data), không đợi nguồn chính lỗi mới dùng — vì NhanAZ-Data quan sát được là hay cập nhật trễ 2-4 tiếng, không kịp yêu cầu 1 tiếng. minhchinh.com cập nhật nhanh hơn nhiều (thường trong vài chục phút), nên hệ thống luôn ưu tiên dùng bất kỳ nguồn nào có kết quả mới nhất trước.
-3. **Cơ chế chống trùng** (`already_predicted()`): nếu lượt +35 phút chưa có kết quả mới, sẽ tự bỏ qua (không báo/log gì); lượt +50 phút sẽ thử lại. Nếu lượt +35 đã thành công, lượt +50 tự nhận biết và bỏ qua để tránh trùng lặp.
+1. **Tránh phút :00**: primary chạy ở phút **:07** (15:07 & 23:07 giờ VN), backup ở phút **:27** (15:27 & 23:27) — off-peak nên ít bị nghẽn hàng đợi hơn.
+2. **`fetch_data.py` LUÔN kiểm tra cả nguồn nhanh** (`fallback_scraper.py` cào trực tiếp minhchinh.com) **song song với nguồn chính** (NhanAZ-Data), luôn ưu tiên nguồn nào có kết quả mới nhất trước.
+3. **Chống trùng + chịu được trễ** (`already_predicted()` / `resolve_all()`): pipeline idempotent theo từng kỳ, nên dù GitHub chạy trễ vài tiếng, chạy dư, hay bỏ lỡ 1 lượt thì lượt nào thực sự chạy cũng làm đúng **một lần duy nhất**; biên độ 2 tiếng hấp thụ phần trễ. Lịch `schedule` chỉ chạy từ nhánh mặc định (`main`) và bị GitHub tự tắt sau 60 ngày repo không có commit — bước tự commit hằng ngày giữ cho lịch luôn sống.
 
 ## Bộ số "chọn ngược lại" (model balanced_signal)
 
@@ -135,7 +135,7 @@ Nếu **cả 2 tầng đều lỗi**: giữ nguyên `data/all.csv` hiện có, k
 
 1. Tạo repo mới, upload toàn bộ nội dung thư mục này.
 2. Tab **Actions** → bật workflow nếu được hỏi.
-3. Workflow `predict.yml` tự chạy 2 lần/ngày (14:00 & 22:00 giờ VN). Chạy tay: **Actions → Run workflow**.
+3. Workflow `predict.yml` tự chạy 2 lần/ngày, ~2 tiếng sau mỗi kỳ quay (15:00 & 23:00 giờ VN). Chạy tay: **Actions → Run workflow**.
 4. (Tuỳ chọn) Bật **GitHub Pages** như hướng dẫn ở trên để có dashboard.
 5. Cài app **ntfy**, subscribe topic `lotto535-thuan`.
 
