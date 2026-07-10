@@ -54,17 +54,56 @@ _HEADERS = {
 }
 
 
+MIN_JACKPOT_VND = 1_000_000_000
+MAX_JACKPOT_VND = 500_000_000_000
+# Labels that sit right next to the jackpot figure on these pages.
+_JACKPOT_LABELS = ("jackpot", "độc đắc", "doc dac", "giá trị jackpot", "giai jackpot")
+_LABEL_WINDOW = 400  # chars: how far after a label the number may appear
+
+
+def _money_matches(html: str) -> list[tuple[int, int]]:
+    """Every plausible billion-range money figure as (value_vnd, position)."""
+    out = []
+    for m in re.finditer(r"([\d][\d\.,]{8,})\s*(?:đồng|dong|vnd)", html, re.IGNORECASE):
+        digits = re.sub(r"[^\d]", "", m.group(1))
+        if not digits:
+            continue
+        v = int(digits)
+        if MIN_JACKPOT_VND <= v <= MAX_JACKPOT_VND:
+            out.append((v, m.start()))
+    return out
+
+
 def _extract_jackpot_vnd(html: str) -> int | None:
-    matches = re.findall(r"([\d][\d\.,]{8,})\s*(?:đồng|dong|vnd)", html, re.IGNORECASE)
-    candidates = []
-    for m in matches:
-        digits = re.sub(r"[^\d]", "", m)
-        if digits:
-            candidates.append(int(digits))
-    plausible = [c for c in candidates if 1_000_000_000 <= c <= 500_000_000_000]
-    if not plausible:
+    """Prefer the money figure that sits closest AFTER a 'Jackpot'/'Độc Đắc'
+    label (within a window) instead of blindly taking the largest number on
+    the page -- these pages also list sales totals, other games' prizes, and
+    estimated figures, so 'max' routinely grabbed the wrong number and could
+    return a stale/unrelated value. Falls back to the largest plausible figure
+    only if no labeled candidate is found."""
+    money = _money_matches(html)
+    if not money:
         return None
-    return max(plausible)
+
+    low = html.lower()
+    label_pos = [m.start() for lab in _JACKPOT_LABELS for m in re.finditer(re.escape(lab), low)]
+
+    if label_pos:
+        best = None  # (distance_from_label, value)
+        for value, pos in money:
+            preceding = [lp for lp in label_pos if 0 <= pos - lp <= _LABEL_WINDOW]
+            if preceding:
+                dist = pos - max(preceding)
+                if best is None or dist < best[0]:
+                    best = (dist, value)
+        if best is not None:
+            return best[1]
+        # A jackpot label exists but no money figure sits near it -- the page
+        # layout likely changed; don't guess a wrong number.
+        return None
+
+    # No jackpot label at all: last-resort heuristic (fragile, may be wrong).
+    return max(v for v, _ in money)
 
 
 def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
@@ -139,6 +178,25 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None) -> dict:
     }
 
 
+def _self_test_parser():
+    """Label-anchored extraction must pick the jackpot, not the biggest number."""
+    cases = [
+        ("Tổng doanh thu: 45.000.000.000 đồng. Giá trị Jackpot: 6.123.456.789 đồng.",
+         6_123_456_789),
+        ("Doanh số lũy kế: 250.000.000.000 đồng. Độc Đắc 7.000.000.000 đồng.",
+         7_000_000_000),
+        ("Giải phụ 2.000.000.000 đồng. Giải khác 3.000.000.000 đồng.",  # no label -> fallback max
+         3_000_000_000),
+        ("Thông tin Jackpot cập nhật sau." + "x" * 600 + "99.000.000.000 đồng",  # label far -> None
+         None),
+    ]
+    for html, expected in cases:
+        got = _extract_jackpot_vnd(html)
+        assert got == expected, f"parser: expected {expected}, got {got} for {html[:50]!r}"
+    print("jackpot parser self-test: OK")
+
+
 if __name__ == "__main__":
     import json
+    _self_test_parser()
     print(json.dumps(check_jackpot("2026-07-07", "21:00"), ensure_ascii=False, indent=2))
