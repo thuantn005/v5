@@ -1,18 +1,16 @@
 """
 fetch_data.py
 -------------
-Scrapes Lotto 5/35 draw results directly from lottery result websites and
-appends any new draws to data/all.csv. No external data-repo dependency.
+Cập nhật data/all.csv với kết quả kỳ quay mới từ nhiều nguồn độc lập.
+Chỉ THÊM kỳ mới (không ghi đè), an toàn khi chạy nhiều lần.
 
-data/all.csv is committed with full draw history. This script only APPENDS
-draws not yet present (deduped by draw_date+draw_time). Running it multiple
-times is safe. If every source fails, the existing file is kept intact and
-the pipeline continues on the last known-good data.
+Thứ tự nguồn:
+  1. minhchinh.com  — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
+  2. vietlott.vn    — phụ 1, kỳ mới nhất với draw_id chính thức
+  3. NhanAZ-Data    — phụ 2, dataset GitHub tổng hợp; dùng để bắt kịp kỳ
+                      bị bỏ qua (bù khoảng trống mà 2 nguồn trên chưa phủ)
 
-Sources (tried in parallel, all independent):
-  1. minhchinh.com — Vietnamese results site, ~15 recent draws, time-aware
-  2. vietlott.vn   — official Vietlott site, shows the latest 1–3 draws
-                     with the official draw_id
+Nếu tất cả nguồn lỗi → giữ nguyên data/all.csv, pipeline vẫn chạy được.
 """
 
 from __future__ import annotations
@@ -259,6 +257,66 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
     return len(new_rows)
 
 
+# ── Source 3: NhanAZ-Data (supplementary) ────────────────────────────────────
+# Full-history CSV dataset. Used as a gap-filler: any draws with draw_id
+# greater than our current max that minhchinh/vietlott didn't catch yet.
+# Schema matches data/all.csv exactly, so rows are used as-is.
+_NHANAZ_URLS = [
+    "https://raw.githubusercontent.com/NhanAZ-Data/vietlott-data-research"
+    "/main/datasets/draws/lotto535/all.csv",
+    "https://cdn.jsdelivr.net/gh/NhanAZ-Data/vietlott-data-research"
+    "@main/datasets/draws/lotto535/all.csv",
+]
+
+
+def _fetch_nhanaz() -> list[dict]:
+    for url in _NHANAZ_URLS:
+        try:
+            r = requests.get(url, timeout=TIMEOUT, headers=_HEADERS)
+            r.raise_for_status()
+            rows = list(csv.DictReader(r.text.splitlines()))
+            if rows:
+                print(f"NhanAZ-Data: downloaded {len(rows)} total rows from {url}")
+                return rows
+        except requests.RequestException as e:
+            print(f"WARNING: NhanAZ-Data {url} failed: {e}", file=sys.stderr)
+    return []
+
+
+def _append_nhanaz_supplement(nhanaz_rows: list[dict]) -> int:
+    """Append rows from NhanAZ-Data whose draw_id exceeds our current max.
+    Their schema matches ours exactly, so rows are written directly."""
+    existing_rows, fieldnames = _load_csv()
+    if not existing_rows or fieldnames is None:
+        return 0
+
+    max_id, _ = _max_draw_id(existing_rows)
+
+    new_rows = []
+    for r in nhanaz_rows:
+        try:
+            rid = int(r.get("draw_id") or "0")
+        except ValueError:
+            continue
+        if rid <= max_id:
+            continue
+        new_rows.append({k: r.get(k, "") for k in fieldnames})
+
+    if not new_rows:
+        print("NhanAZ-Data: no new draws beyond our current max.")
+        return 0
+
+    new_rows.sort(key=lambda r: r.get("draw_id", ""))
+
+    with open(DATA_PATH, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        for row in new_rows:
+            writer.writerow(row)
+
+    print(f"NhanAZ-Data: appended {len(new_rows)} supplementary draw(s).")
+    return len(new_rows)
+
+
 def main():
     if not os.path.exists(DATA_PATH):
         print(f"ERROR: {DATA_PATH} not found. "
@@ -268,24 +326,27 @@ def main():
 
     total = 0
 
-    # minhchinh.com: primary — covers ~15 recent draws
+    # 1. minhchinh.com: chính — ~15 kỳ gần nhất có giờ quay
     mc = _fetch_minhchinh()
     if mc:
         total += _append_draws(mc, "minhchinh_com_scraper")
 
-    # vietlott.vn: secondary — official source with draw_id, catches the latest
+    # 2. vietlott.vn: phụ 1 — kỳ mới nhất với draw_id chính thức
     vl = _fetch_vietlott()
     if vl:
         total += _append_draws(vl, "vietlott_vn_official")
 
-    if not mc and not vl:
-        print("WARNING: all scraping sources failed — "
-              "keeping existing data/all.csv unchanged. "
-              "Pipeline will continue on the last known-good data.",
-              file=sys.stderr)
+    # 3. NhanAZ-Data: phụ 2 — bù khoảng trống mà 2 nguồn trên chưa phủ
+    nz = _fetch_nhanaz()
+    if nz:
+        total += _append_nhanaz_supplement(nz)
+
+    if not mc and not vl and not nz:
+        print("WARNING: tất cả nguồn lỗi — giữ nguyên data/all.csv. "
+              "Pipeline vẫn chạy trên dữ liệu cũ.", file=sys.stderr)
 
     if total:
-        print(f"Total new draws appended: {total}")
+        print(f"Tổng kỳ mới bổ sung: {total}")
 
 
 if __name__ == "__main__":
