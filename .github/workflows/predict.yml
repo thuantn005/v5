@@ -50,7 +50,7 @@ jobs:
       - name: Fetch latest draw data
         run: python scripts/fetch_data.py
 
-      - name: Run full pipeline (tune -> backtest -> ensemble -> notify -> log)
+      - name: Run pipeline (build 3 tickets -> notify -> log -> resolve)
         env:
           NTFY_TOPIC: lotto535-thuan
         run: python scripts/run_pipeline.py

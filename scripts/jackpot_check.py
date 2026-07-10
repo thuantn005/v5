@@ -35,8 +35,13 @@ from datetime import date, datetime, timedelta
 
 import requests
 
-URL = "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535"
+# Primary: official Vietlott "kết quả trúng thưởng" page for Lotto 5/35 (no
+# ?id= => latest draw). It prints the current jackpot as
+# "Giải Độc Đắc<TAB>6.231.022.500 VND", which the label-anchored parser reads
+# correctly.
+URL = "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535"
 FALLBACK_URLS = [
+    "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535",
     "https://xsmn.mobi/xs-lotto-5-35.html",
     "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html",
     "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
@@ -54,17 +59,83 @@ _HEADERS = {
 }
 
 
+MIN_JACKPOT_VND = 1_000_000_000
+MAX_JACKPOT_VND = 500_000_000_000
+# The current-jackpot figure sits IMMEDIATELY after a "Độc Đắc" label on the
+# real pages, e.g. vietlott.vn "Giải Độc Đắc<TAB>6.231.022.500 VND" and
+# xsmn.mobi "Giá trị Độc Đắc:<NL>6.088.615.000 đồng". "độc đắc" is the exact
+# term for THIS jackpot; generic "jackpot" is a weaker secondary anchor.
+_JACKPOT_LABELS = ("độc đắc", "doc dac", "jackpot")
+# Ignore numbers tied to an "estimated / next draw / sales" context even if a
+# jackpot word is nearby.
+_DECOY_HINTS = ("ước tính", "uoc tinh", "kỳ tới", "ky toi", "dự kiến", "du kien",
+                "doanh thu", "doanh số", "doanh so", "tổng giá trị", "luỹ kế", "lũy kế")
+_LABEL_WINDOW = 120  # chars: the value is tightly bound to its label
+
+
+def _money_matches(html: str) -> list[tuple[int, int]]:
+    """Every plausible billion-range money figure as (value_vnd, position).
+    A number qualifies if it is followed by đồng/vnd, OR immediately preceded
+    by a 'Độc Đắc'/'Jackpot' label (some pages print the value without a unit,
+    e.g. inside a results table)."""
+    out = []
+    low = html.lower()
+    for m in re.finditer(r"([\d][\d\.,]{8,})(?:\s*(?:đồng|dong|vnd))?", html, re.IGNORECASE):
+        raw = m.group(1)
+        # Real VND amounts are always thousands-separated ("6.231.022.500");
+        # this rejects concatenated draw numbers / IDs like "1419252830".
+        if "." not in raw and "," not in raw:
+            continue
+        digits = re.sub(r"[^\d]", "", raw)
+        if not digits:
+            continue
+        v = int(digits)
+        if not (MIN_JACKPOT_VND <= v <= MAX_JACKPOT_VND):
+            continue
+        has_unit = m.group(0).lower().rstrip().endswith(("đồng", "dong", "vnd"))
+        near_label = any(0 <= m.start() - lp <= _LABEL_WINDOW
+                         for lab in _JACKPOT_LABELS for lp in _label_positions(low, lab))
+        if has_unit or near_label:
+            out.append((v, m.start()))
+    return out
+
+
+def _label_positions(low_html: str, label: str) -> list[int]:
+    return [m.start() for m in re.finditer(re.escape(label), low_html)]
+
+
 def _extract_jackpot_vnd(html: str) -> int | None:
-    matches = re.findall(r"([\d][\d\.,]{8,})\s*(?:đồng|dong|vnd)", html, re.IGNORECASE)
-    candidates = []
-    for m in matches:
-        digits = re.sub(r"[^\d]", "", m)
-        if digits:
-            candidates.append(int(digits))
-    plausible = [c for c in candidates if 1_000_000_000 <= c <= 500_000_000_000]
-    if not plausible:
+    """Pick the money figure most tightly bound to a 'Độc Đắc'/'Jackpot' label,
+    NOT the biggest number on the page. These pages also list sales totals,
+    other games' prizes and estimated next-jackpot figures, so the old 'max'
+    heuristic routinely grabbed the wrong number (observed: a stale/unrelated
+    7,269,262,500 while the real jackpot was 6,231,022,500). Returns None
+    rather than guess when a label exists but no value sits next to it."""
+    money = _money_matches(html)
+    if not money:
         return None
-    return max(plausible)
+
+    low = html.lower()
+    label_pos = sorted(p for lab in _JACKPOT_LABELS for p in _label_positions(low, lab))
+
+    if label_pos:
+        best = None  # (distance_from_label, value)
+        for value, pos in money:
+            preceding = [lp for lp in label_pos if 0 <= pos - lp <= _LABEL_WINDOW]
+            if not preceding:
+                continue
+            nearest = max(preceding)
+            # skip if the text between label and number reeks of a decoy
+            context = low[nearest:pos]
+            if any(h in context for h in _DECOY_HINTS):
+                continue
+            dist = pos - nearest
+            if best is None or dist < best[0]:
+                best = (dist, value)
+        return best[1] if best is not None else None
+
+    # No jackpot label at all: last-resort heuristic (fragile, may be wrong).
+    return max(v for v, _ in money)
 
 
 def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
@@ -139,6 +210,33 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None) -> dict:
     }
 
 
+def _self_test_parser():
+    """Extraction must pick the Độc Đắc figure, not the biggest number, using
+    the REAL page formats from vietlott.vn and xsmn.mobi."""
+    # vietlott.vn kỳ #00752 (note draw numbers 1419252830 must be ignored,
+    # and a decoy larger number must not win)
+    vietlott = (
+        "Kỳ quay thưởng #00752 ngày 09/07/2026\n1419252830|04\n"
+        "Doanh thu kỳ này: 7.269.262.500 đồng\n"
+        "Giải Độc Đắc\t6.231.022.500 VND\n"
+        "Giải Độc Đắc\tO O O O O + O\t0\t6.231.022.500"
+    )
+    # xsmn.mobi format
+    xsmn = ("Kỳ vé #00751\nGiá trị Độc Đắc:\n6.088.615.000 đồng\n"
+            "Jackpot ước tính kỳ tới: 7.269.262.500 đồng")
+    cases = [
+        (vietlott, 6_231_022_500),
+        (xsmn, 6_088_615_000),
+        ("Giải phụ 2.000.000.000 đồng. Giải khác 3.000.000.000 đồng.", 3_000_000_000),  # no label -> max
+        ("Thông tin Jackpot cập nhật sau." + "x" * 600 + "99.000.000.000 đồng", None),  # label far -> None
+    ]
+    for html, expected in cases:
+        got = _extract_jackpot_vnd(html)
+        assert got == expected, f"parser: expected {expected}, got {got} for {html[:60]!r}"
+    print("jackpot parser self-test: OK")
+
+
 if __name__ == "__main__":
     import json
+    _self_test_parser()
     print(json.dumps(check_jackpot("2026-07-07", "21:00"), ensure_ascii=False, indent=2))

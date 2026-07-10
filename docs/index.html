@@ -63,11 +63,11 @@
   <div class="subtitle" id="generated-at">Đang tải...</div>
 
   <div class="banner">
-    ⚠️ <b>Lưu ý quan trọng:</b> Đây là dự án thống kê/kỹ thuật, không phải công cụ tăng tỷ lệ trúng thật.
-    Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ — xác suất trúng Jackpot luôn cố định
-    ở mức 1/324.632 bất kể chọn số theo cách nào. Các model dưới đây được so sánh trung thực
-    với baseline ngẫu nhiên (không dùng chỉ số ROI dễ gây hiểu lầm). Chỉ nên xem đây là công cụ
-    giải trí / học thống kê.
+    ⚠️ <b>Lưu ý quan trọng:</b> Mỗi kỳ hệ thống xuất <b>4 vé</b>: 1 vé <b>Ensemble</b> (gộp 3 model)
+    giữ riêng, cùng 3 vé so sánh (mốc công bằng ngẫu nhiên, ngẫu nhiên có lặp, mô phỏng nhanaz-data).
+    Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ; xác suất trúng Jackpot luôn cố định
+    1/324.632 bất kể chọn số cách nào. "Mốc so sánh công bằng" chính là chuẩn để thấy rõ:
+    Ensemble và mọi cách chọn đều KHÔNG vượt được ngẫu nhiên. Chỉ nên xem đây là công cụ giải trí / học thống kê.
   </div>
 
   <div class="grid" id="app">
@@ -84,53 +84,33 @@ function ballHTML(n, special=false) {
   return `<div class="num-ball ${special ? 'special' : ''}">${String(n).padStart(2,'0')}</div>`;
 }
 
+const TICKET_META = {
+  ensemble:      ['🧠 Ensemble (gộp 3 model)', 'gap_zscore + momentum + crowd_avoidance — giữ riêng để so, KHÔNG hơn ngẫu nhiên'],
+  random_fair:   ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, KHÔNG lặp — chuẩn để đối chiếu'],
+  random_repeat: ['🎲 Chọn ngẫu nhiên (có thể lặp lại)', 'Lấy mẫu có hoàn lại — có thể trùng số'],
+  nhanaz:        ['🔗 Giống nhanaz-data', 'Đồng thuận dự đoán công khai của nhanaz-data'],
+};
+
 function renderLatestPrediction(data) {
   const lp = data.latest_prediction;
-  if (!lp) return '<div class="card"><h2>🎯 Bộ số dự đoán mới nhất</h2><p class="muted">Chưa có dữ liệu.</p></div>';
-  const ens = lp.ensemble;
-  const refs = lp.references || {};
+  const tickets = lp && lp.tickets;
+  if (!lp || !tickets) return '<div class="card"><h2>🎫 3 vé mới nhất</h2><p class="muted">Chưa có dữ liệu vé (sẽ có sau lần chạy pipeline tiếp theo).</p></div>';
   let html = `<div class="card">
-    <h2>🎯 Bộ số dự đoán mới nhất — Kỳ #${lp.target_draw_id}</h2>
-    <div class="muted">Ensemble Voting (trung bình chuẩn hóa của ${Object.keys(lp.per_strategy || {}).length} model), dự đoán cho kỳ #${lp.target_draw_id} — dựa trên dữ liệu đến hết kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date})</div>
-    <div class="numbers">${ens.main.map(n => ballHTML(n)).join('')}${ballHTML(ens.special, true)}</div>
-    <div class="muted">Độ tin cậy nội bộ: ${ens.confidence.toFixed(3)} (chỉ số heuristic, không phải xác suất trúng)</div>`;
-  const refOrder = [['random_fair','🎲 Mốc so sánh công bằng (ngẫu nhiên)'],['random_repeat','🎲 Ngẫu nhiên có thể lặp lại'],['nhanaz','🔗 Giống nhanaz-data']];
-  const refBlocks = refOrder.filter(([k]) => refs[k] && refs[k].main).map(([k,title]) => {
-    const r = refs[k];
-    return `<h3 style="font-size:0.85rem;margin-top:14px;color:var(--muted)">${title}</h3>
-      <div class="numbers">${r.main.map(n => ballHTML(n)).join('')}${ballHTML(r.special, true)}</div>`;
-  }).join('');
-  if (refBlocks) {
-    html += `<div class="muted" style="font-size:0.75rem;margin-top:14px">— Mốc so sánh (không phải dự đoán của hệ thống) —</div>` + refBlocks;
-  }
-  html += `<h3 style="font-size:0.85rem;margin-top:16px;color:var(--muted)">Từng model dự đoán</h3>`;
-  for (const [name, pick] of Object.entries(lp.per_strategy || {})) {
-    html += `<div class="strategy-row"><span>${name}</span><span>${pick.main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(pick.special).padStart(2,'0')}</span></div>`;
+    <h2>🎫 3 vé cho kỳ #${lp.target_draw_id}</h2>
+    <div class="muted">Dựa trên dữ liệu đến hết kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date}). Không có model dự đoán — chỉ 3 vé để theo dõi trung thực.</div>`;
+  for (const k of (data.ticket_keys || ['random_fair','random_repeat','nhanaz'])) {
+    const t = tickets[k];
+    const [title, desc] = TICKET_META[k] || [k, ''];
+    html += `<h3 style="font-size:0.9rem;margin-top:16px">${title}</h3>`;
+    if (t && t.main) {
+      html += `<div class="numbers">${t.main.map(n => ballHTML(n)).join('')}${ballHTML(t.special, true)}</div>
+        <div class="muted" style="font-size:0.75rem">${desc}${t.trace ? ' · mã lưu vết: <code>'+t.trace+'</code>' : ''}${t.method ? '<br><span style="opacity:.8">Công thức tái lập: '+t.method+'</span>' : ''}</div>`;
+    } else {
+      html += `<div class="muted" style="font-size:0.8rem">Không lấy được dữ liệu tham chiếu ở kỳ này.</div>`;
+    }
   }
   html += `</div>`;
   return html;
-}
-
-function renderLeaderboard(data) {
-  const lb = data.leaderboard;
-  if (!lb) return '';
-  let rows = lb.ranking_by_avg_hits.map(r => {
-    const detail = lb.results[r.strategy];
-    const sig = detail.significant_at_0_05 || detail['significant_at_0.05'];
-    return `<tr>
-      <td>${r.strategy}</td>
-      <td>${detail.avg_main_hits.toFixed(4)}</td>
-      <td class="muted">${detail.expected_random_main_hits.toFixed(4)}</td>
-      <td>${detail.p_value_vs_random.toFixed(4)}</td>
-      <td>${sig ? '<span class="pill yes">có ý nghĩa</span>' : '<span class="pill no">chỉ là nhiễu</span>'}</td>
-    </tr>`;
-  }).join('');
-  return `<div class="card">
-    <h2>🏆 Bảng xếp hạng model (backtest walk-forward)</h2>
-    <table><thead><tr><th>Model</th><th>Khớp TB</th><th>Ngẫu nhiên kỳ vọng</th><th>p-value</th><th>Kết luận</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <p class="muted" style="margin-top:10px;font-size:0.78rem">${lb.note}</p>
-  </div>`;
 }
 
 function renderPerformanceChart(data) {
@@ -146,10 +126,10 @@ function drawPerformanceChart(data) {
   if (!pot || !pot.labels || pot.labels.length === 0) return;
   const ctx = document.getElementById('perfChart');
   if (!ctx) return;
-  const colors = ['#4f8cff','#3ecf8e','#f5a623','#ff6b6b','#a56bff','#6bd6ff','#ffb86b','#8affc1','#ff8ac6'];
-  let i = 0;
-  const datasets = Object.entries(pot.series).map(([name, series]) => ({
-    label: name, data: series, borderColor: colors[i++ % colors.length],
+  const colors = {ensemble:'#a56bff', random_fair:'#3ecf8e', random_repeat:'#ff6b6b', nhanaz:'#4f8cff'};
+  const labelsByKey = pot.labels_by_key || {};
+  const datasets = Object.entries(pot.series).map(([key, series]) => ({
+    label: labelsByKey[key] || key, data: series, borderColor: colors[key] || '#a56bff',
     borderWidth: 2, pointRadius: 0, tension: 0.15, spanGaps: true,
   }));
   new Chart(ctx, {
@@ -166,17 +146,21 @@ function drawPerformanceChart(data) {
   });
 }
 
-function renderModelAccuracy(data) {
-  const ma = data.model_accuracy;
+function renderTicketAccuracy(data) {
+  const ma = data.ticket_accuracy;
   if (!ma || Object.keys(ma).length === 0) {
-    return '<div class="card"><h2>📉 Độ chính xác từng model (thực tế đã triển khai)</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
+    return '<div class="card"><h2>📉 Tỷ lệ trúng của 3 vé</h2><p class="muted">Chưa có kỳ nào được đối chiếu kết quả thật.</p></div>';
   }
-  let rows = Object.entries(ma).sort((a,b) => b[1].avg_main_hits - a[1].avg_main_hits)
-    .map(([name, s]) => `<tr><td>${name}</td><td>${s.n}</td><td>${s.avg_main_hits.toFixed(4)}</td><td>${(s.special_hit_rate*100).toFixed(1)}%</td></tr>`).join('');
+  const order = data.ticket_keys || ['random_fair','random_repeat','nhanaz'];
+  let rows = order.filter(k => ma[k]).map(k => {
+    const s = ma[k];
+    return `<tr><td>${s.label}</td><td>${s.n}</td><td>${s.avg_main_hits.toFixed(4)}</td><td class="muted">${s.expected_random_main_hits.toFixed(4)}</td><td>${(s.special_hit_rate*100).toFixed(1)}%</td></tr>`;
+  }).join('');
   return `<div class="card">
-    <h2>📉 Độ chính xác từng model (thực tế đã triển khai)</h2>
-    <table><thead><tr><th>Model</th><th>Số kỳ</th><th>Khớp TB</th><th>Tỷ lệ trúng ĐB</th></tr></thead>
+    <h2>📉 Tỷ lệ trúng của 3 vé (đối chiếu thực tế)</h2>
+    <table><thead><tr><th>Vé</th><th>Số kỳ</th><th>Khớp TB</th><th>Ngẫu nhiên kỳ vọng</th><th>Tỷ lệ trúng ĐB</th></tr></thead>
     <tbody>${rows}</tbody></table>
+    <p class="muted" style="margin-top:10px;font-size:0.78rem">Kỳ vọng ngẫu nhiên = 0.7143 số/kỳ. Nếu "khớp TB" của cả 3 vé đều quanh mốc này thì đúng như dự đoán: không cách chọn nào vượt ngẫu nhiên.</p>
   </div>`;
 }
 
@@ -194,16 +178,12 @@ function renderDrawHistory(data) {
 
   const blocks = hist.map(h => {
     const actualSet = new Set(h.actual_main);
-    const preds = h.predictions || [{
-      label: 'Ensemble', main: h.ensemble_predicted_main, special: h.ensemble_predicted_special,
-      main_hits: h.ensemble_main_hits, special_hit: h.ensemble_special_hit,
-    }];
+    const preds = h.predictions || [];
     const predRows = preds.map(p => {
-      const isMeta = p.meta || p.label === 'Ensemble';
       const specialHit = p.special_hit && p.special === h.actual_special;
       const hitTxt = (p.main_hits == null ? '—' : `${p.main_hits}/5`) + (specialHit ? ' + ĐB' : '');
-      return `<tr class="${isMeta ? 'meta-row' : ''}">
-        <td>${isMeta ? '<strong>'+p.label+'</strong>' : p.label}</td>
+      return `<tr>
+        <td>${p.label}</td>
         <td>${nums(p.main, actualSet)} + ${specialHit ? '<strong class="hit">'+String(p.special).padStart(2,'0')+'</strong>' : String(p.special).padStart(2,'0')}</td>
         <td>${hitTxt}</td>
       </tr>`;
@@ -212,19 +192,15 @@ function renderDrawHistory(data) {
       <div class="draw-head">
         <span><strong>#${h.target_draw_id}</strong> · ${h.draw_date}</span>
         <span>Kết quả thật: <strong class="hit">${h.actual_main.map(n=>String(n).padStart(2,'0')).join('-')} + ${String(h.actual_special).padStart(2,'0')}</strong></span>
-        <span class="muted">Ensemble: ${h.ensemble_main_hits == null ? '—' : h.ensemble_main_hits+'/5'}${h.ensemble_special_hit ? ' + ĐB' : ''}</span>
       </div>
-      <details>
-        <summary class="muted">Xem dự đoán của tất cả model (${preds.length})</summary>
-        <table class="preds"><thead><tr><th>Model</th><th>Bộ số đã dự đoán</th><th>Khớp</th></tr></thead>
+      <table class="preds"><thead><tr><th>Vé</th><th>Bộ số</th><th>Khớp</th></tr></thead>
         <tbody>${predRows}</tbody></table>
-      </details>
     </div>`;
   }).join('');
 
   return `<div class="card">
     <h2>📊 Lịch sử các kỳ quay & kết quả</h2>
-    <p class="muted">Số <strong class="hit">in đậm</strong> = trùng kết quả thật. Mở mỗi kỳ để xem Ensemble + các mốc so sánh (ngẫu nhiên, nhanaz-data) + từng model.</p>
+    <p class="muted">Số <strong class="hit">in đậm</strong> = trùng kết quả thật. Mỗi kỳ liệt kê 3 vé và số khớp.</p>
     ${blocks}
   </div>`;
 }
@@ -239,13 +215,10 @@ async function main() {
   app.innerHTML = `
     <div class="grid grid-2">
       ${renderLatestPrediction(data)}
-      ${renderLeaderboard(data)}
+      ${renderTicketAccuracy(data)}
     </div>
     ${renderPerformanceChart(data)}
-    <div class="grid grid-2">
-      ${renderModelAccuracy(data)}
-      ${renderDrawHistory(data)}
-    </div>
+    ${renderDrawHistory(data)}
   `;
   drawPerformanceChart(data);
 }

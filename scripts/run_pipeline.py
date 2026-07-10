@@ -30,7 +30,7 @@ from model import parse_draws
 from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
 from jackpot_watch import check_early_alert, check_scrape_alert
-from references import compute_references
+from references import compute_tickets as compute_references
 from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
 

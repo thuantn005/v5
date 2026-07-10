@@ -1,4 +1,5 @@
 {
   "alerted_this_cycle": false,
-  "last_jackpot_vnd": 7269262500
+  "last_jackpot_vnd": 7269262500,
+  "scrape_fail_alerted": false
 }
