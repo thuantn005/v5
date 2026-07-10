@@ -145,12 +145,33 @@ def momentum_seeded(history, pool_min, pool_max, k, use_special, params=None):
     return {n: 0.4 * recency[n] + 0.6 * rng.random() for n in pool}
 
 
+def momentum_pure(history, pool_min, pool_max, k, use_special, params=None):
+    """Pure momentum: 100% recency-weighted, zero random noise. Picks the numbers
+    that appeared most recently across the last 30 draws. Fully deterministic from
+    draw history — no seed needed. Tie-breaking is by number value (lower wins)."""
+    pool = list(range(pool_min, pool_max + 1))
+    recency = {n: 0.0 for n in pool}
+    lookback = min(len(history), 30)
+    if lookback > 0:
+        for i, draw in enumerate(history[-lookback:]):
+            w = (i + 1) / lookback
+            appeared = [draw.special] if use_special else draw.numbers
+            for n in appeared:
+                if pool_min <= n <= pool_max:
+                    recency[n] += w
+        max_r = max(recency.values()) or 1.0
+        recency = {n: v / max_r for n, v in recency.items()}
+    return recency
+
+
 STRATEGIES = {
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
+    "momentum_pure": momentum_pure,
 }
 
 DEFAULT_PARAMS = {
     "uniform_seeded": {"seed": None},
     "momentum_seeded": {"seed": None},
+    "momentum_pure": {},
 }

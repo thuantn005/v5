@@ -29,7 +29,7 @@ the dashboard/log show all of them.
 import csv
 
 from model import parse_draws, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
-from strategies import uniform_seeded, momentum_seeded, pick_topk, dataset_fingerprint, seed_trace
+from strategies import uniform_seeded, momentum_seeded, momentum_pure, pick_topk, dataset_fingerprint, seed_trace
 
 N_TICKETS = 3
 
@@ -102,6 +102,17 @@ def ensemble_predict(history, tuned_params=None):
     per_strategy_picks["ticket_momentum"] = {
         "main": momentum_ticket["main"],
         "special": momentum_ticket["special"],
+    }
+
+    # Pure momentum ticket: 100% recency-weighted, zero random noise
+    mp_main = momentum_pure(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    mp_spec = momentum_pure(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_top = f"lotto535|momentum-pure|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_momentum_top"] = {
+        "main": pick_topk(mp_main, MAIN_K),
+        "special": pick_topk(mp_spec, 1)[0],
+        "trace": trace_top,
+        "label": "Quán tính xuất sắc nhất",
     }
 
     return {

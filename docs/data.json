@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-10T13:18:07.913774+00:00",
+  "generated_at": "2026-07-10T13:21:04.410161+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-10T12:43:20.144606+00:00",
+    "generated_at": "2026-07-10T13:20:48.881597+00:00",
     "based_on_draw_id": "00753",
     "based_on_draw_date": "2026-07-10",
     "target_draw_id": "00754",
@@ -100,6 +100,16 @@
           34
         ],
         "special": 3
+      },
+      "ticket_momentum_top": {
+        "main": [
+          6,
+          8,
+          11,
+          27,
+          31
+        ],
+        "special": 5
       }
     },
     "notified": false,
@@ -151,6 +161,17 @@
         ],
         "special": 3,
         "label": "Quán tính (momentum)"
+      },
+      "ticket_momentum_top": {
+        "main": [
+          6,
+          8,
+          11,
+          27,
+          31
+        ],
+        "special": 5,
+        "label": "Quán tính xuất sắc nhất"
       },
       "random_fair": {
         "main": [
@@ -209,6 +230,7 @@
     "ticket_2",
     "ticket_3",
     "ticket_momentum",
+    "ticket_momentum_top",
     "random_fair"
   ],
   "performance_over_time": {
@@ -228,6 +250,9 @@
       "ticket_momentum": [
         null
       ],
+      "ticket_momentum_top": [
+        null
+      ],
       "random_fair": [
         1.0
       ]
@@ -237,7 +262,8 @@
       "ticket_1": "Ngẫu nhiên #1",
       "ticket_2": "Ngẫu nhiên #2",
       "ticket_3": "Ngẫu nhiên #3",
-      "ticket_momentum": "Quán tính (momentum)"
+      "ticket_momentum": "Quán tính (momentum)",
+      "ticket_momentum_top": "Quán tính xuất sắc nhất"
     }
   },
   "ticket_accuracy": {

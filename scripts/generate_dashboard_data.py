@@ -17,13 +17,14 @@ from multi_log import load_log
 OUTPUT_PATH = "docs/data.json"
 
 TICKET_KEYS = ["ticket_1", "ticket_2", "ticket_3", "ticket_momentum",
-               "random_fair"]
+               "ticket_momentum_top", "random_fair"]
 TICKET_LABELS = {
     "random_fair": "Mốc so sánh công bằng",
     "ticket_1": "Ngẫu nhiên #1",
     "ticket_2": "Ngẫu nhiên #2",
     "ticket_3": "Ngẫu nhiên #3",
     "ticket_momentum": "Quán tính (momentum)",
+    "ticket_momentum_top": "Quán tính xuất sắc nhất",
 }
 
 

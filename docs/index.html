@@ -88,8 +88,9 @@ const TICKET_META = {
   ticket_1:        ['🎰 Ngẫu nhiên #1', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
   ticket_2:        ['🎰 Ngẫu nhiên #2', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
   ticket_3:        ['🎰 Ngẫu nhiên #3', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
-  ticket_momentum: ['⚡ Quán tính (momentum)', '40% số xuất hiện gần nhất (30 kỳ) + 60% ngẫu nhiên có seed — tái tạo được từ trace'],
-  random_fair:     ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, không lặp — chuẩn để đối chiếu'],
+  ticket_momentum:     ['⚡ Quán tính (momentum)', '40% số xuất hiện gần nhất (30 kỳ) + 60% ngẫu nhiên có seed — tái tạo được từ trace'],
+  ticket_momentum_top: ['🏆 Quán tính xuất sắc nhất', '100% ưu tiên số xuất hiện nhiều nhất/gần nhất trong 30 kỳ — hoàn toàn xác định từ lịch sử, không pha ngẫu nhiên'],
+  random_fair:         ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, không lặp — chuẩn để đối chiếu'],
 };
 
 function renderLatestPrediction(data) {
