@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-10T12:33:16.170458+00:00",
+  "generated_at": "2026-07-10T12:44:55.684238+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-10T10:25:27.536230+00:00",
+    "generated_at": "2026-07-10T12:43:20.144606+00:00",
     "based_on_draw_id": "00753",
     "based_on_draw_date": "2026-07-10",
     "target_draw_id": "00754",
@@ -49,15 +49,15 @@
         "label": "Giống nhanaz-data (đồng thuận công cụ tham khảo)",
         "main": [
           6,
+          10,
           15,
-          19,
           22,
           27
         ],
-        "special": 4,
+        "special": 6,
         "available": true,
-        "generated_at": "2026-07-09T17:05:38+00:00",
-        "trace": "nhanaz@2026-07-09T17:05:38+00:00"
+        "generated_at": "2026-07-10T11:17:40+00:00",
+        "trace": "nhanaz@2026-07-10T11:17:40+00:00"
       }
     },
     "per_strategy": {
@@ -90,13 +90,119 @@
           32
         ],
         "special": 9
+      },
+      "ticket_momentum": {
+        "main": [
+          11,
+          27,
+          28,
+          30,
+          34
+        ],
+        "special": 3
       }
     },
     "notified": false,
-    "jackpot_vnd": 6088615000,
+    "jackpot_vnd": null,
     "resolved": false,
     "actual": null,
-    "hits": null
+    "hits": null,
+    "tickets": {
+      "ticket_1": {
+        "main": [
+          6,
+          23,
+          33,
+          34,
+          35
+        ],
+        "special": 2,
+        "label": "Ngẫu nhiên #1"
+      },
+      "ticket_2": {
+        "main": [
+          2,
+          26,
+          30,
+          32,
+          35
+        ],
+        "special": 10,
+        "label": "Ngẫu nhiên #2"
+      },
+      "ticket_3": {
+        "main": [
+          1,
+          3,
+          8,
+          18,
+          32
+        ],
+        "special": 9,
+        "label": "Ngẫu nhiên #3"
+      },
+      "ticket_momentum": {
+        "main": [
+          11,
+          27,
+          28,
+          30,
+          34
+        ],
+        "special": 3,
+        "label": "Quán tính (momentum)"
+      },
+      "random_fair": {
+        "main": [
+          2,
+          8,
+          9,
+          12,
+          32
+        ],
+        "special": 4,
+        "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
+        "trace": "L535-00754-FAIR",
+        "method": "rng = random.Random(seed); main = sorted(rng.sample(range(1, 36), 5)); special = rng.randint(1, 12)"
+      },
+      "random_repeat": {
+        "main": [
+          29,
+          30,
+          33,
+          34,
+          34
+        ],
+        "special": 8,
+        "label": "Chọn ngẫu nhiên (có thể lặp lại)",
+        "trace": "L535-00754-REPEAT",
+        "method": "rng = random.Random(seed); main = sorted(rng.randint(1, 35) for _ in range(5)); special = rng.randint(1, 12)"
+      },
+      "nhanaz": {
+        "main": [
+          6,
+          10,
+          15,
+          22,
+          27
+        ],
+        "special": 6,
+        "label": "Giống nhanaz-data (đồng thuận công cụ tham khảo)",
+        "trace": "nhanaz@2026-07-10T11:17:40+00:00",
+        "method": null
+      },
+      "ensemble": {
+        "main": [
+          6,
+          23,
+          33,
+          34,
+          35
+        ],
+        "special": 2,
+        "label": "Ensemble (3 model)"
+      }
+    }
   },
   "ticket_keys": [
     "ensemble",

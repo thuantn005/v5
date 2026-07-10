@@ -115,6 +115,39 @@ def build_draw_history(resolved_entries, limit=50):
     return rows
 
 
+def _normalize_latest(entry: dict) -> dict:
+    """Ensure latest_prediction always exposes a `tickets` key the dashboard JS
+    expects, regardless of whether the log entry uses the new `tickets` format
+    or the older `per_strategy` + `references` format."""
+    if not entry or entry.get("tickets"):
+        return entry
+    tickets = {}
+    for k, pick in (entry.get("per_strategy") or {}).items():
+        if pick and pick.get("main") and pick.get("special") is not None:
+            tickets[k] = {
+                "main": pick["main"],
+                "special": pick["special"],
+                "label": TICKET_LABELS.get(k, k),
+            }
+    for k, ref in (entry.get("references") or {}).items():
+        if ref and ref.get("main") and ref.get("special") is not None:
+            tickets[k] = {
+                "main": ref["main"],
+                "special": ref["special"],
+                "label": ref.get("label") or TICKET_LABELS.get(k, k),
+                "trace": ref.get("trace"),
+                "method": ref.get("method"),
+            }
+    ens = entry.get("ensemble")
+    if ens and ens.get("main") and ens.get("special") is not None:
+        tickets["ensemble"] = {
+            "main": ens["main"],
+            "special": ens["special"],
+            "label": TICKET_LABELS.get("ensemble", "Ensemble"),
+        }
+    return {**entry, "tickets": tickets}
+
+
 def main():
     log_entries = load_log()
     resolved = [e for e in log_entries if e.get("resolved")]
@@ -122,9 +155,9 @@ def main():
     latest = None
     unresolved = [e for e in log_entries if not e.get("resolved")]
     if unresolved:
-        latest = unresolved[-1]
+        latest = _normalize_latest(unresolved[-1])
     elif log_entries:
-        latest = log_entries[-1]
+        latest = _normalize_latest(log_entries[-1])
 
     data = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
