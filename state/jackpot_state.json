@@ -1,5 +1,6 @@
 {
   "alerted_this_cycle": false,
-  "last_jackpot_vnd": 7269262500,
-  "scrape_fail_alerted": false
+  "last_jackpot_vnd": 6088615000,
+  "scrape_fail_alerted": false,
+  "threshold_crossed_date": null
 }

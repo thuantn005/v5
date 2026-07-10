@@ -1,37 +1,48 @@
 {
-  "generated_at": "2026-07-10T05:17:43.621142+00:00",
+  "generated_at": "2026-07-10T10:25:27.612271+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-10T04:44:51.015078+00:00",
-    "based_on_draw_id": "00752",
-    "based_on_draw_date": "2026-07-09",
-    "target_draw_id": "00753",
-    "tickets": {
+    "generated_at": "2026-07-10T10:25:27.536230+00:00",
+    "based_on_draw_id": "00753",
+    "based_on_draw_date": "2026-07-10",
+    "target_draw_id": "00754",
+    "ensemble": {
+      "main": [
+        6,
+        23,
+        33,
+        34,
+        35
+      ],
+      "special": 2,
+      "confidence": 0.0
+    },
+    "references": {
       "random_fair": {
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
         "main": [
-          3,
-          5,
-          11,
-          21,
-          24
+          2,
+          8,
+          9,
+          12,
+          32
         ],
-        "special": 9,
-        "trace": "L535-00753-FAIR",
-        "seed": 753,
+        "special": 4,
+        "trace": "L535-00754-FAIR",
+        "seed": 754,
         "method": "rng = random.Random(seed); main = sorted(rng.sample(range(1, 36), 5)); special = rng.randint(1, 12)"
       },
       "random_repeat": {
         "label": "Chọn ngẫu nhiên (có thể lặp lại)",
         "main": [
-          19,
-          25,
-          26,
+          29,
+          30,
+          33,
           34,
           34
         ],
-        "special": 9,
-        "trace": "L535-00753-REPEAT",
-        "seed": 1000753,
+        "special": 8,
+        "trace": "L535-00754-REPEAT",
+        "seed": 1000754,
         "method": "rng = random.Random(seed); main = sorted(rng.randint(1, 35) for _ in range(5)); special = rng.randint(1, 12)"
       },
       "nhanaz": {
@@ -49,7 +60,40 @@
         "trace": "nhanaz@2026-07-09T17:05:38+00:00"
       }
     },
-    "jackpot_vnd": 7269262500,
+    "per_strategy": {
+      "ticket_1": {
+        "main": [
+          6,
+          23,
+          33,
+          34,
+          35
+        ],
+        "special": 2
+      },
+      "ticket_2": {
+        "main": [
+          2,
+          26,
+          30,
+          32,
+          35
+        ],
+        "special": 10
+      },
+      "ticket_3": {
+        "main": [
+          1,
+          3,
+          8,
+          18,
+          32
+        ],
+        "special": 9
+      }
+    },
+    "notified": false,
+    "jackpot_vnd": 6088615000,
     "resolved": false,
     "actual": null,
     "hits": null
@@ -63,24 +107,29 @@
   "performance_over_time": {
     "labels": [
       "00751",
-      "00752"
+      "00752",
+      "00753"
     ],
     "series": {
       "ensemble": [
         1.0,
+        0.5,
         0.5
       ],
       "random_fair": [
         null,
-        null
+        null,
+        1.0
       ],
       "random_repeat": [
         null,
-        null
+        null,
+        1.0
       ],
       "nhanaz": [
         null,
-        null
+        null,
+        0.0
       ]
     },
     "labels_by_key": {
@@ -97,9 +146,83 @@
       "avg_main_hits": 0.5,
       "special_hit_rate": 0.5,
       "expected_random_main_hits": 0.7143
+    },
+    "random_fair": {
+      "label": "Mốc so sánh công bằng",
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0,
+      "expected_random_main_hits": 0.7143
+    },
+    "random_repeat": {
+      "label": "Ngẫu nhiên (có lặp)",
+      "n": 1,
+      "avg_main_hits": 1,
+      "special_hit_rate": 0,
+      "expected_random_main_hits": 0.7143
+    },
+    "nhanaz": {
+      "label": "Giống nhanaz-data",
+      "n": 1,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0,
+      "expected_random_main_hits": 0.7143
     }
   },
   "draw_history": [
+    {
+      "target_draw_id": "00753",
+      "draw_date": "2026-07-10",
+      "actual_main": [
+        1,
+        5,
+        10,
+        17,
+        34
+      ],
+      "actual_special": 6,
+      "predictions": [
+        {
+          "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
+          "main": [
+            3,
+            5,
+            11,
+            21,
+            24
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "Chọn ngẫu nhiên (có thể lặp lại)",
+          "main": [
+            19,
+            25,
+            26,
+            34,
+            34
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "Giống nhanaz-data (đồng thuận công cụ tham khảo)",
+          "main": [
+            6,
+            15,
+            19,
+            22,
+            27
+          ],
+          "special": 4,
+          "main_hits": 0,
+          "special_hit": false
+        }
+      ]
+    },
     {
       "target_draw_id": "00752",
       "draw_date": "2026-07-09",
@@ -181,5 +304,5 @@
       ]
     }
   ],
-  "n_resolved_predictions": 0
+  "n_resolved_predictions": 1
 }
