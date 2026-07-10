@@ -88,16 +88,20 @@ function renderLatestPrediction(data) {
   const lp = data.latest_prediction;
   if (!lp) return '<div class="card"><h2>🎯 Bộ số dự đoán mới nhất</h2><p class="muted">Chưa có dữ liệu.</p></div>';
   const ens = lp.ensemble;
-  const hunter = lp.hunter;
+  const refs = lp.references || {};
   let html = `<div class="card">
     <h2>🎯 Bộ số dự đoán mới nhất — Kỳ #${lp.target_draw_id}</h2>
-    <div class="muted">Ensemble Voting (trung bình chuẩn hóa của 10 model), dựa trên kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date})</div>
+    <div class="muted">Ensemble Voting (trung bình chuẩn hóa của ${Object.keys(lp.per_strategy || {}).length} model), dự đoán cho kỳ #${lp.target_draw_id} — dựa trên dữ liệu đến hết kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date})</div>
     <div class="numbers">${ens.main.map(n => ballHTML(n)).join('')}${ballHTML(ens.special, true)}</div>
     <div class="muted">Độ tin cậy nội bộ: ${ens.confidence.toFixed(3)} (chỉ số heuristic, không phải xác suất trúng)</div>`;
-  if (hunter) {
-    html += `<h3 style="font-size:0.85rem;margin-top:14px;color:var(--muted)">🏹 Jackpot Hunter (né số công cụ tham khảo công khai gợi ý)</h3>
-    <div class="numbers">${hunter.main.map(n => ballHTML(n)).join('')}${ballHTML(hunter.special, true)}</div>
-    <div class="muted" style="font-size:0.75rem">${hunter.reference_available ? 'Đã loại trừ ' + hunter.excluded_main.length + ' số công khai từ công cụ tham khảo' : 'Không lấy được dữ liệu tham khảo -- dùng ensemble thuần'}</div>`;
+  const refOrder = [['random_fair','🎲 Mốc so sánh công bằng (ngẫu nhiên)'],['random_repeat','🎲 Ngẫu nhiên có thể lặp lại'],['nhanaz','🔗 Giống nhanaz-data']];
+  const refBlocks = refOrder.filter(([k]) => refs[k] && refs[k].main).map(([k,title]) => {
+    const r = refs[k];
+    return `<h3 style="font-size:0.85rem;margin-top:14px;color:var(--muted)">${title}</h3>
+      <div class="numbers">${r.main.map(n => ballHTML(n)).join('')}${ballHTML(r.special, true)}</div>`;
+  }).join('');
+  if (refBlocks) {
+    html += `<div class="muted" style="font-size:0.75rem;margin-top:14px">— Mốc so sánh (không phải dự đoán của hệ thống) —</div>` + refBlocks;
   }
   html += `<h3 style="font-size:0.85rem;margin-top:16px;color:var(--muted)">Từng model dự đoán</h3>`;
   for (const [name, pick] of Object.entries(lp.per_strategy || {})) {
@@ -195,7 +199,7 @@ function renderDrawHistory(data) {
       main_hits: h.ensemble_main_hits, special_hit: h.ensemble_special_hit,
     }];
     const predRows = preds.map(p => {
-      const isMeta = (p.label === 'Ensemble' || p.label === 'Jackpot Hunter');
+      const isMeta = p.meta || p.label === 'Ensemble';
       const specialHit = p.special_hit && p.special === h.actual_special;
       const hitTxt = (p.main_hits == null ? '—' : `${p.main_hits}/5`) + (specialHit ? ' + ĐB' : '');
       return `<tr class="${isMeta ? 'meta-row' : ''}">
@@ -220,7 +224,7 @@ function renderDrawHistory(data) {
 
   return `<div class="card">
     <h2>📊 Lịch sử các kỳ quay & kết quả</h2>
-    <p class="muted">Số <strong class="hit">in đậm</strong> = trùng kết quả thật. Mở mỗi kỳ để xem dự đoán của cả 12 model + Ensemble + Jackpot Hunter.</p>
+    <p class="muted">Số <strong class="hit">in đậm</strong> = trùng kết quả thật. Mở mỗi kỳ để xem Ensemble + các mốc so sánh (ngẫu nhiên, nhanaz-data) + từng model.</p>
     ${blocks}
   </div>`;
 }

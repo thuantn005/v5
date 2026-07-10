@@ -30,7 +30,7 @@ from model import parse_draws
 from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
 from jackpot_watch import check_early_alert, check_scrape_alert
-from jackpot_hunter import hunter_predict
+from references import compute_references
 from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
 
@@ -58,9 +58,9 @@ def _predicted_numbers(entry: dict, label: str):
     """Return (main_list, special) that `label` predicted in this log entry."""
     if label == "ensemble":
         return entry["ensemble"]["main"], entry["ensemble"]["special"]
-    if label == "jackpot_hunter":
-        h = entry.get("hunter") or {}
-        return h.get("main"), h.get("special")
+    if label.startswith("ref_"):
+        r = (entry.get("references") or {}).get(label[len("ref_"):], {})
+        return r.get("main"), r.get("special")
     pick = (entry.get("per_strategy") or {}).get(label, {})
     return pick.get("main"), pick.get("special")
 
@@ -163,16 +163,23 @@ def main():
     calibration = load_calibration()
     threshold = calibration["notify_threshold_confidence"] if calibration else None
 
-    # --- Step 5b: Jackpot Hunter pick (crowd-avoidance vs public reference tool) ---
-    print("\n=== Jackpot Hunter pick ===")
-    hunter = hunter_predict(draws, tuned_params)
-    hunter_main_str = "-".join(f"{n:02d}" for n in hunter["main_numbers"])
-    hunter_special_str = f"{hunter['special_number']:02d}"
-    print(f"Hunter: {hunter_main_str} + special {hunter_special_str} "
-          f"(reference_available={hunter['reference_available']})")
-
     last_draw = draws[-1]
     target_id = _next_draw_id(last_draw.draw_id)
+
+    # --- Step 5b: reference & fair-comparison predictions (replaces Hunter) ---
+    print("\n=== Reference / comparison predictions ===")
+    references = compute_references(target_id)
+
+    def _ref_str(key):
+        r = references.get(key, {})
+        if not r.get("main"):
+            return "n/a"
+        return "-".join(f"{n:02d}" for n in r["main"]) + f" + {r['special']:02d}"
+
+    print(f"Mốc công bằng (random): {_ref_str('random_fair')}")
+    print(f"Ngẫu nhiên có lặp:      {_ref_str('random_repeat')}")
+    print(f"Giống nhanaz-data:      {_ref_str('nhanaz')} "
+          f"(available={references.get('nhanaz', {}).get('available')})")
 
     # --- Step 6: jackpot checks ---
     jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time)
@@ -246,10 +253,10 @@ def main():
                 "được phân bổ xuống các giải thấp hơn NGAY CẢ KHI không ai khớp đủ "
                 "5/5 — đây là điều thật duy nhất làm giá trị kỳ vọng của kỳ này cao "
                 "hơn bình thường, không liên quan đến việc chọn số nào."
-                "\n➡️ Khuyến nghị cho kỳ chia giải: ưu tiên bộ JACKPOT HUNTER ở trên "
-                "(né số đám đông hay chọn). Kỳ chia giải thu hút nhiều người chơi hơn, "
-                "nên rủi ro phải CHIA giải nếu trúng cũng cao hơn — né đám đông là "
-                "cách duy nhất có thật để tối đa số tiền thực nhận nếu trúng."
+                "\n➡️ Kỳ chia giải thu hút nhiều người chơi hơn nên rủi ro phải CHIA "
+                "giải nếu trúng cũng cao hơn. Bộ Ensemble đã có sẵn model "
+                "crowd_avoidance (né số đám đông) — đây là cách duy nhất có thật để "
+                "tối đa số tiền thực nhận nếu trúng, dù không tăng xác suất trúng."
             )
 
         leaderboard = None
@@ -263,14 +270,15 @@ def main():
         message = (
             f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
             f"Bộ số Ensemble ({len(pred['per_strategy_picks'])} model): {main_str} + đặc biệt {special_str}\n"
-            f"Bộ số Jackpot Hunter (né số công cụ tham khảo công khai gợi ý, "
-            f"giảm rủi ro chia giải nếu trúng): {hunter_main_str} + đặc biệt {hunter_special_str}\n"
+            f"— Để so sánh —\n"
+            f"Mốc công bằng (ngẫu nhiên): {_ref_str('random_fair')}\n"
+            f"Ngẫu nhiên có lặp lại: {_ref_str('random_repeat')}\n"
+            f"Giống nhanaz-data: {_ref_str('nhanaz')}\n"
             f"Model dẫn đầu backtest hiện tại: {top_model} (tham khảo, không phải bảo chứng)"
             f"{ev_note}\n"
             f"Lý do gửi: {reason_text}.\n"
-            f"Lưu ý: KHÔNG có model nào làm tăng xác suất trúng thật. Xem "
-            f"dashboard để biết chi tiết & so sánh với ngẫu nhiên. Chơi có "
-            f"trách nhiệm."
+            f"Lưu ý: KHÔNG có model nào làm tăng xác suất trúng thật — Ensemble "
+            f"không hơn 'mốc công bằng' ngẫu nhiên. Chơi có trách nhiệm."
         )
         ntfy_send(
             NTFY_TOPIC,
@@ -295,13 +303,7 @@ def main():
             "special": pred["special_number"],
             "confidence": round(pred["confidence"], 4),
         },
-        "hunter": {
-            "main": hunter["main_numbers"],
-            "special": hunter["special_number"],
-            "reference_available": hunter["reference_available"],
-            "excluded_main": hunter.get("excluded_main", []),
-            "excluded_special": hunter.get("excluded_special", []),
-        },
+        "references": references,
         "per_strategy": per_strategy_serializable,
         "notified": should_notify,
         "jackpot_vnd": jackpot["jackpot_vnd"],

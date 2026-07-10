@@ -75,7 +75,7 @@ def build_draw_history(resolved_entries, limit=50):
     for e in reversed(resolved_entries[-limit:]):
         hits = e.get("hits", {})
 
-        def entry(label, main, special, hits_key):
+        def entry(label, main, special, hits_key, meta=False):
             h = hits.get(hits_key) or {}
             return {
                 "label": label,
@@ -83,22 +83,28 @@ def build_draw_history(resolved_entries, limit=50):
                 "special": special,
                 "main_hits": h.get("main_hits"),
                 "special_hit": bool(h.get("special_hit")) if h else None,
+                "meta": meta,
             }
 
-        # Every prediction made for this draw: ensemble, hunter, and each
-        # individual strategy -- so the dashboard can show all of them, not
-        # just the ensemble.
-        predictions = [entry("Ensemble", e["ensemble"]["main"], e["ensemble"]["special"], "ensemble")]
+        # Every prediction made for this draw: ensemble, the reference /
+        # comparison predictions, and each individual strategy -- so the
+        # dashboard can show all of them, not just the ensemble.
+        predictions = [entry("Ensemble", e["ensemble"]["main"], e["ensemble"]["special"], "ensemble", meta=True)]
+
+        for key in ("random_fair", "random_repeat", "nhanaz"):
+            r = (e.get("references") or {}).get(key)
+            if r and r.get("main"):
+                predictions.append(entry(r.get("label") or key, r["main"], r["special"], f"ref_{key}", meta=True))
+        # legacy: older entries had a single "hunter" block
         hunter = e.get("hunter")
-        if hunter:
-            predictions.append(entry("Jackpot Hunter", hunter["main"], hunter["special"], "jackpot_hunter"))
+        if hunter and hunter.get("main"):
+            predictions.append(entry("Jackpot Hunter", hunter["main"], hunter["special"], "jackpot_hunter", meta=True))
+
+        n_pinned = len(predictions)  # Ensemble + references/hunter stay on top
         for name, pick in (e.get("per_strategy") or {}).items():
             predictions.append(entry(name, pick["main"], pick["special"], name))
 
-        # Sort the individual strategies by how well they did this draw (best
-        # first); keep Ensemble + Hunter pinned at the top.
-        head, tail = predictions[:2] if hunter else predictions[:1], \
-            predictions[2:] if hunter else predictions[1:]
+        head, tail = predictions[:n_pinned], predictions[n_pinned:]
         tail.sort(key=lambda p: (-(p["main_hits"] or 0), p["label"]))
 
         rows.append({

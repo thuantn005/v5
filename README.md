@@ -24,7 +24,7 @@ scripts/
                                 #   pair_frequency/markov_chain/entropy_diversity/pattern/
                                 #   balanced_signal) vẫn định nghĩa sẵn nhưng TẮT — thêm 1 dòng
                                 #   vào STRATEGIES để bật lại. (+ random_repeat: chỉ để backtest)
-  jackpot_hunter.py             # Chế độ "Jackpot Hunter": né số công cụ tham khảo công khai (giảm rủi ro chia giải)
+  references.py                 # 3 bộ số tham chiếu/so sánh (ngẫu nhiên công bằng, ngẫu nhiên có lặp, giống nhanaz-data)
   tuning.py                    # Auto-tune tham số từng model (grid search, train/holdout,
                                 #   chỉ chạy lại mỗi 7 ngày -- "theo lịch")
   backtest_all.py              # Backtest walk-forward mọi model, so p-value với baseline ngẫu nhiên
@@ -75,17 +75,17 @@ Dịch ý tưởng từ [`vietvudanh/vietlott-data`](https://github.com/vietvuda
 
 > **Roster đã được cắt còn 3 model active.** 8 model còn lại vẫn **định nghĩa sẵn trong `strategies.py`** (thư viện tắt) — bật lại chỉ cần thêm 1 dòng vào `STRATEGIES` (+ `DEFAULT_PARAMS`/`PARAM_GRID`). Lịch sử: 3 model "ngụy biện con bạc" cũ (`cold_numbers`/`long_absence`/`not_repeat`) đã bị thay/bỏ, `chi_square_uniformity` bị loại vì trùng `bayesian_frequency`, rồi roster gọn về 3 tín hiệu khác biệt nhất. **Không thay đổi nào tăng xác suất trúng** — xổ số vẫn ngẫu nhiên (1/324.632). `random_repeat` (chọn ngẫu nhiên **có lặp lại**) chỉ dùng để backtest so sánh (không nằm trong ensemble): nó **kém hơn** baseline vì số trùng làm phí vị trí.
 
-## 🏹 Chế độ "Jackpot Hunter"
+## 📏 Mốc so sánh & tham chiếu (`references.py`)
 
-`jackpot_hunter.py` — dành cho người thật sự muốn tối ưu theo góc nhìn "săn Jackpot" chứ không phải "tăng tỷ lệ trúng" (2 việc khác nhau hoàn toàn):
+Thay cho "Jackpot Hunter" cũ, mỗi kỳ hệ thống tạo **3 bộ số tham chiếu** hiển thị cạnh Ensemble (trong thông báo ntfy + dashboard + log, có đối chiếu kết quả thật như mọi model). Chúng **không** nằm trong ensemble và **không** tuyên bố có edge — chỉ là thước đo trung thực:
 
-- **Sự thật duy nhất có ý nghĩa kinh tế thật**: Vietlott chia đều giải Độc Đắc nếu nhiều vé cùng trúng trong 1 kỳ (pari-mutuel). Nếu nhiều người dùng chung 1 công cụ dự đoán công khai (như nhanaz-data) và cùng trúng, họ phải chia nhau giải thưởng.
-- Script tự tải **sổ dự đoán đã khóa trước, có hash chain chống sửa** của `nhanaz-data/vietlott-prediction-web` (`predictions/ledger.jsonl`) — không đoán mò, dùng đúng số họ đã công bố công khai cho kỳ tới.
-- Lấy bộ số Ensemble của hệ thống này làm nền, rồi **loại trừ hoàn toàn** mọi số nằm trong dự đoán công khai đó, và trong phần còn lại **ưu tiên số ít bị đám đông chọn** (blend `crowd_avoidance`: né vùng ngày sinh 1-31, số tháng 1-12, số "may mắn") để giảm thêm rủi ro chia giải.
-- Nếu không tải được sổ dự đoán tham khảo (mạng lỗi, repo đổi cấu trúc), vẫn **áp mô hình né đám đông** lên bộ Ensemble (không còn bỏ trống lớp bảo vệ như trước) và báo rõ `reference_available: false` — không đoán bừa.
-- Bộ số Hunter xuất hiện riêng trong thông báo ntfy (khi có gửi tin) và trong dashboard, tách biệt với bộ Ensemble chính.
+| Tham chiếu | Ý nghĩa |
+|---|---|
+| **Mốc so sánh công bằng** (`random_fair`) | 5 số **khác nhau** chọn ngẫu nhiên đều — đây là *null model đúng*: mọi vé xác suất như nhau, nên model nào không thắng nổi mốc này qua thời gian là **không có kỹ năng thật**. |
+| **Chọn ngẫu nhiên có thể lặp lại** (`random_repeat`) | 5 số lấy mẫu **có hoàn lại** (cho phép trùng) — mốc *tệ hơn* có chủ đích: số trùng làm phí vị trí, kỳ vọng khớp thấp hơn mốc công bằng. |
+| **Giống nhanaz-data** (`nhanaz`) | Mô phỏng dự đoán của trang công khai [nhanaz-data](https://nhanaz-data.github.io/vietlott-prediction-web/?product=lotto535#du-doan): lấy **đồng thuận** (5 số được nhiều chiến lược của họ gợi ý nhất) từ sổ ledger đã khóa, để so trực tiếp Ensemble với công cụ phổ biến đó. Nếu không tải được thì đánh dấu `available: false`. |
 
-**Nhắc lại**: bộ Hunter không có xác suất trúng cao hơn bộ Ensemble hay bất kỳ bộ nào khác — nó chỉ khác về mặt "nếu trúng thì đỡ phải chia" (giả định người khác dùng chung công cụ tham khảo và cùng trúng).
+Số ngẫu nhiên được **seed theo mã kỳ** (`target_draw_id`) nên tái lập được/kiểm toán được. **Mục đích chính:** cho thấy Ensemble **không hơn** mốc ngẫu nhiên công bằng — đúng bản chất trò chơi.
 
 ## Tự động tối ưu tham số (theo lịch)
 
@@ -131,7 +131,7 @@ Có 3 tầng thông báo:
 
 ## 🏆 Báo khi dự đoán TRÚNG (5 số chính + đặc biệt)
 
-Khi đối chiếu kết quả thật (`multi_log.resolve_all()`), nếu **bất kỳ** bộ số đã dự đoán (Ensemble, Jackpot Hunter, hoặc từng model) khớp **đủ 5 số chính VÀ số đặc biệt**, `run_pipeline.notify_perfect_wins()` gửi 1 thông báo ntfy ưu tiên cao nhất (priority `max`), liệt kê model nào trúng + bộ số. Báo **đúng 1 lần** cho mỗi kỳ (chạy trên các kỳ vừa được resolve trả về). Thông báo kèm lưu ý trung thực: đây là trùng khớp may rủi, **không** phải bằng chứng model biết dự đoán — xác suất mỗi bộ vẫn 1/324.632.
+Khi đối chiếu kết quả thật (`multi_log.resolve_all()`), nếu **bất kỳ** bộ số đã dự đoán (Ensemble, các bộ tham chiếu, hoặc từng model) khớp **đủ 5 số chính VÀ số đặc biệt**, `run_pipeline.notify_perfect_wins()` gửi 1 thông báo ntfy ưu tiên cao nhất (priority `max`), liệt kê model nào trúng + bộ số. Báo **đúng 1 lần** cho mỗi kỳ (chạy trên các kỳ vừa được resolve trả về). Thông báo kèm lưu ý trung thực: đây là trùng khớp may rủi, **không** phải bằng chứng model biết dự đoán — xác suất mỗi bộ vẫn 1/324.632.
 
 ## Dashboard (GitHub Pages)
 

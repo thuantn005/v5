@@ -83,6 +83,11 @@ def resolve_all():
         hits["ensemble"] = match_count(ens["main"], ens["special"], actual)
         for name, pick in entry.get("per_strategy", {}).items():
             hits[name] = match_count(pick["main"], pick["special"], actual)
+        # reference / comparison predictions (random baselines + nhanaz mirror)
+        for key, ref in (entry.get("references") or {}).items():
+            if ref and ref.get("main") and ref.get("special") is not None:
+                hits[f"ref_{key}"] = match_count(ref["main"], ref["special"], actual)
+        # legacy: older log entries used a single "hunter" block
         hunter = entry.get("hunter")
         if hunter and hunter.get("main") and hunter.get("special") is not None:
             hits["jackpot_hunter"] = match_count(hunter["main"], hunter["special"], actual)
