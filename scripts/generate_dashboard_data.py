@@ -16,12 +16,17 @@ from multi_log import load_log
 
 OUTPUT_PATH = "docs/data.json"
 
-TICKET_KEYS = ["ensemble", "random_fair", "random_repeat", "nhanaz"]
+TICKET_KEYS = ["ensemble", "random_fair", "random_repeat", "nhanaz",
+               "ticket_1", "ticket_2", "ticket_3", "ticket_momentum"]
 TICKET_LABELS = {
     "ensemble": "Ensemble (3 model)",
     "random_fair": "Mốc so sánh công bằng",
     "random_repeat": "Ngẫu nhiên (có lặp)",
     "nhanaz": "Giống nhanaz-data",
+    "ticket_1": "Ngẫu nhiên #1",
+    "ticket_2": "Ngẫu nhiên #2",
+    "ticket_3": "Ngẫu nhiên #3",
+    "ticket_momentum": "Quán tính (momentum)",
 }
 
 
@@ -86,13 +91,16 @@ def build_draw_history(resolved_entries, limit=50):
                 if t and t.get("main"):
                     predictions.append(entry(t.get("label") or TICKET_LABELS[k], t["main"], t["special"], k))
         else:
-            # legacy rows: show whatever they had (ensemble/references/hunter)
+            # legacy rows: show whatever they had (ensemble/references/per_strategy/hunter)
             if e.get("ensemble"):
                 predictions.append(entry("Ensemble", e["ensemble"]["main"], e["ensemble"]["special"], "ensemble"))
             for k in ("random_fair", "random_repeat", "nhanaz"):
                 r = (e.get("references") or {}).get(k)
                 if r and r.get("main"):
                     predictions.append(entry(r.get("label") or k, r["main"], r["special"], f"ref_{k}"))
+            for k, pick in (e.get("per_strategy") or {}).items():
+                if pick and pick.get("main") and pick.get("special") is not None:
+                    predictions.append(entry(TICKET_LABELS.get(k, k), pick["main"], pick["special"], k))
             h = e.get("hunter")
             if h and h.get("main"):
                 predictions.append(entry("Jackpot Hunter", h["main"], h["special"], "jackpot_hunter"))

@@ -63,11 +63,11 @@
   <div class="subtitle" id="generated-at">Đang tải...</div>
 
   <div class="banner">
-    ⚠️ <b>Lưu ý quan trọng:</b> Mỗi kỳ hệ thống xuất <b>4 vé</b>: 1 vé <b>Ensemble</b> (gộp 3 model)
-    giữ riêng, cùng 3 vé so sánh (mốc công bằng ngẫu nhiên, ngẫu nhiên có lặp, mô phỏng nhanaz-data).
+    ⚠️ <b>Lưu ý quan trọng:</b> Mỗi kỳ hệ thống xuất <b>4 vé có thể tái tạo</b>: 3 vé ngẫu nhiên có seed
+    + 1 vé <b>Quán tính (momentum)</b> — 40% ưu tiên số xuất hiện gần nhất, 60% ngẫu nhiên có seed.
     Lotto 5/35 là trò chơi ngẫu nhiên độc lập từng kỳ; xác suất trúng Jackpot luôn cố định
-    1/324.632 bất kể chọn số cách nào. "Mốc so sánh công bằng" chính là chuẩn để thấy rõ:
-    Ensemble và mọi cách chọn đều KHÔNG vượt được ngẫu nhiên. Chỉ nên xem đây là công cụ giải trí / học thống kê.
+    1/324.632 bất kể chọn số cách nào. Vé Quán tính <b>KHÔNG có edge thực sự</b> — backtest luôn cho kết quả
+    ngang ngẫu nhiên. Mã trace cho phép bất kỳ ai tự kiểm tra lại bộ số. Chỉ nên xem là công cụ giải trí.
   </div>
 
   <div class="grid" id="app">
@@ -85,19 +85,23 @@ function ballHTML(n, special=false) {
 }
 
 const TICKET_META = {
-  ensemble:      ['🧠 Ensemble (gộp 3 model)', 'gap_zscore + momentum + crowd_avoidance — giữ riêng để so, KHÔNG hơn ngẫu nhiên'],
-  random_fair:   ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, KHÔNG lặp — chuẩn để đối chiếu'],
-  random_repeat: ['🎲 Chọn ngẫu nhiên (có thể lặp lại)', 'Lấy mẫu có hoàn lại — có thể trùng số'],
-  nhanaz:        ['🔗 Giống nhanaz-data', 'Đồng thuận dự đoán công khai của nhanaz-data'],
+  ensemble:        ['🧠 Ensemble', 'Gộp nhiều model — giữ riêng để so, KHÔNG hơn ngẫu nhiên'],
+  random_fair:     ['🎯 Mốc so sánh công bằng', 'Ngẫu nhiên đều, KHÔNG lặp — chuẩn để đối chiếu'],
+  random_repeat:   ['🎲 Ngẫu nhiên (có lặp)', 'Lấy mẫu có hoàn lại — có thể trùng số'],
+  nhanaz:          ['🔗 Giống nhanaz-data', 'Đồng thuận dự đoán công khai của nhanaz-data'],
+  ticket_1:        ['🎰 Ngẫu nhiên #1', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
+  ticket_2:        ['🎰 Ngẫu nhiên #2', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
+  ticket_3:        ['🎰 Ngẫu nhiên #3', 'Ngẫu nhiên có seed — tái tạo được từ trace'],
+  ticket_momentum: ['⚡ Quán tính (momentum)', '40% số xuất hiện gần nhất (30 kỳ) + 60% ngẫu nhiên có seed — tái tạo được từ trace'],
 };
 
 function renderLatestPrediction(data) {
   const lp = data.latest_prediction;
   const tickets = lp && lp.tickets;
-  if (!lp || !tickets) return '<div class="card"><h2>🎫 3 vé mới nhất</h2><p class="muted">Chưa có dữ liệu vé (sẽ có sau lần chạy pipeline tiếp theo).</p></div>';
+  if (!lp || !tickets) return '<div class="card"><h2>🎫 Vé mới nhất</h2><p class="muted">Chưa có dữ liệu vé (sẽ có sau lần chạy pipeline tiếp theo).</p></div>';
   let html = `<div class="card">
-    <h2>🎫 3 vé cho kỳ #${lp.target_draw_id}</h2>
-    <div class="muted">Dựa trên dữ liệu đến hết kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date}). Không có model dự đoán — chỉ 3 vé để theo dõi trung thực.</div>`;
+    <h2>🎫 Vé cho kỳ #${lp.target_draw_id}</h2>
+    <div class="muted">Dựa trên dữ liệu đến hết kỳ #${lp.based_on_draw_id} (${lp.based_on_draw_date}). Mọi bộ số đều có xác suất trúng như nhau — mã trace cho phép tái tạo lại đúng bộ số.</div>`;
   for (const k of (data.ticket_keys || ['random_fair','random_repeat','nhanaz'])) {
     const t = tickets[k];
     const [title, desc] = TICKET_META[k] || [k, ''];
@@ -126,7 +130,8 @@ function drawPerformanceChart(data) {
   if (!pot || !pot.labels || pot.labels.length === 0) return;
   const ctx = document.getElementById('perfChart');
   if (!ctx) return;
-  const colors = {ensemble:'#a56bff', random_fair:'#3ecf8e', random_repeat:'#ff6b6b', nhanaz:'#4f8cff'};
+  const colors = {ensemble:'#a56bff', random_fair:'#3ecf8e', random_repeat:'#ff6b6b', nhanaz:'#4f8cff',
+                  ticket_1:'#8a93a8', ticket_2:'#6b7a99', ticket_3:'#4e5f80', ticket_momentum:'#f5a623'};
   const labelsByKey = pot.labels_by_key || {};
   const datasets = Object.entries(pot.series).map(([key, series]) => ({
     label: labelsByKey[key] || key, data: series, borderColor: colors[key] || '#a56bff',
