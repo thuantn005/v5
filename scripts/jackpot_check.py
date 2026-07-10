@@ -35,8 +35,13 @@ from datetime import date, datetime, timedelta
 
 import requests
 
-URL = "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535"
+# Primary: official Vietlott "kết quả trúng thưởng" page for Lotto 5/35 (no
+# ?id= => latest draw). It prints the current jackpot as
+# "Giải Độc Đắc<TAB>6.231.022.500 VND", which the label-anchored parser reads
+# correctly.
+URL = "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535"
 FALLBACK_URLS = [
+    "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535",
     "https://xsmn.mobi/xs-lotto-5-35.html",
     "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html",
     "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
