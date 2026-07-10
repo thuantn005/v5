@@ -1,0 +1,28 @@
+name: Keepalive
+
+# GitHub auto-disables scheduled workflows after 60 days with no repo
+# activity. This workflow runs once a week and touches a dummy file just
+# to keep the repo "alive", preventing that auto-disable.
+# See: https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"   # every Sunday 00:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Touch keepalive file
+        run: |
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > .github/keepalive
+          git config user.name "lotto535-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add .github/keepalive
+          git diff --cached --quiet || git commit -m "chore: keepalive [skip ci]"
+          git push

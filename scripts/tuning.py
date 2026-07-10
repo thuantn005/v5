@@ -39,9 +39,11 @@ TRAIN_FRACTION = 0.7
 # Grids for the ACTIVE 3-model roster (see strategies.STRATEGIES). Any model
 # not listed here just tunes with its DEFAULT_PARAMS.
 PARAM_GRID = {
-    "gap_zscore": {},       # no tunable params
-    "momentum": {"short_window": [20, 30, 45], "long_window": [90, 120, 180]},
-    "crowd_avoidance": {},  # bias model is fixed, not fit to draw history
+    # uniform_seeded has nothing to tune: its "parameter" is a seed derived
+    # from the target draw + data fingerprint, not something to search for
+    # better backtest performance (that would just be overfitting a coin
+    # flip). tune_all() below is effectively a no-op for this roster.
+    "uniform_seeded": {},
 }
 
 

@@ -1,0 +1,14 @@
+{
+  "tuned_at": "2026-07-10T02:04:56.945189+00:00",
+  "train_fraction": 0.7,
+  "results": {
+    "uniform_seeded": {
+      "chosen_params": {},
+      "train_avg_hits": 0.7146,
+      "holdout_avg_hits": 0.7788,
+      "train_draws": 466,
+      "holdout_draws": 226
+    }
+  },
+  "note": "Params are chosen on the TRAIN split only, then re-scored on a held-out VALIDATION split never used for selection. If holdout_avg_hits isn't consistently close to or above train_avg_hits across strategies, the 'best' params on train are likely just fitting noise -- expected for a genuinely random game."
+}

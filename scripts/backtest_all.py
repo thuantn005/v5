@@ -85,8 +85,18 @@ def backtest_strategy(draws, strategy_fn, params, rng=None):
     for d in draws:
         idx = len(history)
         if idx >= MIN_HISTORY:
-            main_scores = strategy_fn(history, MAIN_MIN, MAIN_MAX, MAIN_K, False, params, **({"rng": rng} if rng else {}))
-            special_scores = strategy_fn(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True, params, **({"rng": rng} if rng else {}))
+            # For seed-based models (uniform_seeded), vary the seed per
+            # historical draw (unless the caller already pinned one) --
+            # otherwise every iteration would replay the exact same "random"
+            # pick, which isn't a meaningful backtest of the approach as
+            # it's actually used in production (a fresh seed per target draw).
+            main_params = dict(params)
+            main_params.setdefault("trace", f"backtest|{d.draw_id}|main")
+            special_params = dict(params)
+            special_params.setdefault("trace", f"backtest|{d.draw_id}|special")
+
+            main_scores = strategy_fn(history, MAIN_MIN, MAIN_MAX, MAIN_K, False, main_params, **({"rng": rng} if rng else {}))
+            special_scores = strategy_fn(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True, special_params, **({"rng": rng} if rng else {}))
             pred_main = pick_topk(main_scores, 5)
             pred_special = pick_topk(special_scores, 1)[0]
             hits = match_count(pred_main, pred_special, d)
