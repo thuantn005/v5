@@ -31,7 +31,7 @@ import csv
 from model import parse_draws, MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
 from strategies import (uniform_seeded, momentum_seeded, momentum_pure,
                         vedic_chakra, vedic_virahanka,
-                        ramanujan_sigma, aryabhata_cycle,
+                        ramanujan_sigma, aryabhata_cycle, neural_perceptron,
                         pick_topk, dataset_fingerprint, seed_trace)
 
 N_TICKETS = 3
@@ -160,6 +160,17 @@ def ensemble_predict(history, tuned_params=None):
         "special": pick_topk(ac_spec, 1)[0],
         "trace": trace_ac,
         "label": "Chu kỳ Aryabhata (4320)",
+    }
+
+    # Neural perceptron: transition weight matrix W trained on last 100 draws
+    np_main = neural_perceptron(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+    np_spec = neural_perceptron(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+    trace_np = f"lotto535|neural-perceptron|target={target_draw_id}|data={fp}"
+    per_strategy_picks["ticket_neural"] = {
+        "main": pick_topk(np_main, MAIN_K),
+        "special": pick_topk(np_spec, 1)[0],
+        "trace": trace_np,
+        "label": "Mạng nơ-ron (Perceptron)",
     }
 
     return {

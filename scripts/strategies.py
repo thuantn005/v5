@@ -269,6 +269,47 @@ def aryabhata_cycle(history, pool_min, pool_max, k, use_special, params=None):
     return scores
 
 
+def neural_perceptron(history, pool_min, pool_max, k, use_special, params=None):
+    """Single-layer perceptron trained on draw transitions: learns weight
+    W[output][input] = P(output appears next | input appeared last draw).
+    Score = W @ last_draw_binary + prior. Uses last 100 draws as training
+    data. History-dependent; still no predictive edge for independent draws."""
+    pool = list(range(pool_min, pool_max + 1))
+    if len(history) < 2:
+        return {n: 0.0 for n in pool}
+
+    # Build transition weight matrix
+    W = {n: {m: 0.0 for m in pool} for n in pool}
+    counts = {n: 0 for n in pool}
+    lookback = min(len(history) - 1, 100)
+    for i in range(len(history) - lookback - 1, len(history) - 1):
+        prev = history[i]
+        nxt = history[i + 1]
+        in_nums = [prev.special] if use_special else prev.numbers
+        out_nums = [nxt.special] if use_special else nxt.numbers
+        for out_n in out_nums:
+            if pool_min <= out_n <= pool_max:
+                counts[out_n] += 1
+                for in_n in in_nums:
+                    if pool_min <= in_n <= pool_max:
+                        W[out_n][in_n] += 1.0
+    for n in pool:
+        if counts[n] > 0:
+            for m in pool:
+                W[n][m] /= counts[n]
+
+    last = history[-1]
+    last_set = set([last.special] if use_special else last.numbers)
+    total = max(lookback, 1)
+    scores = {}
+    for n in pool:
+        cond = sum(W[n][m] for m in last_set if pool_min <= m <= pool_max)
+        prior = counts[n] / total
+        scores[n] = 0.7 * cond + 0.3 * prior
+    max_s = max(scores.values()) or 1.0
+    return {n: scores[n] / max_s for n in pool}
+
+
 STRATEGIES = {
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
@@ -277,6 +318,7 @@ STRATEGIES = {
     "vedic_virahanka": vedic_virahanka,
     "ramanujan_sigma": ramanujan_sigma,
     "aryabhata_cycle": aryabhata_cycle,
+    "neural_perceptron": neural_perceptron,
 }
 
 DEFAULT_PARAMS = {
@@ -287,4 +329,5 @@ DEFAULT_PARAMS = {
     "vedic_virahanka": {},
     "ramanujan_sigma": {},
     "aryabhata_cycle": {},
+    "neural_perceptron": {},
 }
