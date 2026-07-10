@@ -169,12 +169,31 @@ def _next_draw_datetime(last_draw_date: str, last_draw_time: str | None):
     return None
 
 
-def check_jackpot(last_draw_date: str, last_draw_time: str | None) -> dict:
+def check_jackpot(last_draw_date: str, last_draw_time: str | None,
+                  threshold_crossed_date: str | None = None) -> dict:
+    """Determine whether the NEXT draw is the jackpot-sharing round.
+
+    Per Vietlott's rule the sharing round is the 21:00 draw of the day
+    IMMEDIATELY FOLLOWING the day a draw first confirmed the jackpot above 12
+    billion. `threshold_crossed_date` (YYYY-MM-DD) is that confirmation day,
+    tracked across runs by jackpot_watch. is_sharing_round is True only when
+    the next draw is a 21:00 draw whose date == threshold_crossed_date + 1 day.
+
+    (The previous version compared next_date to the LAST draw's date, which
+    could never be satisfied on the strict 13:00->21:00 same-day schedule, so
+    the sharing alert never fired.)"""
     jackpot_vnd, source = _scrape_jackpot_vnd()
     next_slot = _next_draw_datetime(last_draw_date, last_draw_time)
 
     is_sharing_round = False
     reason = "insufficient information"
+
+    crossed = None
+    if threshold_crossed_date:
+        try:
+            crossed = datetime.strptime(threshold_crossed_date, "%Y-%m-%d").date()
+        except ValueError:
+            crossed = None
 
     if jackpot_vnd is None:
         reason = "could not scrape jackpot amount"
@@ -182,29 +201,30 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None) -> dict:
         reason = "could not determine next draw's date/time slot"
     else:
         next_date, next_time = next_slot
-        try:
-            last_date_obj = datetime.strptime(last_draw_date, "%Y-%m-%d").date()
-        except ValueError:
-            last_date_obj = None
-
         if jackpot_vnd <= THRESHOLD_VND:
             reason = f"jackpot {jackpot_vnd:,} VND has not exceeded 12 billion yet"
         elif next_time != "21:00":
             reason = "next draw is a 13:00 draw, not the 21:00 sharing slot"
-        elif last_date_obj is not None and next_date <= last_date_obj:
-            reason = "next 21:00 draw is not yet the following calendar day"
-        else:
+        elif crossed is None:
+            reason = ("jackpot > 12 billion but the day it first crossed 12B is "
+                      "not known yet (recorded once per cycle) -- cannot confirm "
+                      "the sharing day, staying silent to avoid a false alert")
+        elif next_date == crossed + timedelta(days=1):
             is_sharing_round = True
             reason = (
-                f"jackpot {jackpot_vnd:,} VND exceeds 12 billion and next draw "
-                f"({next_date} 21:00) is the following day's 21:00 slot"
+                f"jackpot {jackpot_vnd:,} VND exceeds 12 billion and the next 21:00 "
+                f"draw ({next_date}) is the day after 12B was first crossed ({crossed})"
             )
+        else:
+            reason = (f"next 21:00 draw {next_date} is not the day after the 12B "
+                      f"crossing ({crossed}); sharing round already passed or not yet")
 
     return {
         "source": source,
         "jackpot_vnd": jackpot_vnd,
         "next_draw_date": next_slot[0].isoformat() if next_slot else None,
         "next_draw_time": next_slot[1] if next_slot else None,
+        "threshold_crossed_date": threshold_crossed_date,
         "is_sharing_round": is_sharing_round,
         "reason": reason,
     }
@@ -236,7 +256,29 @@ def _self_test_parser():
     print("jackpot parser self-test: OK")
 
 
+def _self_test_sharing():
+    """The sharing round must be flagged exactly for the 21:00 draw of the day
+    after the 12B crossing -- and never otherwise."""
+    global _scrape_jackpot_vnd
+    orig = _scrape_jackpot_vnd
+    _scrape_jackpot_vnd = lambda: (13_000_000_000, "test")
+    try:
+        crossed = "2026-07-09"  # 12B first crossed on 09/07
+        # next 21:00 draw is 10/07 21:00 (predicted after 10/07 13:00) -> sharing
+        assert check_jackpot("2026-07-10", "13:00", crossed)["is_sharing_round"] is True
+        # every other slot -> not sharing
+        assert check_jackpot("2026-07-09", "13:00", crossed)["is_sharing_round"] is False  # same-day 21:00
+        assert check_jackpot("2026-07-10", "21:00", crossed)["is_sharing_round"] is False  # next is 13:00
+        assert check_jackpot("2026-07-11", "13:00", crossed)["is_sharing_round"] is False  # day after sharing
+        # unknown crossing day -> stay silent
+        assert check_jackpot("2026-07-10", "13:00", None)["is_sharing_round"] is False
+    finally:
+        _scrape_jackpot_vnd = orig
+    print("jackpot sharing-round self-test: OK")
+
+
 if __name__ == "__main__":
     import json
     _self_test_parser()
+    _self_test_sharing()
     print(json.dumps(check_jackpot("2026-07-07", "21:00"), ensure_ascii=False, indent=2))

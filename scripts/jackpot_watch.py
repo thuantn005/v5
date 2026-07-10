@@ -51,13 +51,25 @@ def _save_state(state: dict):
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 
-def check_early_alert(jackpot_vnd: int | None) -> dict:
+def get_threshold_crossed_date() -> str | None:
+    """The date (YYYY-MM-DD) of the draw after which the jackpot first crossed
+    12 billion this cycle, or None. jackpot_check uses it to pin the sharing
+    round to '21:00 of the following day'."""
+    return _load_state().get("threshold_crossed_date")
+
+
+def check_early_alert(jackpot_vnd: int | None, draw_date: str | None = None) -> dict:
     """
     Returns {"should_alert": bool, "jackpot_vnd": int|None} and updates
     state/jackpot_state.json accordingly. Call this once per run, after
     jackpot_check.check_jackpot() has given you a jackpot_vnd figure
     (may be None if scraping failed -- in which case we stay silent and
     don't touch the state, since we can't confidently tell what's going on).
+
+    `draw_date` is the last completed draw's date; when the jackpot first
+    crosses 12B this cycle we record it as `threshold_crossed_date` so the
+    sharing round (21:00 of the following day) can be identified. It is
+    cleared when the jackpot drops back below 12B (a new cycle).
     """
     if jackpot_vnd is None:
         return {"should_alert": False, "jackpot_vnd": None}
@@ -67,10 +79,15 @@ def check_early_alert(jackpot_vnd: int | None) -> dict:
 
     if jackpot_vnd <= THRESHOLD_VND:
         state["alerted_this_cycle"] = False
+        state["threshold_crossed_date"] = None
     else:
         if not state.get("alerted_this_cycle"):
             should_alert = True
             state["alerted_this_cycle"] = True
+        # Record the crossing day the first time we see >12B this cycle (and
+        # keep it stable for the rest of the cycle).
+        if not state.get("threshold_crossed_date") and draw_date:
+            state["threshold_crossed_date"] = draw_date
 
     state["last_jackpot_vnd"] = jackpot_vnd
     _save_state(state)

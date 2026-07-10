@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from model import parse_draws
 from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
-from jackpot_watch import check_early_alert, check_scrape_alert
+from jackpot_watch import check_early_alert, check_scrape_alert, get_threshold_crossed_date
 from references import compute_tickets as compute_references
 from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
@@ -169,11 +169,14 @@ def main():
           f"(available={references.get('nhanaz', {}).get('available')})")
 
     # --- Step 5: jackpot checks ---
-    jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time)
+    # threshold_crossed_date (set on a prior run when the jackpot first passed
+    # 12B) lets check_jackpot pin the sharing round to "21:00 of the next day".
+    jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time,
+                            get_threshold_crossed_date())
     # Surface the "silent blind spot": if every jackpot source failed we
     # can't tell whether the next draw is the sharing round -- alert once.
     scrape_alert = check_scrape_alert(jackpot["jackpot_vnd"])
-    early_alert = check_early_alert(jackpot["jackpot_vnd"])
+    early_alert = check_early_alert(jackpot["jackpot_vnd"], last_draw.draw_date)
 
     # NOTE: the old "high ensemble confidence" notify trigger is gone.
     # uniform_seeded assigns uniformly random scores by design -- there is
