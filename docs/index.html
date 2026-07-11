@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lotto 5/35 – Dự đoán & Kết quả</title>
+<style>
+:root {
+  --bg: #0f1117; --card: #181e2e; --border: #252e42;
+  --text: #e2e8f4; --muted: #7a869e;
+  --blue: #4f8cff; --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px; line-height: 1.6; padding: 16px;
+  max-width: 860px; margin: 0 auto;
+}
+h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+.sub { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
+.notice {
+  background: #1a1520; border: 1px solid #3a2f50; border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 20px; font-size: 0.8rem; color: var(--muted);
+}
+.notice b { color: var(--yellow); }
+
+/* ── section ── */
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted); margin-bottom: 10px;
+}
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+}
+.card + .card { margin-top: 10px; }
+
+/* ── ticket ── */
+.ticket-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
+.balls { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+.ball {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.82rem; font-weight: 700; flex-shrink: 0;
+}
+.ball.sp { background: var(--yellow); color: #1a1000; }
+.ball.hit { background: var(--green); color: #021a10; }
+.ball.sp.hit { background: var(--green); color: #021a10; }
+.trace { font-size: 0.72rem; color: var(--muted); }
+.trace code { background: #1e2738; border-radius: 4px; padding: 1px 5px; font-family: monospace; }
+
+/* ── draw_history ── */
+.draw-block {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 10px;
+}
+.draw-meta {
+  display: flex; flex-wrap: wrap; justify-content: space-between;
+  gap: 4px 16px; margin-bottom: 10px; font-size: 0.82rem;
+}
+.draw-id { font-weight: 700; }
+.actual-result { color: var(--green); font-size: 0.82rem; }
+.pred-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.pred-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 3px 6px 5px; border-bottom: 1px solid var(--border); }
+.pred-table td { padding: 4px 6px; border-bottom: 1px solid #1e2534; vertical-align: middle; }
+.pred-table tr:last-child td { border-bottom: none; }
+.pred-nums { display: flex; gap: 4px; flex-wrap: wrap; }
+.pball {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #1e2738; font-size: 0.72rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pball.hit { background: var(--green); color: #021a10; }
+.pball.sp { background: #2a2010; color: var(--yellow); }
+.pball.sp.hit { background: var(--green); color: #021a10; }
+.hit-score { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+.hit-score.nonzero { color: var(--green); font-weight: 600; }
+
+/* ── accuracy ── */
+.acc-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.acc-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 4px 8px 6px; border-bottom: 1px solid var(--border); }
+.acc-table td { padding: 5px 8px; border-bottom: 1px solid #1e2534; }
+.acc-table tr:last-child td { border-bottom: none; }
+.ref-row td { color: var(--muted); }
+.baseline-note { font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
+
+.loading { color: var(--muted); padding: 40px; text-align: center; }
+.error { color: var(--red); font-size: 0.82rem; padding: 20px; }
+</style>
+</head>
+<body>
+<h1>🎰 Lotto 5/35 – Dự đoán & Kết quả</h1>
+<div class="sub" id="gen-time">Đang tải...</div>
+
+<div class="notice">
+  ⚠️ <b>Lưu ý:</b> Lotto 5/35 hoàn toàn ngẫu nhiên — mọi bộ số có xác suất trúng Jackpot như nhau
+  (1/324.632). Trang này chỉ theo dõi và so sánh; không cách chọn số nào tăng xác suất trúng.
+</div>
+
+<div id="app"><div class="loading">Đang tải dữ liệu...</div></div>
+
+<script>
+const TICKET_META = {
+  ticket_neural: { label: '🧠 Mạng nơ-ron', desc: 'Neural Perceptron – học từ 100 kỳ gần nhất' },
+  random_fair:   { label: '🎯 Mốc ngẫu nhiên', desc: 'Ngẫu nhiên đều, không lặp – chuẩn so sánh' },
+};
+
+function b(n, hit=false, sp=false) {
+  const cls = ['ball', hit && 'hit', sp && 'sp'].filter(Boolean).join(' ');
+  return `<div class="${cls}">${String(n).padStart(2,'0')}</div>`;
+}
+function pb(n, hit=false, sp=false) {
+  const cls = ['pball', hit && 'hit', sp && 'sp'].filter(Boolean).join(' ');
+  return `<div class="${cls}">${String(n).padStart(2,'0')}</div>`;
+}
+
+function renderPrediction(data) {
+  const lp = data.latest_prediction;
+  if (!lp) return `<div class="card"><p class="loading">Chưa có dự đoán (sẽ có sau lần chạy đầu tiên).</p></div>`;
+  const tickets = lp.tickets || {};
+  const keys = data.ticket_keys || Object.keys(TICKET_META);
+  let html = `<div class="card">
+    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:12px">
+      Kỳ <strong>#${lp.target_draw_id}</strong> · dựa trên kỳ #${lp.based_on_draw_id || '—'} (${lp.based_on_draw_date || '—'})
+    </div>`;
+  for (const k of keys) {
+    const t = tickets[k];
+    const m = TICKET_META[k] || { label: k, desc: '' };
+    html += `<div class="ticket-label">${m.label}</div>`;
+    if (t && t.main && t.main.length) {
+      html += `<div class="balls">${t.main.map(n => b(n)).join('')}<span style="color:var(--muted);margin:0 2px">+</span>${b(t.special, false, true)}</div>`;
+      html += `<div class="trace">${m.desc}${t.trace ? ' · <code>' + t.trace + '</code>' : ''}</div>`;
+    } else {
+      html += `<div class="trace" style="margin-bottom:6px">Không có dữ liệu cho kỳ này.</div>`;
+    }
+    html += `<div style="height:12px"></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderAccuracy(data) {
+  const acc = data.ticket_accuracy;
+  const keys = data.ticket_keys || Object.keys(TICKET_META);
+  if (!acc || !Object.keys(acc).length) {
+    return `<div class="card"><p class="loading" style="padding:16px 0">Chưa có kỳ nào đã đối chiếu kết quả.</p></div>`;
+  }
+  const rows = keys.filter(k => acc[k]).map(k => {
+    const s = acc[k];
+    const diff = (s.avg_main_hits - s.expected_random_main_hits).toFixed(4);
+    const color = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--muted)';
+    return `<tr>
+      <td>${s.label}</td>
+      <td style="font-weight:600">${s.avg_main_hits.toFixed(3)}</td>
+      <td style="color:${color}">${diff > 0 ? '+' : ''}${diff}</td>
+      <td style="color:var(--muted)">${s.n} kỳ</td>
+    </tr>`;
+  }).join('');
+  return `<div class="card">
+    <table class="acc-table">
+      <thead><tr><th>Vé</th><th>Khớp TB</th><th>±Ngẫu nhiên (0.714)</th><th>Số kỳ</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="baseline-note">Kỳ vọng ngẫu nhiên = 0.714 số/kỳ. Sai lệch nhỏ &lt;2% ở dưới 50 kỳ là bình thường.</div>
+  </div>`;
+}
+
+function renderHistory(data) {
+  const hist = data.draw_history;
+  if (!hist || !hist.length) {
+    return `<div class="draw-block"><p class="loading" style="padding:8px 0">Chưa có lịch sử kỳ quay.</p></div>`;
+  }
+  return hist.map(h => {
+    const actualSet = new Set(h.actual_main);
+    const preds = h.predictions || [];
+    const predRows = preds.map(p => {
+      if (!p.main || !p.main.length) return '';
+      const mainBalls = p.main.map(n => pb(n, actualSet.has(n))).join('');
+      const spHit = p.special_hit && p.special === h.actual_special;
+      const spBall = pb(p.special, spHit, true);
+      const hits = p.main_hits;
+      const scoreClass = hits > 0 ? 'hit-score nonzero' : 'hit-score';
+      const scoreText = hits == null ? '—' : `${hits}/5${spHit ? ' +ĐB' : ''}`;
+      return `<tr>
+        <td>${p.label || '—'}</td>
+        <td><div class="pred-nums">${mainBalls}<span style="color:var(--muted);margin:0 2px;align-self:center;font-size:0.7rem">+</span>${spBall}</div></td>
+        <td><span class="${scoreClass}">${scoreText}</span></td>
+      </tr>`;
+    }).join('');
+    const actualBalls = h.actual_main.map(n => b(n, false)).join('') + b(h.actual_special, false, true);
+    return `<div class="draw-block">
+      <div class="draw-meta">
+        <span class="draw-id">Kỳ #${h.target_draw_id} · ${h.draw_date}</span>
+        <span class="actual-result">✅ ${h.actual_main.map(n=>String(n).padStart(2,'0')).join(' - ')} + ${String(h.actual_special).padStart(2,'0')}</span>
+      </div>
+      <table class="pred-table">
+        <thead><tr><th>Vé</th><th>Dự đoán</th><th>Kết quả</th></tr></thead>
+        <tbody>${predRows}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+async function main() {
+  try {
+    const res = await fetch('data.json?_=' + Date.now());
+    const data = await res.json();
+
+    const t = data.generated_at ? new Date(data.generated_at).toLocaleString('vi-VN') : '—';
+    document.getElementById('gen-time').textContent =
+      `Cập nhật: ${t} · ${data.n_resolved_predictions || 0} kỳ đã đối chiếu`;
+
+    document.getElementById('app').innerHTML = `
+      <div class="section">
+        <div class="section-title">🎫 Dự đoán kỳ tới</div>
+        ${renderPrediction(data)}
+      </div>
+      <div class="section">
+        <div class="section-title">📊 Tổng kết so sánh</div>
+        ${renderAccuracy(data)}
+      </div>
+      <div class="section">
+        <div class="section-title">📋 Lịch sử các kỳ đã đối chiếu</div>
+        ${renderHistory(data)}
+      </div>
+    `;
+  } catch (e) {
+    document.getElementById('app').innerHTML =
+      `<div class="error">Lỗi tải dữ liệu: ${e.message}. Dữ liệu sẽ có sau lần chạy pipeline đầu tiên.</div>`;
+  }
+}
+
+main();
+</script>
+</body>
+</html>
