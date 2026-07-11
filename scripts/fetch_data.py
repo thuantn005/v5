@@ -177,150 +177,183 @@ def _fetch_minhngoc() -> list[dict]:
         return []
 
 
-# ── Source 3: vietlott.vn (AJAX API) ─────────────────────────────────────────
+# ── Source 3: vietlott.vn ────────────────────────────────────────────────────
+# Primary URL: /535 kết quả page (shows draw results + jackpot, format:
+#   "Kỳ quay thưởng #00752 ngày 09/07/2026 ... 1419252830|04")
+# AJAX endpoint: additional pages via /winning-number-535 AjaxPro key.
 _VL_BASE = "https://vietlott.vn"
+_VL_RESULT_PATH = "/vi/trung-thuong/ket-qua-trung-thuong/535"
 _VL_LIST_PATH = "/vi/trung-thuong/ket-qua-trung-thuong/winning-number-535"
 _VL_AJAX_PATH = (
     "/ajaxpro/Vietlott.PlugIn.WebParts.Game535CompareWebPart,"
     "Vietlott.PlugIn.WebParts.ashx"
 )
 
+_VL_DRAW_RE = re.compile(r"#(\d+)\s+ng[aà]y\s+(\d{1,2})/(\d{1,2})/(\d{4})")
+_VL_RESULT_RE = re.compile(r"(\d{10})\|(\d{2})")
 
-def _parse_vietlott_ajax_html(html_content: str) -> list[dict]:
+
+def _parse_vietlott_page_html(html: str, source_url: str) -> list[dict]:
+    """Parse /535 page directly — format: '#NNNNN ngày dd/mm/yyyy … XXXXXXXXXX|YY'."""
+    soup = BeautifulSoup(html, "lxml")
+    text = soup.get_text(separator="\n")
+    rows: list[dict] = []
+    for dm in _VL_DRAW_RE.finditer(text):
+        draw_id = dm.group(1).zfill(5)
+        dd, mm, yyyy = dm.group(2), dm.group(3), dm.group(4)
+        try:
+            draw_date = datetime.strptime(f"{dd}/{mm}/{yyyy}", "%d/%m/%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+        window = text[dm.start(): dm.start() + 400]
+        rm = _VL_RESULT_RE.search(window)
+        if not rm:
+            continue
+        digits10, sp_str = rm.group(1), rm.group(2)
+        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": source_url, "draw_id_hint": draw_id})
+    return rows
+
+
+def _parse_vietlott_ajax_html(html_content: str, source_url: str) -> list[dict]:
+    """Parse HtmlContent from Vietlott AJAX response."""
     soup = BeautifulSoup(html_content, "lxml")
     rows: list[dict] = []
-
     for row in soup.select("table tr"):
         cells = row.select("td")
         if len(cells) < 3:
             continue
-
-        id_text = cells[0].get_text(strip=True)
-        id_match = re.search(r"(\d+)", id_text)
+        id_match = re.search(r"(\d+)", cells[0].get_text(strip=True))
         if not id_match:
             continue
         draw_id = id_match.group(1).zfill(5)
-
-        date_text = cells[1].get_text(strip=True)
-        date_match = re.search(r"(\d{1,2}/\d{1,2}/\d{4})", date_text)
+        date_match = re.search(r"(\d{1,2}/\d{1,2}/\d{4})", cells[1].get_text(strip=True))
         if not date_match:
             continue
         try:
-            dt = datetime.strptime(date_match.group(1), "%d/%m/%Y")
-            draw_date = dt.strftime("%Y-%m-%d")
+            draw_date = datetime.strptime(date_match.group(1), "%d/%m/%Y").strftime("%Y-%m-%d")
         except ValueError:
             continue
-
-        num_spans = row.select("span.ball, span.number, div.ball, .bong_so")
-        if not num_spans:
-            num_spans = row.select("span")
-
+        num_spans = row.select("span.ball, span.number, div.ball, .bong_so") or row.select("span")
         nums = []
         for span in num_spans:
             txt = re.sub(r"[^\d]", "", span.get_text(strip=True))
             if txt and 1 <= int(txt) <= 35:
                 nums.append(int(txt))
-
         if len(nums) < 5:
             continue
-
         numbers = sorted(nums[:5])
         sp = nums[5] if len(nums) > 5 else 0
-
         if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
             continue
         if sp and (sp < 1 or sp > 12):
             continue
-
         rows.append({"draw_date": draw_date, "draw_time": None,
                      "numbers": numbers, "special": sp,
-                     "source_url": _VL_BASE + _VL_LIST_PATH,
-                     "draw_id_hint": draw_id})
+                     "source_url": source_url, "draw_id_hint": draw_id})
     return rows
 
 
 def _fetch_vietlott() -> list[dict]:
     s = _make_session()
-    list_url = _VL_BASE + _VL_LIST_PATH
+    result_url = _VL_BASE + _VL_RESULT_PATH
     ajax_url = _VL_BASE + _VL_AJAX_PATH
 
-    print("Bootstrapping Vietlott AJAX key...")
+    # Step 1: GET the /535 results page
     try:
-        resp = s.get(list_url, timeout=TIMEOUT)
+        resp = s.get(result_url, timeout=TIMEOUT)
         resp.raise_for_status()
     except requests.RequestException as e:
-        print(f"WARNING: vietlott.vn list page failed: {e}", file=sys.stderr)
+        print(f"WARNING: vietlott.vn ({_VL_RESULT_PATH}) failed: {e}", file=sys.stderr)
         return []
 
+    page_html = resp.text
+
+    # Step 2: Try AJAX for multiple pages (key may appear in /535 or /winning-number-535)
     key_match = re.search(
         r"ServerSideDrawResult\s*\(\s*RenderInfo\s*,\s*'([0-9a-fA-F]+)'",
-        resp.text,
+        page_html,
     )
     if not key_match:
-        print("WARNING: vietlott.vn: could not extract AJAX key "
-              "(page layout may have changed)", file=sys.stderr)
-        return []
-
-    key = key_match.group(1)
-    print(f"Got Vietlott AJAX key: {key}")
-
-    all_draws: list[dict] = []
-    for page in range(5):
-        payload = json.dumps({
-            "ORenderInfo": {
-                "SiteId": "main.frontend.vi",
-                "SiteAlias": "main.frontend.vi",
-                "UserAgent": _USER_AGENT,
-                "SiteName": "Vietlott",
-                "SiteURL": "",
-                "FullURL": list_url,
-                "SubDomain": "",
-                "Is498Mobile": False,
-                "GameDrawType": "MATRIX",
-            },
-            "Key": key,
-            "GameDrawId": "",
-            "ArrayNumbers": [[]],
-            "CheckMulti": False,
-            "PageIndex": page,
-        })
+        # Try /winning-number-535 as AJAX key source
         try:
-            resp = s.post(
-                ajax_url,
-                data=payload,
-                headers={
-                    "Content-Type": "text/plain; charset=utf-8",
-                    "X-AjaxPro-Method": "ServerSideDrawResult",
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Origin": _VL_BASE,
-                    "Referer": list_url,
-                },
-                timeout=TIMEOUT,
+            kp = s.get(_VL_BASE + _VL_LIST_PATH, timeout=TIMEOUT)
+            kp.raise_for_status()
+            key_match = re.search(
+                r"ServerSideDrawResult\s*\(\s*RenderInfo\s*,\s*'([0-9a-fA-F]+)'",
+                kp.text,
             )
-            resp.raise_for_status()
-        except requests.RequestException as e:
-            print(f"WARNING: vietlott.vn AJAX page {page} failed: {e}", file=sys.stderr)
-            break
+        except requests.RequestException:
+            pass
 
-        try:
-            data = resp.json()
-            html_content = data.get("value", {}).get("HtmlContent", "")
-        except (json.JSONDecodeError, AttributeError):
-            print(f"WARNING: vietlott.vn: invalid JSON on page {page}", file=sys.stderr)
-            break
+    if key_match:
+        key = key_match.group(1)
+        print(f"Got Vietlott AJAX key: {key}")
+        list_url = _VL_BASE + _VL_LIST_PATH
+        all_draws: list[dict] = []
+        for page in range(5):
+            payload = json.dumps({
+                "ORenderInfo": {
+                    "SiteId": "main.frontend.vi",
+                    "SiteAlias": "main.frontend.vi",
+                    "UserAgent": _USER_AGENT,
+                    "SiteName": "Vietlott",
+                    "SiteURL": "",
+                    "FullURL": list_url,
+                    "SubDomain": "",
+                    "Is498Mobile": False,
+                    "GameDrawType": "MATRIX",
+                },
+                "Key": key,
+                "GameDrawId": "",
+                "ArrayNumbers": [[]],
+                "CheckMulti": False,
+                "PageIndex": page,
+            })
+            try:
+                ar = s.post(
+                    ajax_url,
+                    data=payload,
+                    headers={
+                        "Content-Type": "text/plain; charset=utf-8",
+                        "X-AjaxPro-Method": "ServerSideDrawResult",
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Origin": _VL_BASE,
+                        "Referer": list_url,
+                    },
+                    timeout=TIMEOUT,
+                )
+                ar.raise_for_status()
+                html_content = ar.json().get("value", {}).get("HtmlContent", "")
+            except (requests.RequestException, json.JSONDecodeError, AttributeError) as e:
+                print(f"WARNING: vietlott.vn AJAX page {page} failed: {e}", file=sys.stderr)
+                break
+            if not html_content:
+                break
+            draws = _parse_vietlott_ajax_html(html_content, result_url)
+            if not draws:
+                break
+            all_draws.extend(draws)
+            time.sleep(1)
+        if all_draws:
+            print(f"vietlott.vn: {len(all_draws)} draw(s) found via AJAX")
+            return all_draws
 
-        if not html_content:
-            break
-
-        draws = _parse_vietlott_ajax_html(html_content)
-        if not draws:
-            break
-
-        all_draws.extend(draws)
-        time.sleep(1)
-
-    print(f"vietlott.vn: {len(all_draws)} draw(s) found via AJAX")
-    return all_draws
+    # Step 3: Fallback — parse /535 HTML directly
+    rows = _parse_vietlott_page_html(page_html, result_url)
+    if rows:
+        print(f"vietlott.vn: {len(rows)} draw(s) found (direct HTML parse)")
+    else:
+        print("WARNING: vietlott.vn: fetched but no draws parsed "
+              "(check _VL_DRAW_RE / _VL_RESULT_RE)", file=sys.stderr)
+    return rows
 
 
 # ── CSV helpers ──────────────────────────────────────────────────────────────
@@ -575,7 +608,19 @@ _EXTRA_RE_C = re.compile(
 )
 
 
+_DATE_RE = re.compile(r"(\d{1,2})/(\d{1,2})/(\d{4})")
+_DRAW_ID_RE = re.compile(r"#\s*(\d{3,6})")
+
+
 def _parse_generic(html: str, source_url: str) -> list[dict]:
+    """Parse generic Vietnamese lottery page.
+
+    Tries in order:
+      A) regex on stripped text — 10-digit concat + inline hour
+      B) regex on stripped text — 10-digit concat, no hour
+      C) regex on stripped text — 5 space-sep 2-digit numbers
+      D) BeautifulSoup — date-anchored number scan (handles xsmn.mobi-style)
+    """
     text = _strip(html)
     rows: list[dict] = []
 
@@ -622,6 +667,74 @@ def _parse_generic(html: str, source_url: str) -> list[dict]:
         rows.append({"draw_date": draw_date, "draw_time": None,
                      "numbers": numbers, "special": sp,
                      "source_url": source_url, "draw_id_hint": None})
+    if rows:
+        return rows
+
+    # Strategy D: BeautifulSoup — handles sites with individual number spans
+    # (e.g. xsmn.mobi "Kỳ vé #00751" + separate span per number)
+    rows = _parse_generic_bs(html, source_url)
+    return rows
+
+
+def _parse_generic_bs(html: str, source_url: str) -> list[dict]:
+    """BeautifulSoup fallback: anchor on date text, collect nearby 1-35 numbers."""
+    soup = BeautifulSoup(html, "lxml")
+    full_text = soup.get_text(separator="\n")
+    rows: list[dict] = []
+    seen_dates: set[str] = set()
+
+    for dm in _DATE_RE.finditer(full_text):
+        dd, mm, yyyy = dm.group(1), dm.group(2), dm.group(3)
+        try:
+            dt = datetime.strptime(f"{dd}/{mm}/{yyyy}", "%d/%m/%Y")
+            draw_date = dt.strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+        if draw_date in seen_dates:
+            continue
+
+        # Look within ±500 chars for numbers in 1-35 range
+        start = max(0, dm.start() - 100)
+        window = full_text[start: dm.end() + 500]
+
+        # Optional draw ID
+        id_m = _DRAW_ID_RE.search(full_text[max(0, dm.start() - 200): dm.start()])
+        draw_id = id_m.group(1).zfill(5) if id_m else None
+
+        # Collect all 1-2 digit numbers in range 1-35 from the window
+        candidates: list[int] = []
+        for nm in re.finditer(r"(?<!\d)(\d{1,2})(?!\d)", window):
+            n = int(nm.group(1))
+            if 1 <= n <= 35:
+                candidates.append(n)
+
+        if len(candidates) < 6:
+            continue
+
+        # Take first 5 unique numbers (no repeats) as main, then find special (1-12)
+        seen_n: set[int] = set()
+        main: list[int] = []
+        for n in candidates:
+            if n not in seen_n:
+                seen_n.add(n)
+                main.append(n)
+            if len(main) == 5:
+                break
+
+        if len(main) != 5:
+            continue
+
+        special_candidates = [n for n in candidates[len(main):] if 1 <= n <= 12]
+        if not special_candidates:
+            continue
+
+        sp = special_candidates[0]
+        numbers = sorted(main)
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": source_url, "draw_id_hint": draw_id})
+        seen_dates.add(draw_date)
+
     return rows
 
 
@@ -633,8 +746,7 @@ def _fetch_extra(key: str, url: str) -> list[dict]:
         if rows:
             print(f"{key}: {len(rows)} draw(s) found")
         else:
-            print(f"WARNING: {key}: fetched but no draws parsed "
-                  f"(check _EXTRA_RE_A/B/C for this site's layout)", file=sys.stderr)
+            print(f"WARNING: {key}: fetched but no draws parsed", file=sys.stderr)
         return rows
     except requests.RequestException as e:
         print(f"WARNING: {key} ({url}) fetch failed: {e}", file=sys.stderr)
