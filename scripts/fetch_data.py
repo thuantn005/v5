@@ -5,11 +5,16 @@ Cập nhật data/all.csv với kết quả kỳ quay mới từ nhiều nguồn
 Chỉ THÊM kỳ mới (không ghi đè), an toàn khi chạy nhiều lần.
 
 Thứ tự nguồn:
-  1. minhchinh.com            — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
-  2. xosominhngoc.net.vn      — phụ 1, trang tổng hợp kết quả Lotto 5/35
-  3. vietlott.vn              — phụ 2, kỳ mới nhất với draw_id chính thức
-  4. vietvudanh/vietlott-data — phụ 3, repo GitHub cào tự động hàng ngày (power535.jsonl)
-  5. NhanAZ-Data              — phụ 4, dataset GitHub tổng hợp; bù khoảng trống còn lại
+  1.  minhchinh.com            — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
+  2.  xosominhngoc.net.vn      — phụ, trang tổng hợp Lotto 5/35
+  3.  vietlott.vn              — phụ, kỳ mới nhất với draw_id chính thức
+  4.  vietvudanh/vietlott-data — phụ, GitHub repo cào tự động hàng ngày
+  5.  xskt.com.vn              — phụ, tổng hợp 30 kỳ gần nhất
+  6.  xsmn.net                 — phụ, tổng hợp kết quả miền Nam
+  7.  xsmn.mobi                — phụ, bản mobile
+  8.  onbit.vn                 — phụ, cập nhật sau mỗi kỳ quay
+  9.  ketquadientoan.com        — phụ, kết quả điện toán Vietlott
+  10. NhanAZ-Data              — phụ cuối, dataset GitHub; bù khoảng trống còn lại
 
 Nếu tất cả nguồn lỗi → giữ nguyên data/all.csv, pipeline vẫn chạy được.
 """
@@ -497,6 +502,104 @@ def _fetch_vietvudanh() -> list[dict]:
     return rows
 
 
+# ── Sources 6-10: web scrapers bổ sung ───────────────────────────────────────
+# Các trang tổng hợp kết quả Lotto 5/35. Dùng chung 3 regex pattern:
+#   A) dd/mm/yyyy Xh ... <10digits> <2-digit-sp>    (có giờ inline)
+#   B) dd/mm/yyyy ...  <10digits> <2-digit-sp>       (không có giờ)
+#   C) dd/mm/yyyy ... N1 N2 N3 N4 N5 ... SP          (5 số riêng lẻ)
+# HTML không được kiểm tra trực tiếp do proxy session chặn.
+# Chạy được trên GitHub Actions.
+
+_EXTRA_SOURCES = [
+    ("xskt_com_vn",        "https://xskt.com.vn/xslotto-5-35"),
+    ("xsmn_net",           "https://xsmn.net/kqxslotto535"),
+    ("xsmn_mobi",          "https://xsmn.mobi/xs-lotto-5-35.html"),
+    ("onbit_vn",           "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535"),
+    ("ketquadientoan_com", "https://www.ketquadientoan.com/ket-qua-xo-so-dien-toan-lotto-535.html"),
+]
+
+_EXTRA_RE_A = re.compile(
+    r"(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2})h.{0,250}?(?<!\d)(\d{10})(?!\d)\s*(\d{2})(?!\d)",
+    re.DOTALL,
+)
+_EXTRA_RE_B = re.compile(
+    r"(\d{2})/(\d{2})/(\d{4}).{0,250}?(?<!\d)(\d{10})(?!\d)\s*(\d{2})(?!\d)",
+    re.DOTALL,
+)
+_EXTRA_RE_C = re.compile(
+    r"(\d{2})/(\d{2})/(\d{4}).{0,150}?"
+    r"(?<!\d)(\d{2})\s+(\d{2})\s+(\d{2})\s+(\d{2})\s+(\d{2})(?!\d)"
+    r".{0,80}?(?<!\d)(\d{1,2})(?!\d)",
+    re.DOTALL,
+)
+
+
+def _parse_generic(html: str, source_url: str) -> list[dict]:
+    text = _strip(html)
+    rows: list[dict] = []
+
+    for m in _EXTRA_RE_A.finditer(text):
+        dd, mm, yyyy, hh, digits10, sp_str = m.groups()
+        draw_date = f"{yyyy}-{mm}-{dd}"
+        draw_time = "21:00" if int(hh) >= 20 else "13:00"
+        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": draw_time,
+                     "numbers": numbers, "special": sp,
+                     "source_url": source_url, "draw_id_hint": None})
+    if rows:
+        return rows
+
+    for m in _EXTRA_RE_B.finditer(text):
+        dd, mm, yyyy, digits10, sp_str = m.groups()
+        draw_date = f"{yyyy}-{mm}-{dd}"
+        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": source_url, "draw_id_hint": None})
+    if rows:
+        return rows
+
+    for m in _EXTRA_RE_C.finditer(text):
+        dd, mm, yyyy, n1, n2, n3, n4, n5, sp_str = m.groups()
+        draw_date = f"{yyyy}-{mm}-{dd}"
+        numbers = sorted(int(x) for x in (n1, n2, n3, n4, n5))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": source_url, "draw_id_hint": None})
+    return rows
+
+
+def _fetch_extra(key: str, url: str) -> list[dict]:
+    try:
+        r = requests.get(url, timeout=TIMEOUT, headers=_HEADERS)
+        r.raise_for_status()
+        rows = _parse_generic(r.text, url)
+        if rows:
+            print(f"{key}: {len(rows)} draw(s) found")
+        else:
+            print(f"WARNING: {key}: fetched but no draws parsed "
+                  f"(check _EXTRA_RE_A/B/C for this site's layout)", file=sys.stderr)
+        return rows
+    except requests.RequestException as e:
+        print(f"WARNING: {key} ({url}) fetch failed: {e}", file=sys.stderr)
+        return []
+
+
 def main():
     if not os.path.exists(DATA_PATH):
         print(f"ERROR: {DATA_PATH} not found. "
@@ -526,7 +629,13 @@ def main():
     if vd:
         total += _append_draws(vd, "vietvudanh_github")
 
-    # 5. NhanAZ-Data: phụ 4 — bù khoảng trống còn lại
+    # 5-9. Các nguồn web scraper bổ sung
+    for key, url in _EXTRA_SOURCES:
+        ex = _fetch_extra(key, url)
+        if ex:
+            total += _append_draws(ex, key)
+
+    # 10. NhanAZ-Data: bù khoảng trống cuối cùng
     nz = _fetch_nhanaz()
     if nz:
         total += _append_nhanaz_supplement(nz)
