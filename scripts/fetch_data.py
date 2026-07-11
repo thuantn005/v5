@@ -5,16 +5,15 @@ Cập nhật data/all.csv với kết quả kỳ quay mới từ nhiều nguồn
 Chỉ THÊM kỳ mới (không ghi đè), an toàn khi chạy nhiều lần.
 
 Thứ tự nguồn:
-  1.  minhchinh.com            — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
-  2.  xosominhngoc.net.vn      — phụ, trang tổng hợp Lotto 5/35 (BeautifulSoup)
-  3.  vietlott.vn              — phụ, AJAX API chính thức
-  4.  vietvudanh/vietlott-data — phụ, GitHub repo cào tự động hàng ngày
-  5.  xskt.com.vn              — phụ, tổng hợp 30 kỳ gần nhất
-  6.  xsmn.net                 — phụ, tổng hợp kết quả miền Nam
-  7.  xsmn.mobi                — phụ, bản mobile
-  8.  onbit.vn                 — phụ, cập nhật sau mỗi kỳ quay
-  9.  ketquadientoan.com        — phụ, kết quả điện toán Vietlott
-  10. NhanAZ-Data              — phụ cuối, dataset GitHub; bù khoảng trống còn lại
+  1. minhchinh.com       — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
+  2. xosominhngoc.net.vn — phụ, trang tổng hợp Lotto 5/35 (BeautifulSoup)
+  3. vietlott.vn         — phụ, AJAX API chính thức
+  4. xskt.com.vn         — phụ, tổng hợp 30 kỳ gần nhất
+  5. xsmn.net            — phụ, tổng hợp kết quả miền Nam
+  6. xsmn.mobi           — phụ, bản mobile
+  7. onbit.vn            — phụ, cập nhật sau mỗi kỳ quay
+  8. ketquadientoan.com  — phụ, kết quả điện toán Vietlott
+  9. NhanAZ-Data         — phụ cuối, dataset GitHub; bù khoảng trống còn lại
 
 Nếu tất cả nguồn lỗi → giữ nguyên data/all.csv, pipeline vẫn chạy được.
 """
@@ -27,8 +26,6 @@ import re
 import sys
 import time
 from datetime import datetime, timezone
-from itertools import groupby
-
 import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
@@ -519,71 +516,7 @@ def _append_nhanaz_supplement(nhanaz_rows: list[dict]) -> int:
     return len(new_rows)
 
 
-# ── Source 5: vietvudanh/vietlott-data (GitHub, power535.jsonl) ──────────────
-_VD_URL = (
-    "https://raw.githubusercontent.com/vietvudanh/vietlott-data"
-    "/main/data/power535.jsonl"
-)
-
-
-def _fetch_vietvudanh() -> list[dict]:
-    try:
-        r = _make_session().get(_VD_URL, timeout=TIMEOUT)
-        r.raise_for_status()
-    except requests.RequestException as e:
-        print(f"WARNING: vietvudanh/vietlott-data fetch failed: {e}", file=sys.stderr)
-        return []
-
-    raw: list[dict] = []
-    for line in r.text.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            obj = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        result = obj.get("result") or []
-        if len(result) != 6:
-            continue
-        numbers = sorted(result[:5])
-        sp = result[5]
-        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
-            continue
-        if sp < 1 or sp > 12:
-            continue
-        raw.append({
-            "draw_date": obj["date"],
-            "draw_id_hint": obj.get("id"),
-            "numbers": numbers,
-            "special": sp,
-        })
-
-    if not raw:
-        print("WARNING: vietvudanh/vietlott-data: fetched but no valid rows parsed",
-              file=sys.stderr)
-        return []
-
-    raw.sort(key=lambda d: (d["draw_date"], d["draw_id_hint"] or ""))
-    rows: list[dict] = []
-    for date, group in groupby(raw, key=lambda d: d["draw_date"]):
-        entries = list(group)
-        times = ["13:00", "21:00"] if len(entries) >= 2 else ["21:00"]
-        for i, entry in enumerate(entries[:2]):
-            rows.append({
-                "draw_date": date,
-                "draw_time": times[i] if i < len(times) else "21:00",
-                "numbers": entry["numbers"],
-                "special": entry["special"],
-                "source_url": _VD_URL,
-                "draw_id_hint": entry["draw_id_hint"],
-            })
-
-    print(f"vietvudanh/vietlott-data: {len(rows)} total draw(s) in dataset")
-    return rows
-
-
-# ── Sources 6-10: web scrapers bổ sung ───────────────────────────────────────
+# ── Sources 4-8: web scrapers bổ sung ────────────────────────────────────────
 _EXTRA_SOURCES = [
     ("xskt_com_vn",        "https://xskt.com.vn/xslotto-5-35"),
     ("xsmn_net",           "https://xsmn.net/kqxslotto535"),
@@ -777,12 +710,7 @@ def main():
     if vl:
         total += _append_draws(vl, "vietlott_vn_official")
 
-    # 4. vietvudanh/vietlott-data
-    vd = _fetch_vietvudanh()
-    if vd:
-        total += _append_draws(vd, "vietvudanh_github")
-
-    # 5-9. Các nguồn web scraper bổ sung
+    # 4-8. Các nguồn web scraper bổ sung
     for key, url in _EXTRA_SOURCES:
         ex = _fetch_extra(key, url)
         if ex:
@@ -793,7 +721,7 @@ def main():
     if nz:
         total += _append_nhanaz_supplement(nz)
 
-    if not mc and not mn and not vl and not vd and not nz:
+    if not mc and not mn and not vl and not nz:
         print("WARNING: tất cả nguồn lỗi — giữ nguyên data/all.csv. "
               "Pipeline vẫn chạy trên dữ liệu cũ.", file=sys.stderr)
 
