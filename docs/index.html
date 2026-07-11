@@ -115,6 +115,27 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
   font-size: .84rem; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
 .jp-ball.sp { background: #e0a400; color: #201400; }
 .jp-note { position: relative; z-index: 1; margin-top: 10px; font-size: .72rem; color: #f0e2b8; opacity:.9; }
+
+/* ── Bảng vàng lưu trữ (archive) ── */
+#jackpot-archive { margin-top: 30px; }
+.arch-head { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap;
+  gap:4px 12px; margin-bottom:12px; border-bottom:1px solid #4a3f1e; padding-bottom:8px; }
+.arch-title { font-size:1.05rem; font-weight:700; color: var(--gold); }
+.arch-meta { font-size:.75rem; color: var(--muted); }
+.arch-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  background: var(--card); border:1px solid #4a3f1e; border-left:3px solid var(--gold);
+  border-radius:10px; padding:10px 14px; margin-bottom:8px; }
+.arch-when { font-size:.72rem; color:var(--muted); min-width:96px; }
+.arch-when b { color: var(--text); font-weight:700; }
+.arch-name { font-weight:700; }
+.arch-tier { font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+  padding:2px 8px; border-radius:999px; }
+.arch-tier.j1 { background:#ffd54a; color:#2a1e00; }
+.arch-tier.j2 { background:#3a4560; color:#dbe6ff; }
+.arch-nums { display:flex; gap:5px; flex-wrap:wrap; margin-left:auto; }
+.arch-ball { width:28px; height:28px; border-radius:50%; background:#12a150; color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700; }
+.arch-ball.sp { background:#e0a400; color:#201400; }
 </style>
 </head>
 <body>
@@ -130,6 +151,7 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 
 <div id="jackpot-pin"></div>
 <div id="app"><div class="loading">Đang tải dữ liệu…</div></div>
+<div id="jackpot-archive"></div>
 
 <script>
 function b(n, cls='') { return `<div class="ball ${cls}">${String(n).padStart(2,'0')}</div>`; }
@@ -207,8 +229,11 @@ function jackpotBanner(w) {
 
 function renderPin(winsData) {
   const host = document.getElementById('jackpot-pin');
-  const wins = (winsData && winsData.wins) || [];
-  if (!wins.length) { host.innerHTML = ''; return; }
+  const all = (winsData && winsData.wins) || [];
+  if (!all.length) { host.innerHTML = ''; return; }
+  // Banner ghim chỉ tôn vinh cú trúng MỚI NHẤT (kỳ lớn nhất); lịch sử đầy đủ ở khu lưu trữ.
+  const latest = Math.max(...all.map(w => w.draw_id));
+  const wins = all.filter(w => w.draw_id === latest);
   const hasJ1 = wins.some(w => w.tier === 'jackpot1');
   const title = wins.length === 1
     ? 'CÓ VÉ TRÚNG JACKPOT!' : `CÓ ${wins.length} VÉ TRÚNG JACKPOT!`;
@@ -221,6 +246,31 @@ function renderPin(winsData) {
     ${wins.map(jackpotBanner).join('')}
     <div class="jp-note">⚠️ Trùng khớp may mắn — không phải bằng chứng dự đoán được. Hãy kiểm tra lại vé thật và chơi có trách nhiệm.</div>
   </div>`;
+}
+
+function renderArchive(winsData) {
+  const host = document.getElementById('jackpot-archive');
+  const wins = ((winsData && winsData.wins) || [])
+    .slice().sort((a, b) => b.draw_id - a.draw_id);
+  if (!wins.length) { host.innerHTML = ''; return; }
+  const rows = wins.map(w => {
+    const actualSet = new Set(w.actual);
+    const balls = w.numbers.map(n => `<div class="arch-ball">${String(n).padStart(2,'0')}</div>`).join('')
+      + `<div class="arch-ball sp">${String(w.special).padStart(2,'0')}${w.special_hit ? '✓' : ''}</div>`;
+    const tierCls = w.tier === 'jackpot1' ? 'j1' : 'j2';
+    const tierTxt = w.tier === 'jackpot1' ? 'Jackpot 1' : 'Jackpot 2';
+    const when = (w.recorded_at || '').slice(0, 10);
+    return `<div class="arch-row">
+      <span class="arch-when">Kỳ <b>#${w.draw_id}</b><br>${esc(w.draw_date || when)}</span>
+      <span class="arch-name">🧮 ${esc(w.name)}</span>
+      <span class="arch-tier ${tierCls}">${tierTxt}</span>
+      <span class="arch-nums">${balls}</span>
+    </div>`;
+  }).join('');
+  host.innerHTML = `<div class="arch-head">
+      <div class="arch-title">🏅 Bảng vàng — lưu trữ các kỳ trúng jackpot</div>
+      <div class="arch-meta">${wins.length} lần trúng · lưu vĩnh viễn</div>
+    </div>${rows}`;
 }
 
 function collection(d, withSpecial, title, icon) {
@@ -243,6 +293,7 @@ async function main() {
       fetch('jackpot_wins.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     renderPin(wins);
+    renderArchive(wins);
     const gen = (j2 && j2.generated_at) || (j1 && j1.generated_at);
     document.getElementById('gen-time').textContent =
       'Cập nhật: ' + (gen ? new Date(gen).toLocaleString('vi-VN') : '—')
