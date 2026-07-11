@@ -387,7 +387,9 @@ def _append_scraped(scraped: list[dict]) -> int:
             }),
             "attributes_json": json.dumps({
                 "data_source": d.get("data_source", "scraper"),
-                "draw_time": d.get("draw_time"),
+                # Infer draw_time from draw_id parity if scraper did not supply it.
+                # Lotto 5/35: odd draw_id = 13:00, even draw_id = 21:00.
+                "draw_time": d.get("draw_time") or ("13:00" if did % 2 == 1 else "21:00"),
             }),
             "official_pdf_urls_json": "[]",
             "source_url": d.get("source_url", ""),

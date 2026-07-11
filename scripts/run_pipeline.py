@@ -172,7 +172,8 @@ def main():
     # threshold_crossed_date (set on a prior run when the jackpot first passed
     # 12B) lets check_jackpot pin the sharing round to "21:00 of the next day".
     jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time,
-                            get_threshold_crossed_date())
+                            get_threshold_crossed_date(),
+                            last_draw_id=last_draw.draw_id)
     # Surface the "silent blind spot": if every jackpot source failed we
     # can't tell whether the next draw is the sharing round -- alert once.
     scrape_alert = check_scrape_alert(jackpot["jackpot_vnd"])

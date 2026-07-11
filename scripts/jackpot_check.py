@@ -19,13 +19,20 @@ This module:
   1. Scrapes the current jackpot figure (best-effort; falls back across
      sources; returns None if it can't confidently parse a number rather
      than guessing).
-  2. Given the last known draw (date + time), computes whether the *next*
-     draw to be predicted is that following day's 21:00 draw, AND the
-     jackpot is above the 12 billion threshold.
+  2. Given the last known draw (date + time), infers the next draw's
+     time slot, including recovering when draw_time is None (using
+     draw_id parity: odd ID = 13:00, even ID = 21:00).
+  3. Both conditions (jackpot > 12B AND next draw is the 21:00 of the
+     following day) must hold.  If either can't be determined confidently,
+     returns is_sharing_round=False -- we never want a false alert.
 
-Both conditions must hold. If either can't be determined confidently,
-this returns is_sharing_round=False -- we never want a false "jackpot"
-alert.
+Sources for jackpot value (ordered by reliability):
+  PRIMARY  : vietlott.vn result / product pages  (label-anchored parser)
+  SECONDARY: xsmn.mobi xs-lotto-5-35.html        (has "Giá trị Độc Đắc" field)
+  TERTIARY : minhchinh.com, others
+NOTE: xsmn.mobi xs-lotto-5-35.html is a RESULTS page that ALSO shows the
+current jackpot value ("Giá trị Độc Đắc: X.XXX.XXX.XXX đồng"), unlike
+plain result-only pages.  It is kept as a reliable fallback.
 """
 
 from __future__ import annotations
@@ -35,55 +42,48 @@ from datetime import date, datetime, timedelta
 
 import requests
 
-# Primary: official Vietlott "kết quả trúng thưởng" page for Lotto 5/35 (no
-# ?id= => latest draw). It prints the current jackpot as
-# "Giải Độc Đắc<TAB>6.231.022.500 VND", which the label-anchored parser reads
-# correctly.
-URL = "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535"
-FALLBACK_URLS = [
+# ── Sources ─────────────────────────────────────────────────────────────────
+# Only pages that actually show the Jackpot (Độc Đắc) value.
+# xsmn.mobi/xs-lotto-5-35.html shows "Giá trị Độc Đắc: X đồng" prominently.
+# Pure result pages (xosominhngoc, xskt…) do NOT show jackpot value — excluded.
+JACKPOT_SOURCES = [
+    "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535",
     "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535",
     "https://xsmn.mobi/xs-lotto-5-35.html",
     "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html",
-    "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
-    "https://www.ketquadientoan.com/tat-ca-ky-xo-so-lotto-535.html",
 ]
-ALL_SOURCES = [URL] + FALLBACK_URLS
 THRESHOLD_VND = 12_000_000_000
 
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     ),
-    "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Language": "vi-VN,vi;q=0.9",
 }
-
 
 MIN_JACKPOT_VND = 1_000_000_000
 MAX_JACKPOT_VND = 500_000_000_000
-# The current-jackpot figure sits IMMEDIATELY after a "Độc Đắc" label on the
-# real pages, e.g. vietlott.vn "Giải Độc Đắc<TAB>6.231.022.500 VND" and
-# xsmn.mobi "Giá trị Độc Đắc:<NL>6.088.615.000 đồng". "độc đắc" is the exact
-# term for THIS jackpot; generic "jackpot" is a weaker secondary anchor.
+
 _JACKPOT_LABELS = ("độc đắc", "doc dac", "jackpot")
-# Ignore numbers tied to an "estimated / next draw / sales" context even if a
-# jackpot word is nearby.
 _DECOY_HINTS = ("ước tính", "uoc tinh", "kỳ tới", "ky toi", "dự kiến", "du kien",
                 "doanh thu", "doanh số", "doanh so", "tổng giá trị", "luỹ kế", "lũy kế")
-_LABEL_WINDOW = 120  # chars: the value is tightly bound to its label
+_LABEL_WINDOW = 200   # chars — xsmn.mobi puts value ~100 chars after the label
+
+
+# ── Jackpot parser ───────────────────────────────────────────────────────────
+
+def _label_positions(low_html: str, label: str) -> list[int]:
+    return [m.start() for m in re.finditer(re.escape(label), low_html)]
 
 
 def _money_matches(html: str) -> list[tuple[int, int]]:
-    """Every plausible billion-range money figure as (value_vnd, position).
-    A number qualifies if it is followed by đồng/vnd, OR immediately preceded
-    by a 'Độc Đắc'/'Jackpot' label (some pages print the value without a unit,
-    e.g. inside a results table)."""
     out = []
     low = html.lower()
+    label_pos = sorted(p for lab in _JACKPOT_LABELS for p in _label_positions(low, lab))
     for m in re.finditer(r"([\d][\d\.,]{8,})(?:\s*(?:đồng|dong|vnd))?", html, re.IGNORECASE):
         raw = m.group(1)
-        # Real VND amounts are always thousands-separated ("6.231.022.500");
-        # this rejects concatenated draw numbers / IDs like "1419252830".
+        # Requires thousands-separator — rejects run-together IDs like "1419252830"
         if "." not in raw and "," not in raw:
             continue
         digits = re.sub(r"[^\d]", "", raw)
@@ -93,24 +93,14 @@ def _money_matches(html: str) -> list[tuple[int, int]]:
         if not (MIN_JACKPOT_VND <= v <= MAX_JACKPOT_VND):
             continue
         has_unit = m.group(0).lower().rstrip().endswith(("đồng", "dong", "vnd"))
-        near_label = any(0 <= m.start() - lp <= _LABEL_WINDOW
-                         for lab in _JACKPOT_LABELS for lp in _label_positions(low, lab))
+        near_label = any(0 <= m.start() - lp <= _LABEL_WINDOW for lp in label_pos)
         if has_unit or near_label:
             out.append((v, m.start()))
     return out
 
 
-def _label_positions(low_html: str, label: str) -> list[int]:
-    return [m.start() for m in re.finditer(re.escape(label), low_html)]
-
-
 def _extract_jackpot_vnd(html: str) -> int | None:
-    """Pick the money figure most tightly bound to a 'Độc Đắc'/'Jackpot' label,
-    NOT the biggest number on the page. These pages also list sales totals,
-    other games' prizes and estimated next-jackpot figures, so the old 'max'
-    heuristic routinely grabbed the wrong number (observed: a stale/unrelated
-    7,269,262,500 while the real jackpot was 6,231,022,500). Returns None
-    rather than guess when a label exists but no value sits next to it."""
+    """Pick the money figure most tightly bound to a 'Độc Đắc'/'Jackpot' label."""
     money = _money_matches(html)
     if not money:
         return None
@@ -119,13 +109,12 @@ def _extract_jackpot_vnd(html: str) -> int | None:
     label_pos = sorted(p for lab in _JACKPOT_LABELS for p in _label_positions(low, lab))
 
     if label_pos:
-        best = None  # (distance_from_label, value)
+        best = None
         for value, pos in money:
             preceding = [lp for lp in label_pos if 0 <= pos - lp <= _LABEL_WINDOW]
             if not preceding:
                 continue
             nearest = max(preceding)
-            # skip if the text between label and number reeks of a decoy
             context = low[nearest:pos]
             if any(h in context for h in _DECOY_HINTS):
                 continue
@@ -134,30 +123,49 @@ def _extract_jackpot_vnd(html: str) -> int | None:
                 best = (dist, value)
         return best[1] if best is not None else None
 
-    # No jackpot label at all: last-resort heuristic (fragile, may be wrong).
     return max(v for v, _ in money)
 
 
 def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
-    for url in ALL_SOURCES:
+    for url in JACKPOT_SOURCES:
         try:
-            resp = requests.get(url, timeout=15, headers=_HEADERS)
+            resp = requests.get(url, timeout=20, headers=_HEADERS)
             resp.raise_for_status()
             amount = _extract_jackpot_vnd(resp.text)
             if amount is not None:
                 return amount, url
-            print(f"WARNING: fetched {url} but could not find a jackpot figure in it", file=sys.stderr)
+            print(f"WARNING: fetched {url} but could not find jackpot figure", file=sys.stderr)
         except requests.RequestException as e:
-            print(f"WARNING: jackpot check failed for {url}: {e}", file=sys.stderr)
-            continue
-    print(f"WARNING: all {len(ALL_SOURCES)} jackpot sources failed -- "
-          f"treating jackpot as unknown this run (no false alerts).", file=sys.stderr)
+            print(f"WARNING: jackpot source failed {url}: {e}", file=sys.stderr)
+    print(f"WARNING: all {len(JACKPOT_SOURCES)} jackpot sources failed", file=sys.stderr)
     return None, None
 
 
-def _next_draw_datetime(last_draw_date: str, last_draw_time: str | None):
-    """Given the last known draw's date/time, compute the (date, time) of the
-    NEXT draw, assuming the strict daily 13:00 / 21:00 alternating schedule."""
+# ── draw_time inference ──────────────────────────────────────────────────────
+
+def _infer_draw_time(draw_id: str | None, draw_time: str | None) -> str | None:
+    """Return draw_time if known; otherwise infer from draw_id parity.
+
+    Lotto 5/35 schedule (confirmed from NhanAZ data):
+      draw_id odd  → 13:00 draw
+      draw_id even → 21:00 draw
+    This covers the case where fallback scraper appended a row without
+    draw_time in attributes_json.
+    """
+    if draw_time in ("13:00", "21:00"):
+        return draw_time
+    # Infer from draw_id parity
+    if draw_id:
+        try:
+            n = int(draw_id)
+            return "13:00" if n % 2 == 1 else "21:00"
+        except (ValueError, TypeError):
+            pass
+    return None
+
+
+def _next_draw_slot(last_draw_date: str, last_draw_time: str) -> tuple[date, str] | None:
+    """Compute (date, time) of the draw immediately following last_draw."""
     try:
         d = datetime.strptime(last_draw_date, "%Y-%m-%d").date()
     except ValueError:
@@ -169,21 +177,28 @@ def _next_draw_datetime(last_draw_date: str, last_draw_time: str | None):
     return None
 
 
+# ── Public API ───────────────────────────────────────────────────────────────
+
 def check_jackpot(last_draw_date: str, last_draw_time: str | None,
-                  threshold_crossed_date: str | None = None) -> dict:
+                  threshold_crossed_date: str | None = None,
+                  last_draw_id: str | None = None) -> dict:
     """Determine whether the NEXT draw is the jackpot-sharing round.
 
     Per Vietlott's rule the sharing round is the 21:00 draw of the day
     IMMEDIATELY FOLLOWING the day a draw first confirmed the jackpot above 12
-    billion. `threshold_crossed_date` (YYYY-MM-DD) is that confirmation day,
-    tracked across runs by jackpot_watch. is_sharing_round is True only when
-    the next draw is a 21:00 draw whose date == threshold_crossed_date + 1 day.
+    billion. `threshold_crossed_date` (YYYY-MM-DD) is that confirmation day.
 
-    (The previous version compared next_date to the LAST draw's date, which
-    could never be satisfied on the strict 13:00->21:00 same-day schedule, so
-    the sharing alert never fired.)"""
+    draw_time may be None when data came from a scraper that didn't record it;
+    pass last_draw_id so the function can infer from draw_id parity.
+    """
     jackpot_vnd, source = _scrape_jackpot_vnd()
-    next_slot = _next_draw_datetime(last_draw_date, last_draw_time)
+
+    # Resolve draw_time: explicit > inferred from ID parity
+    resolved_time = _infer_draw_time(last_draw_id, last_draw_time)
+
+    next_slot = None
+    if resolved_time:
+        next_slot = _next_draw_slot(last_draw_date, resolved_time)
 
     is_sharing_round = False
     reason = "insufficient information"
@@ -198,7 +213,7 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None,
     if jackpot_vnd is None:
         reason = "could not scrape jackpot amount"
     elif next_slot is None:
-        reason = "could not determine next draw's date/time slot"
+        reason = f"could not determine next draw slot (draw_time={last_draw_time}, draw_id={last_draw_id})"
     else:
         next_date, next_time = next_slot
         if jackpot_vnd <= THRESHOLD_VND:
@@ -206,9 +221,8 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None,
         elif next_time != "21:00":
             reason = "next draw is a 13:00 draw, not the 21:00 sharing slot"
         elif crossed is None:
-            reason = ("jackpot > 12 billion but the day it first crossed 12B is "
-                      "not known yet (recorded once per cycle) -- cannot confirm "
-                      "the sharing day, staying silent to avoid a false alert")
+            reason = ("jackpot > 12 billion but threshold_crossed_date unknown "
+                      "— staying silent to avoid false alert")
         elif next_date == crossed + timedelta(days=1):
             is_sharing_round = True
             reason = (
@@ -222,6 +236,7 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None,
     return {
         "source": source,
         "jackpot_vnd": jackpot_vnd,
+        "resolved_draw_time": resolved_time,
         "next_draw_date": next_slot[0].isoformat() if next_slot else None,
         "next_draw_time": next_slot[1] if next_slot else None,
         "threshold_crossed_date": threshold_crossed_date,
@@ -230,25 +245,22 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None,
     }
 
 
+# ── Self-tests ───────────────────────────────────────────────────────────────
+
 def _self_test_parser():
-    """Extraction must pick the Độc Đắc figure, not the biggest number, using
-    the REAL page formats from vietlott.vn and xsmn.mobi."""
-    # vietlott.vn kỳ #00752 (note draw numbers 1419252830 must be ignored,
-    # and a decoy larger number must not win)
     vietlott = (
         "Kỳ quay thưởng #00752 ngày 09/07/2026\n1419252830|04\n"
         "Doanh thu kỳ này: 7.269.262.500 đồng\n"
         "Giải Độc Đắc\t6.231.022.500 VND\n"
         "Giải Độc Đắc\tO O O O O + O\t0\t6.231.022.500"
     )
-    # xsmn.mobi format
     xsmn = ("Kỳ vé #00751\nGiá trị Độc Đắc:\n6.088.615.000 đồng\n"
             "Jackpot ước tính kỳ tới: 7.269.262.500 đồng")
     cases = [
         (vietlott, 6_231_022_500),
         (xsmn, 6_088_615_000),
-        ("Giải phụ 2.000.000.000 đồng. Giải khác 3.000.000.000 đồng.", 3_000_000_000),  # no label -> max
-        ("Thông tin Jackpot cập nhật sau." + "x" * 600 + "99.000.000.000 đồng", None),  # label far -> None
+        ("Giải phụ 2.000.000.000 đồng. Giải khác 3.000.000.000 đồng.", 3_000_000_000),
+        ("Thông tin Jackpot cập nhật sau." + "x" * 600 + "99.000.000.000 đồng", None),
     ]
     for html, expected in cases:
         got = _extract_jackpot_vnd(html)
@@ -256,21 +268,34 @@ def _self_test_parser():
     print("jackpot parser self-test: OK")
 
 
+def _self_test_infer_time():
+    assert _infer_draw_time(None, "13:00") == "13:00"
+    assert _infer_draw_time("00755", None) == "13:00"   # 755 odd → 13:00
+    assert _infer_draw_time("00756", None) == "21:00"   # 756 even → 21:00
+    assert _infer_draw_time("00754", "13:00") == "13:00"  # explicit wins
+    assert _infer_draw_time(None, None) is None
+    print("draw_time inference self-test: OK")
+
+
 def _self_test_sharing():
-    """The sharing round must be flagged exactly for the 21:00 draw of the day
-    after the 12B crossing -- and never otherwise."""
     global _scrape_jackpot_vnd
     orig = _scrape_jackpot_vnd
     _scrape_jackpot_vnd = lambda: (13_000_000_000, "test")
     try:
-        crossed = "2026-07-09"  # 12B first crossed on 09/07
-        # next 21:00 draw is 10/07 21:00 (predicted after 10/07 13:00) -> sharing
-        assert check_jackpot("2026-07-10", "13:00", crossed)["is_sharing_round"] is True
-        # every other slot -> not sharing
-        assert check_jackpot("2026-07-09", "13:00", crossed)["is_sharing_round"] is False  # same-day 21:00
-        assert check_jackpot("2026-07-10", "21:00", crossed)["is_sharing_round"] is False  # next is 13:00
-        assert check_jackpot("2026-07-11", "13:00", crossed)["is_sharing_round"] is False  # day after sharing
-        # unknown crossing day -> stay silent
+        crossed = "2026-07-09"
+        # 21:00 slot of 10/07 is next after 10/07 13:00 → sharing
+        assert check_jackpot("2026-07-10", "13:00", crossed)[
+            "is_sharing_round"] is True
+        # draw_time=None but draw_id=00755 (odd) → inferred 13:00 → next is 21:00 same day → sharing
+        assert check_jackpot("2026-07-10", None, crossed, last_draw_id="00755")[
+            "is_sharing_round"] is True
+        # draw_id=00756 (even) → inferred 21:00 → next is 13:00 → NOT sharing
+        assert check_jackpot("2026-07-10", None, crossed, last_draw_id="00756")[
+            "is_sharing_round"] is False
+        # Not the sharing round slots
+        assert check_jackpot("2026-07-09", "13:00", crossed)["is_sharing_round"] is False
+        assert check_jackpot("2026-07-10", "21:00", crossed)["is_sharing_round"] is False
+        assert check_jackpot("2026-07-11", "13:00", crossed)["is_sharing_round"] is False
         assert check_jackpot("2026-07-10", "13:00", None)["is_sharing_round"] is False
     finally:
         _scrape_jackpot_vnd = orig
@@ -280,5 +305,7 @@ def _self_test_sharing():
 if __name__ == "__main__":
     import json
     _self_test_parser()
+    _self_test_infer_time()
     _self_test_sharing()
-    print(json.dumps(check_jackpot("2026-07-07", "21:00"), ensure_ascii=False, indent=2))
+    print(json.dumps(check_jackpot("2026-07-11", None, last_draw_id="00755"),
+                     ensure_ascii=False, indent=2))
