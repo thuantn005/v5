@@ -58,10 +58,13 @@ jobs:
       - name: Generate dashboard data for GitHub Pages
         run: python scripts/generate_dashboard_data.py
 
+      - name: Generate config tickets for dashboard panel
+        run: python scripts/gen_config_tickets.py --csv data/all.csv --out docs/config_tickets.json
+
       - name: Commit updated data, logs & dashboard
         run: |
           git config user.name "lotto535-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/all.csv state/ docs/data.json
+          git add data/all.csv state/ docs/data.json docs/config_tickets.json
           git diff --cached --quiet || git commit -m "chore: update data, model logs & dashboard [skip ci]"
           git push
