@@ -80,6 +80,32 @@ def _event(kind: str, title: str, message: str,
             "priority": priority, "tags": tags}
 
 
+def _reminder_event(share_date, peak_jackpot) -> dict:
+    """Sự kiện nhắc 'TỐI NAY chia giải'. Chỉ cần ngày chia giải + pot đỉnh
+    (đều đã lưu trong state) — KHÔNG cần jackpot scrape mới. Nhờ vậy reminder
+    vẫn gửi được ngay cả khi tra cứu jackpot tạm thời lỗi."""
+    return _event(
+        "reminder",
+        "🔔 TỐI NAY: kỳ CHIA GIẢI Độc Đắc Lotto 5/35!",
+        f"Kỳ quay {SHARE_DRAW_TIME} hôm nay ({share_date:%d/%m/%Y}) "
+        f"là kỳ CHIA GIẢI. Độc Đắc ~{_fmt(peak_jackpot)} "
+        f"sẽ chia cho Giải Nhất (2/6) và Nhì/Ba/Tư/Năm (mỗi giải 1/6) "
+        f"nếu không ai trúng trực tiếp. Nhớ mua vé trước giờ quay!",
+        priority="max",
+        tags="rotating_light,moneybag,alarm_clock",
+    )
+
+
+def _parse_date(s: str | None):
+    """Parse 'YYYY-MM-DD' → date, hoặc None nếu không hợp lệ."""
+    if not s:
+        return None
+    try:
+        return datetime.strptime(s, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
+
+
 # ── State machine chính ──────────────────────────────────────────────────────
 
 def check_share_draw(jackpot_vnd: int | None,
@@ -101,6 +127,18 @@ def check_share_draw(jackpot_vnd: int | None,
 
     # ── Trường hợp scrape thất bại ─────────────────────────────────────────
     if jackpot_vnd is None:
+        # Kỳ chia giải đã được xác định từ trước và HÔM NAY chính là ngày chia
+        # giải → vẫn phải nhắc, dù không lấy được jackpot mới. Reminder chỉ dựa
+        # vào share_date + peak_jackpot đã lưu trong state, nên scrape lỗi
+        # KHÔNG được làm mất thông báo quan trọng này.
+        share_date = _parse_date(state.get("share_date"))
+        if (state.get("pending") and share_date is not None
+                and today == share_date and not state.get("reminded")):
+            state["reminded"] = True
+            _save(state)
+            events.append(_reminder_event(share_date, state.get("peak_jackpot")))
+            return events
+
         if not state.get("scrape_fail_alerted"):
             state["scrape_fail_alerted"] = True
             _save(state)
@@ -123,7 +161,12 @@ def check_share_draw(jackpot_vnd: int | None,
 
     # ── Đang chờ kỳ chia giải ──────────────────────────────────────────────
     if state["pending"]:
-        share_date = datetime.strptime(state["share_date"], "%Y-%m-%d").date()
+        share_date = _parse_date(state.get("share_date"))
+        if share_date is None:
+            # share_date hỏng → không thể theo dõi kỳ chia giải, reset an toàn.
+            print("[jackpot_watch] share_date không hợp lệ, reset state.")
+            _save({**_DEFAULT_STATE, "peak_jackpot": jackpot_vnd})
+            return events
         peak = max(state.get("peak_jackpot") or 0, 0)
 
         if jackpot_vnd < JACKPOT_THRESHOLD and jackpot_vnd < peak * 0.8:
@@ -153,16 +196,7 @@ def check_share_draw(jackpot_vnd: int | None,
         else:
             state["peak_jackpot"] = max(peak, jackpot_vnd)
             if today == share_date and not state["reminded"]:
-                events.append(_event(
-                    "reminder",
-                    "🔔 TỐI NAY: kỳ CHIA GIẢI Độc Đắc Lotto 5/35!",
-                    f"Kỳ quay {SHARE_DRAW_TIME} hôm nay ({share_date:%d/%m/%Y}) "
-                    f"là kỳ CHIA GIẢI. Độc Đắc ~{_fmt(state['peak_jackpot'])} "
-                    f"sẽ chia cho Giải Nhất (2/6) và Nhì/Ba/Tư/Năm (mỗi giải 1/6) "
-                    f"nếu không ai trúng trực tiếp. Nhớ mua vé trước giờ quay!",
-                    priority="max",
-                    tags="rotating_light,moneybag,alarm_clock",
-                ))
+                events.append(_reminder_event(share_date, state["peak_jackpot"]))
                 state["reminded"] = True
             elif (today - share_date).days > 2:
                 # Dữ liệu trễ bất thường → reset cho sạch
@@ -219,7 +253,42 @@ def check_scrape_alert(jackpot_vnd: int | None) -> dict:
     return {"should_alert": False, "jackpot_vnd": jackpot_vnd}
 
 
+def _self_test_reminder_survives_scrape_fail():
+    """Regression: khi đã có kỳ chia giải đang chờ và HÔM NAY là ngày chia
+    giải, reminder phải gửi ngay cả khi scrape jackpot thất bại (jackpot=None).
+    Trước đây bug: hàm return sớm ở nhánh scrape_fail → mất reminder → hệ thống
+    'không tìm được kỳ quay chia giải Độc Đắc' đúng ngày quan trọng nhất."""
+    import tempfile
+    global STATE_PATH
+    orig_path = STATE_PATH
+    fd = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False,
+                                     encoding="utf-8")
+    today = datetime.now(VN_TZ).date().isoformat()
+    json.dump({
+        "pending": True, "share_date": today, "reminded": False,
+        "peak_jackpot": 13_500_000_000, "trigger_draw_id": "00756",
+        "trigger_draw_date": (datetime.now(VN_TZ).date()
+                              - timedelta(days=1)).isoformat(),
+        "scrape_fail_alerted": True,
+    }, fd, ensure_ascii=False)
+    fd.close()
+    STATE_PATH = fd.name
+    try:
+        events = check_share_draw(None, last_draw_id="00757",
+                                  last_draw_date=today)
+        kinds = [e["kind"] for e in events]
+        assert kinds == ["reminder"], f"expected reminder, got {kinds}"
+        assert _load()["reminded"] is True, "reminded flag phải được set"
+        # Chạy lại: đã reminded → không lặp lại reminder
+        assert [e["kind"] for e in check_share_draw(None)] != ["reminder"]
+    finally:
+        os.unlink(fd.name)
+        STATE_PATH = orig_path
+    print("reminder-survives-scrape-fail self-test: OK")
+
+
 if __name__ == "__main__":
+    _self_test_reminder_survives_scrape_fail()
     # Test thủ công
     print("--- test: vượt 12 tỷ ---")
     for ev in check_share_draw(13_000_000_000, "00755", "2026-07-11"):
