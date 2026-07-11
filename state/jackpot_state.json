@@ -1,6 +1,12 @@
 {
+  "pending": false,
+  "share_date": null,
+  "reminded": false,
+  "peak_jackpot": 6088615000,
+  "trigger_draw_id": null,
+  "trigger_draw_date": null,
+  "scrape_fail_alerted": false,
   "alerted_this_cycle": false,
   "last_jackpot_vnd": 6088615000,
-  "scrape_fail_alerted": false,
   "threshold_crossed_date": null
 }
