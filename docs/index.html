@@ -77,6 +77,44 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 
 .loading { color: var(--muted); padding: 40px; text-align: center; }
 .error { color: var(--red); font-size: 0.82rem; padding: 20px; }
+
+/* ── JACKPOT pinned banner (hoành tráng) ── */
+#jackpot-pin { margin: 0 0 22px; }
+.jp-banner {
+  position: relative; overflow: hidden;
+  border-radius: 16px; padding: 20px 22px;
+  background: linear-gradient(135deg, #3a2c05 0%, #6b4e0a 30%, #b8891a 55%, #6b4e0a 80%, #3a2c05 100%);
+  background-size: 250% 250%;
+  border: 2px solid #f0c040;
+  box-shadow: 0 0 0 1px #000 inset, 0 8px 34px rgba(212,175,55,.35);
+  animation: jpShift 6s ease infinite;
+}
+@keyframes jpShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.jp-banner::after {
+  content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: skewX(-20deg); animation: jpShine 3.6s ease-in-out infinite;
+}
+@keyframes jpShine { 0%{left:-60%} 55%{left:130%} 100%{left:130%} }
+.jp-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.jp-trophy { font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); animation: jpBob 2s ease-in-out infinite; }
+@keyframes jpBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+.jp-title { font-size: 1.15rem; font-weight: 800; color: #fff8e1; letter-spacing:.01em;
+  text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+.jp-tier { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing:.08em;
+  color: #2a1e00; background: #ffd54a; padding: 3px 9px; border-radius: 999px; }
+.jp-win { position: relative; z-index: 1; margin-top: 12px;
+  background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px; padding: 12px 14px; }
+.jp-win + .jp-win { margin-top: 8px; }
+.jp-name { font-size: 1.02rem; font-weight: 800; color: #fff; }
+.jp-meta { font-size: .76rem; color: #f4e6c0; margin-bottom: 8px; }
+.jp-balls { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.jp-ball { width: 36px; height: 36px; border-radius: 50%;
+  background: #12a150; color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: .84rem; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+.jp-ball.sp { background: #e0a400; color: #201400; }
+.jp-note { position: relative; z-index: 1; margin-top: 10px; font-size: .72rem; color: #f0e2b8; opacity:.9; }
 </style>
 </head>
 <body>
@@ -90,6 +128,7 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
   tăng xác suất trúng. Trang này chỉ theo dõi & so sánh với kết quả thực — chỉ để giải trí.
 </div>
 
+<div id="jackpot-pin"></div>
 <div id="app"><div class="loading">Đang tải dữ liệu…</div></div>
 
 <script>
@@ -149,6 +188,41 @@ function card(t, withSpecial) {
   </div>`;
 }
 
+function jackpotBanner(w) {
+  const actualSet = new Set(w.actual);
+  const balls = w.numbers.map(n =>
+    `<div class="jp-ball ${actualSet.has(n) ? '' : ''}">${String(n).padStart(2,'0')}</div>`).join('')
+    + `<span class="plus" style="color:#f4e6c0">+</span>`
+    + `<div class="jp-ball sp">${String(w.special).padStart(2,'0')}${w.special_hit ? ' ✓' : ''}</div>`;
+  const tier = w.tier === 'jackpot1' ? 'JACKPOT 1 · 5 SỐ + ĐB' : 'JACKPOT 2 · 5/5 SỐ CHÍNH';
+  return `<div class="jp-win">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <span class="jp-name">🧮 ${esc(w.name)}</span>
+      <span class="jp-tier">${tier}</span>
+    </div>
+    <div class="jp-meta">Kỳ #${w.draw_id} · ${esc(w.draw_date||'')} · seed ${w.seed}</div>
+    <div class="jp-balls">${balls}</div>
+  </div>`;
+}
+
+function renderPin(winsData) {
+  const host = document.getElementById('jackpot-pin');
+  const wins = (winsData && winsData.wins) || [];
+  if (!wins.length) { host.innerHTML = ''; return; }
+  const hasJ1 = wins.some(w => w.tier === 'jackpot1');
+  const title = wins.length === 1
+    ? 'CÓ VÉ TRÚNG JACKPOT!' : `CÓ ${wins.length} VÉ TRÚNG JACKPOT!`;
+  host.innerHTML = `<div class="jp-banner">
+    <div class="jp-head">
+      <span class="jp-trophy">🏆</span>
+      <span class="jp-title">${title}</span>
+      <span class="jp-tier">${hasJ1 ? 'JACKPOT 1' : 'JACKPOT 2'}</span>
+    </div>
+    ${wins.map(jackpotBanner).join('')}
+    <div class="jp-note">⚠️ Trùng khớp may mắn — không phải bằng chứng dự đoán được. Hãy kiểm tra lại vé thật và chơi có trách nhiệm.</div>
+  </div>`;
+}
+
 function collection(d, withSpecial, title, icon) {
   if (!d || !d.tickets || !d.tickets.length) return '';
   const cards = d.tickets.map(t => card(t, withSpecial)).join('');
@@ -163,10 +237,12 @@ function collection(d, withSpecial, title, icon) {
 
 async function main() {
   try {
-    const [j1, j2] = await Promise.all([
+    const [j1, j2, wins] = await Promise.all([
       fetch('j1_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
       fetch('config_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('jackpot_wins.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
+    renderPin(wins);
     const gen = (j2 && j2.generated_at) || (j1 && j1.generated_at);
     document.getElementById('gen-time').textContent =
       'Cập nhật: ' + (gen ? new Date(gen).toLocaleString('vi-VN') : '—')

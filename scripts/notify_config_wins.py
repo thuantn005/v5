@@ -28,7 +28,9 @@ from jackpot_family import ticket, special  # noqa: E402
 import notify_ntfy
 
 STATE_PATH = "state/config_wins_notified.json"
+WINS_PATH = "docs/jackpot_wins.json"   # "bảng vàng" jackpot để ghim đầu dashboard
 NOTIFY_MIN_MAIN_HITS = 4      # báo khi trúng >= 4/5 số chính
+JACKPOT_MAIN_HITS = 5         # trúng jackpot = đủ 5/5 số chính (ghim đầu trang)
 LOOKBACK_DRAWS = 10           # quét lại 10 kỳ gần nhất phòng khi bỏ lỡ một lần chạy
 
 J2_CONFIGS = "configs/jackpot_configs.json"
@@ -79,6 +81,42 @@ def _save_state(notified: set[str]) -> None:
     os.makedirs(os.path.dirname(STATE_PATH), exist_ok=True)
     json.dump({"notified": sorted(notified)}, open(STATE_PATH, "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
+
+
+def _record_jackpots(jackpot_wins: list[dict]) -> None:
+    """Ghi các cú trúng JACKPOT (5/5) vào 'bảng vàng' docs/jackpot_wins.json để
+    dashboard ghim banner đầu trang. Dedup theo (draw_id, seed); giữ lịch sử."""
+    import datetime
+    existing = {"wins": []}
+    if os.path.exists(WINS_PATH):
+        try:
+            existing = json.load(open(WINS_PATH, encoding="utf-8"))
+        except Exception:
+            existing = {"wins": []}
+    seen = {(w.get("draw_id"), w.get("seed")) for w in existing.get("wins", [])}
+    added = False
+    for w in jackpot_wins:
+        if (w["draw_id"], w["seed"]) in seen:
+            continue
+        existing.setdefault("wins", []).append({
+            "draw_id": w["draw_id"], "draw_date": w["draw_date"],
+            "name": w["name"], "seed": w["seed"], "collection": w["collection"],
+            "tier": "jackpot1" if w["special_hit"] else "jackpot2",
+            "prize_label": w["prize_label"],
+            "numbers": w["predicted"], "special": w["predicted_special"],
+            "special_hit": w["special_hit"],
+            "actual": w["actual"], "actual_special": w["actual_special"],
+            "recorded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        })
+        seen.add((w["draw_id"], w["seed"]))
+        added = True
+    if added:
+        # Mới nhất lên đầu.
+        existing["wins"].sort(key=lambda x: (x["draw_id"], x["seed"]), reverse=True)
+        os.makedirs(os.path.dirname(WINS_PATH), exist_ok=True)
+        json.dump(existing, open(WINS_PATH, "w", encoding="utf-8"),
+                  ensure_ascii=False, indent=1)
+        print(f"[config-win] ghi {sum(1 for _ in jackpot_wins)} jackpot vào {WINS_PATH}")
 
 
 def _prize(main_hits: int, special_hit: bool) -> tuple[str, str, str] | None:
@@ -172,6 +210,11 @@ def check(csv_path: str, topic: str, dry_run: bool = False) -> list[dict]:
                                  priority=priority, tags=top["prize_tags"])
             except Exception as e:  # noqa: BLE001 — thông báo là best-effort
                 print(f"WARNING: gửi ntfy thất bại (vẫn đánh dấu đã báo): {e}", file=sys.stderr)
+
+    # Ghim jackpot (5/5) lên đầu dashboard qua bảng vàng.
+    jackpots = [w for w in wins if w["main_hits"] >= JACKPOT_MAIN_HITS]
+    if jackpots and not dry_run:
+        _record_jackpots(jackpots)
 
     # Đánh dấu đã báo (kể cả khi ntfy lỗi, để không spam lại mỗi lần chạy).
     for w in wins:
