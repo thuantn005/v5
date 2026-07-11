@@ -27,12 +27,17 @@ This module:
      returns is_sharing_round=False -- we never want a false alert.
 
 Sources for jackpot value (ordered by reliability):
-  PRIMARY  : vietlott.vn result / product pages  (label-anchored parser)
-  SECONDARY: xsmn.mobi xs-lotto-5-35.html        (has "Giá trị Độc Đắc" field)
-  TERTIARY : minhchinh.com, others
-NOTE: xsmn.mobi xs-lotto-5-35.html is a RESULTS page that ALSO shows the
-current jackpot value ("Giá trị Độc Đắc: X.XXX.XXX.XXX đồng"), unlike
-plain result-only pages.  It is kept as a reliable fallback.
+  PRIMARY  : vietlott.vn result / product pages  (official, but its WAF
+             returns 403 to datacenter IPs such as GitHub Actions runners —
+             so in CI it almost always fails and we must have a fallback)
+  FALLBACK : xosominhngoc.net.vn/kqxs-lotto-535  (reachable in CI — it is the
+             SAME host fetch_data.py reads draw results from every run — and
+             it prints "Giá trị giải Độc Đắc: X.XXX.XXX.XXX" on that page)
+NOTE: xosominhngoc.net.vn IS a results page, but it also shows the current
+jackpot value, so the label-anchored parser below picks it up.  Earlier
+comments claiming "result pages don't show the jackpot" were inaccurate for
+this specific page and were the reason the scraper had no working source in
+CI once vietlott.vn started 403-ing.
 """
 
 from __future__ import annotations
@@ -47,10 +52,17 @@ import requests
 # xsmn.mobi/xs-lotto-5-35.html shows "Giá trị Độc Đắc: X đồng" prominently.
 # Pure result pages (xosominhngoc, xskt…) do NOT show jackpot value — excluded.
 JACKPOT_SOURCES = [
-    # Nguồn 1: vietlott.vn trang kết quả — chính thức, cập nhật ngay sau kỳ quay
+    # Nguồn 1: vietlott.vn trang kết quả — chính thức, cập nhật ngay sau kỳ quay.
+    #          LƯU Ý: WAF của vietlott.vn chặn IP datacenter (GitHub Actions) →
+    #          thường trả 403 trong CI, nên BẮT BUỘC phải có nguồn dự phòng bên dưới.
     "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535",
     # Nguồn 2: vietlott.vn trang giới thiệu sản phẩm — thường hiển thị jackpot hiện tại
     "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535",
+    # Nguồn 3 (DỰ PHÒNG, hoạt động trong CI): xosominhngoc.net.vn — CÙNG host mà
+    #          fetch_data.py đọc kết quả kỳ quay mỗi lần chạy (đã chứng minh
+    #          truy cập được từ GitHub Actions), và hiển thị dòng
+    #          "Giá trị giải Độc Đắc: X.XXX.XXX.XXX" ngay trên trang kết quả.
+    "https://xosominhngoc.net.vn/kqxs-lotto-535",
     # xsmn.mobi đã xóa: trả số cũ, không đồng bộ với vietlott.vn
     # minhchinh.com đã xóa: chậm cập nhật, không đáng tin cậy
 ]
@@ -260,9 +272,16 @@ def _self_test_parser():
     )
     xsmn = ("Kỳ vé #00751\nGiá trị Độc Đắc:\n6.088.615.000 đồng\n"
             "Jackpot ước tính kỳ tới: 7.269.262.500 đồng")
+    # Định dạng thực tế trên xosominhngoc.net.vn/kqxs-lotto-535 (nguồn dự phòng
+    # hoạt động trong CI): nhãn "Giá trị giải Độc Đắc" + con số có dấu chấm phân
+    # cách, kèm decoy "kỳ tới" phải bị bỏ qua.
+    xosominhngoc = ("KQXS Lotto 5/35 – Kỳ #00756 ngày 11/07/2026\n"
+                    "Giá trị giải Độc Đắc: 11.925.318.500 đồng\n"
+                    "Giá trị Jackpot dự kiến kỳ tới: 13.000.000.000 đồng")
     cases = [
         (vietlott, 6_231_022_500),
         (xsmn, 6_088_615_000),
+        (xosominhngoc, 11_925_318_500),
         ("Giải phụ 2.000.000.000 đồng. Giải khác 3.000.000.000 đồng.", 3_000_000_000),
         ("Thông tin Jackpot cập nhật sau." + "x" * 600 + "99.000.000.000 đồng", None),
     ]
