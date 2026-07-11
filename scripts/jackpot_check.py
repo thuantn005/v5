@@ -113,44 +113,121 @@ def _money_matches(html: str) -> list[tuple[int, int]]:
     return out
 
 
-def _extract_jackpot_vnd(html: str) -> int | None:
-    """Pick the money figure most tightly bound to a 'Độc Đắc'/'Jackpot' label."""
+# draw_id (kỳ) '#NNNNN' — dùng để KIỂM ĐỊNH giá trị jackpot đúng theo kỳ.
+_KY_RE = re.compile(r"#\s*(\d{3,6})")
+
+
+def _draw_id_before(html: str, pos: int) -> str | None:
+    """draw_id (kỳ) '#NNNNN' gần nhất NẰM TRƯỚC vị trí pos trong html.
+
+    Trang kết quả (xosominhngoc, vietlott…) liệt kê nhiều kỳ; mỗi khối bắt đầu
+    bằng 'Kỳ … #NNNNN' rồi tới 'Giá trị … Độc Đắc: <số>'. Kỳ gắn với một giá
+    trị jackpot chính là '#NNNNN' đứng ngay trước con số đó."""
+    best = None
+    for m in _KY_RE.finditer(html):
+        if m.start() < pos:
+            best = m.group(1)
+        else:
+            break
+    return best
+
+
+def _jackpot_candidates(html: str) -> list[tuple[int, int, str | None]]:
+    """Mọi ứng viên (value, khoảng_cách_tới_nhãn, kỳ) gắn với nhãn Độc Đắc,
+    đã loại các decoy ('ước tính', 'kỳ tới', 'doanh thu'…)."""
     money = _money_matches(html)
     if not money:
-        return None
-
+        return []
     low = html.lower()
     label_pos = sorted(p for lab in _JACKPOT_LABELS for p in _label_positions(low, lab))
 
+    out: list[tuple[int, int, str | None]] = []
     if label_pos:
-        best = None
         for value, pos in money:
             preceding = [lp for lp in label_pos if 0 <= pos - lp <= _LABEL_WINDOW]
             if not preceding:
                 continue
             nearest = max(preceding)
-            context = low[nearest:pos]
-            if any(h in context for h in _DECOY_HINTS):
+            if any(h in low[nearest:pos] for h in _DECOY_HINTS):
                 continue
-            dist = pos - nearest
-            if best is None or dist < best[0]:
-                best = (dist, value)
-        return best[1] if best is not None else None
+            out.append((value, pos - nearest, _draw_id_before(html, pos)))
+    else:
+        # Không có nhãn nào: lấy giá trị lớn nhất (khoảng cách coi như vô cùng).
+        for value, pos in money:
+            out.append((value, 10 ** 9, _draw_id_before(html, pos)))
+    return out
 
-    return max(v for v, _ in money)
+
+def _extract_jackpot(html: str,
+                     expected_draw_id: str | None = None) -> tuple[int | None, str | None]:
+    """Trả (jackpot_vnd, kỳ) — giá trị Độc Đắc gắn chặt nhất với nhãn.
+
+    KIỂM ĐỊNH THEO KỲ: nếu biết `expected_draw_id` (kỳ mới nhất trong dữ liệu),
+    LOẠI mọi ứng viên có kỳ CŨ HƠN — trang chưa cập nhật sẽ hiển thị jackpot của
+    kỳ trước, dùng nhầm sẽ kích hoạt/huỷ kỳ chia giải sai. Ưu tiên ứng viên đúng
+    kỳ; nếu không có ứng viên hợp lệ nào (toàn kỳ cũ) → trả (None, None) để
+    không hành động trên dữ liệu cũ."""
+    cands = _jackpot_candidates(html)
+    if not cands:
+        return None, None
+
+    exp = None
+    if expected_draw_id:
+        try:
+            exp = int(expected_draw_id)
+        except (ValueError, TypeError):
+            exp = None
+
+    def _ky_int(ky: str | None) -> int | None:
+        try:
+            return int(ky) if ky else None
+        except ValueError:
+            return None
+
+    pool = cands
+    if exp is not None:
+        # Giữ ứng viên có kỳ >= kỳ mới nhất (hoặc không rõ kỳ); bỏ kỳ cũ.
+        valid = [c for c in cands if _ky_int(c[2]) is None or _ky_int(c[2]) >= exp]
+        exact = [c for c in valid if _ky_int(c[2]) == exp]
+        pool = exact or valid
+        if not pool:
+            return None, None
+
+    # Nhãn gần nhất; khi khoảng cách bằng nhau (vd nhánh không nhãn) → giá trị lớn nhất.
+    best = min(pool, key=lambda c: (c[1], -c[0]))
+    return best[0], best[2]
 
 
-def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
+def _extract_jackpot_vnd(html: str) -> int | None:
+    """Chỉ lấy giá trị (không kiểm định kỳ) — giữ cho tương thích/self-test."""
+    return _extract_jackpot(html)[0]
+
+
+def _scrape_jackpot_vnd(expected_draw_id: str | None = None) -> tuple[int | None, str | None]:
+    """Lấy giá trị Độc Đắc, ĐÃ kiểm định theo kỳ.
+
+    `expected_draw_id` = kỳ mới nhất trong dữ liệu. Chỉ chấp nhận giá trị của
+    kỳ đó trở đi; giá trị của kỳ cũ hơn (trang chưa cập nhật) bị bỏ để tránh
+    kích hoạt/huỷ kỳ chia giải nhầm."""
     for url in JACKPOT_SOURCES:
         label = url.split("/")[2]  # hostname để log ngắn gọn
         try:
             resp = requests.get(url, timeout=20, headers=_HEADERS)
             resp.raise_for_status()
-            amount = _extract_jackpot_vnd(resp.text)
+            amount, ky = _extract_jackpot(resp.text, expected_draw_id)
             if amount is not None:
-                print(f"[jackpot] {label}: {amount:,} VND ✓")
+                ky_note = f"kỳ #{ky}" if ky else "kỳ không xác định"
+                print(f"[jackpot] {label}: {amount:,} VND ✓ ({ky_note})")
                 return amount, url
-            print(f"WARNING: [jackpot] {label}: OK nhưng không tìm được số Độc Đắc", file=sys.stderr)
+            # Phân biệt "không có số" với "có số nhưng là kỳ cũ" để log rõ ràng.
+            raw_amount, raw_ky = _extract_jackpot(resp.text)
+            if raw_amount is not None and expected_draw_id and raw_ky:
+                print(f"WARNING: [jackpot] {label}: bỏ giá trị {raw_amount:,} VND của "
+                      f"kỳ #{raw_ky} vì cũ hơn kỳ mới nhất #{expected_draw_id} "
+                      f"(nguồn chưa cập nhật)", file=sys.stderr)
+            else:
+                print(f"WARNING: [jackpot] {label}: OK nhưng không tìm được số Độc Đắc",
+                      file=sys.stderr)
         except requests.RequestException as e:
             print(f"WARNING: [jackpot] {label}: {e}", file=sys.stderr)
     print(f"WARNING: [jackpot] tất cả {len(JACKPOT_SOURCES)} nguồn đều thất bại", file=sys.stderr)
@@ -207,7 +284,7 @@ def check_jackpot(last_draw_date: str, last_draw_time: str | None,
     draw_time may be None when data came from a scraper that didn't record it;
     pass last_draw_id so the function can infer from draw_id parity.
     """
-    jackpot_vnd, source = _scrape_jackpot_vnd()
+    jackpot_vnd, source = _scrape_jackpot_vnd(last_draw_id)
 
     # Resolve draw_time: explicit > inferred from ID parity
     resolved_time = _infer_draw_time(last_draw_id, last_draw_time)
@@ -297,7 +374,37 @@ def _self_test_parser():
     for html, expected in cases:
         got = _extract_jackpot_vnd(html)
         assert got == expected, f"parser: expected {expected}, got {got} for {html[:60]!r}"
+    # Kỳ phải được gắn đúng với giá trị.
+    assert _extract_jackpot(xosominhngoc_real) == (6_652_382_500, "00756")
+    assert _extract_jackpot(vietlott)[1] == "00752"
     print("jackpot parser self-test: OK")
+
+
+def _self_test_ky_validation():
+    """KIỂM ĐỊNH THEO KỲ: trang liệt kê nhiều kỳ; chỉ dùng jackpot của kỳ mới
+    nhất, bỏ giá trị của kỳ cũ (nguồn chưa cập nhật)."""
+    # Trang có kỳ mới #00758 (ở trên) và kỳ cũ #00756 (bên dưới).
+    page_new = (
+        "Kỳ QSMT: #00758 Ngày: 12/07/2026 - 21:00\n"
+        "Giá trị giải Độc Đắc\n13.500.000.000\n"
+        "Kỳ QSMT: #00756 Ngày: 11/07/2026 - 21:00\n"
+        "Giá trị giải Độc Đắc\n6.652.382.500\n"
+    )
+    # Biết kỳ mới nhất là #00758 → lấy đúng 13,5 tỷ của kỳ #00758.
+    assert _extract_jackpot(page_new, "00758") == (13_500_000_000, "00758")
+
+    # Nguồn CHƯA cập nhật: chỉ có kỳ cũ #00756, nhưng ta đã có tới #00758.
+    page_stale = ("Kỳ QSMT: #00756 Ngày: 11/07/2026 - 21:00\n"
+                  "Giá trị giải Độc Đắc\n6.652.382.500\n")
+    # → phải TỪ CHỐI (None) thay vì trả giá trị cũ.
+    assert _extract_jackpot(page_stale, "00758") == (None, None)
+    # Không truyền kỳ kỳ vọng → vẫn lấy giá trị (tương thích cũ).
+    assert _extract_jackpot(page_stale)[0] == 6_652_382_500
+    # Nguồn mới hơn dữ liệu (kỳ #00757 > #00756 ta đang có) → chấp nhận.
+    page_ahead = ("Kỳ QSMT: #00757 Ngày: 12/07/2026 - 13:00\n"
+                  "Giá trị giải Độc Đắc\n7.000.000.000\n")
+    assert _extract_jackpot(page_ahead, "00756") == (7_000_000_000, "00757")
+    print("jackpot per-kỳ validation self-test: OK")
 
 
 def _self_test_infer_time():
@@ -312,7 +419,7 @@ def _self_test_infer_time():
 def _self_test_sharing():
     global _scrape_jackpot_vnd
     orig = _scrape_jackpot_vnd
-    _scrape_jackpot_vnd = lambda: (13_000_000_000, "test")
+    _scrape_jackpot_vnd = lambda *a, **k: (13_000_000_000, "test")
     try:
         crossed = "2026-07-09"
         # 21:00 slot of 10/07 is next after 10/07 13:00 → sharing
@@ -337,6 +444,7 @@ def _self_test_sharing():
 if __name__ == "__main__":
     import json
     _self_test_parser()
+    _self_test_ky_validation()
     _self_test_infer_time()
     _self_test_sharing()
     print(json.dumps(check_jackpot("2026-07-11", None, last_draw_id="00755"),
