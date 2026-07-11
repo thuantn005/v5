@@ -1,0 +1,136 @@
+{
+  "definition": {
+    "family": "ticket(seed,i)=unrank_colex(splitmix64(seed*M1+i*M2) mod 324632); special=splitmix64(that)%12+1",
+    "constants": {
+      "M1": "0x9E3779B97F4A7C15",
+      "M2": "0xD1B54A32D192ED03",
+      "M3": "0xBF58476D1CE4E5B9",
+      "M4": "0x94D049BB133111EB"
+    },
+    "prize": "Jackpot 1 = khop 5 so chinh VA so dac biet (1/3,895,584 moi ky)",
+    "note": "4 config J1-DOUBLE that tu quet ~300 trieu seed. Khong patch. Xac suat ky toi moi config: 1/3,895,584.",
+    "total_configs": 4
+  },
+  "j1_double_configs": [
+    {
+      "name": "Ramanujan",
+      "seed": 10015838883,
+      "jackpot1_hits": [
+        {
+          "draw_id": 382,
+          "date": "2026-01-05",
+          "numbers": [
+            1,
+            2,
+            6,
+            10,
+            17
+          ],
+          "special": 1
+        },
+        {
+          "draw_id": 465,
+          "date": "2026-02-16",
+          "numbers": [
+            7,
+            18,
+            22,
+            27,
+            29
+          ],
+          "special": 4
+        }
+      ]
+    },
+    {
+      "name": "Bhaskara I",
+      "seed": 10036936239,
+      "jackpot1_hits": [
+        {
+          "draw_id": 134,
+          "date": "2025-09-03",
+          "numbers": [
+            1,
+            5,
+            10,
+            21,
+            30
+          ],
+          "special": 3
+        },
+        {
+          "draw_id": 731,
+          "date": "2026-06-29",
+          "numbers": [
+            17,
+            19,
+            28,
+            30,
+            34
+          ],
+          "special": 8
+        }
+      ]
+    },
+    {
+      "name": "Narayana Pandita",
+      "seed": 10168595334,
+      "jackpot1_hits": [
+        {
+          "draw_id": 99,
+          "date": "2025-08-17",
+          "numbers": [
+            15,
+            20,
+            23,
+            27,
+            30
+          ],
+          "special": 4
+        },
+        {
+          "draw_id": 580,
+          "date": "2026-04-14",
+          "numbers": [
+            5,
+            19,
+            25,
+            29,
+            31
+          ],
+          "special": 2
+        }
+      ]
+    },
+    {
+      "name": "Shakuntala Devi",
+      "seed": 10183485194,
+      "jackpot1_hits": [
+        {
+          "draw_id": 565,
+          "date": "2026-04-07",
+          "numbers": [
+            9,
+            18,
+            21,
+            26,
+            34
+          ],
+          "special": 4
+        },
+        {
+          "draw_id": 629,
+          "date": "2026-05-09",
+          "numbers": [
+            13,
+            20,
+            26,
+            28,
+            33
+          ],
+          "special": 7
+        }
+      ]
+    }
+  ]
+}

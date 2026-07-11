@@ -3,239 +3,186 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lotto 5/35 – Dự đoán & Kết quả</title>
+<title>Lotto 5/35 – Bộ sưu tập Jackpot Config</title>
 <style>
 :root {
   --bg: #0f1117; --card: #181e2e; --border: #252e42;
   --text: #e2e8f4; --muted: #7a869e;
-  --blue: #4f8cff; --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+  --blue: #4f8cff; --green: #34d399; --yellow: #fbbf24; --red: #f87171; --gold: #d4af37;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 15px; line-height: 1.6; padding: 16px;
-  max-width: 860px; margin: 0 auto;
+  max-width: 960px; margin: 0 auto;
 }
 h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
-.sub { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
+.sub { color: var(--muted); font-size: 0.8rem; margin-bottom: 18px; }
 .notice {
   background: #1a1520; border: 1px solid #3a2f50; border-radius: 10px;
-  padding: 10px 14px; margin-bottom: 20px; font-size: 0.8rem; color: var(--muted);
+  padding: 10px 14px; margin-bottom: 22px; font-size: 0.8rem; color: var(--muted);
 }
 .notice b { color: var(--yellow); }
 
-/* ── section ── */
-.section { margin-bottom: 24px; }
-.section-title {
-  font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .08em; color: var(--muted); margin-bottom: 10px;
+.collection { margin-bottom: 30px; }
+.collection-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-wrap: wrap; gap: 4px 12px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--border); padding-bottom: 8px;
 }
+.collection-title { font-size: 1.05rem; font-weight: 700; }
+.collection-meta { font-size: 0.75rem; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .card {
   background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px 18px;
+  border-radius: 12px; padding: 14px 16px;
 }
-.card + .card { margin-top: 10px; }
+.card.gold { border-color: #4a3f1e; }
+.name-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.mathname { font-size: 1rem; font-weight: 700; }
+.mathname .em { color: var(--gold); }
+.seed { font-size: 0.7rem; color: var(--muted); font-family: monospace; }
+.subline { font-size: 0.72rem; color: var(--muted); margin-bottom: 12px; }
 
-/* ── ticket ── */
-.ticket-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
-.balls { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+.block-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin: 12px 0 6px; }
+.balls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .ball {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: var(--blue); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.82rem; font-weight: 700; flex-shrink: 0;
+  font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
 }
 .ball.sp { background: var(--yellow); color: #1a1000; }
-.ball.hit { background: var(--green); color: #021a10; }
-.ball.sp.hit { background: var(--green); color: #021a10; }
-.trace { font-size: 0.72rem; color: var(--muted); }
-.trace code { background: #1e2738; border-radius: 4px; padding: 1px 5px; font-family: monospace; }
+.ball.sm { width: 26px; height: 26px; font-size: 0.7rem; background: #1e2738; color: var(--text); font-weight: 600; }
+.ball.sm.sp { background: #2a2010; color: var(--yellow); }
+.ball.sm.hit { background: var(--green); color: #021a10; }
+.plus { color: var(--muted); margin: 0 2px; }
 
-/* ── draw_history ── */
-.draw-block {
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 12px 14px; margin-bottom: 10px;
-}
-.draw-meta {
-  display: flex; flex-wrap: wrap; justify-content: space-between;
-  gap: 4px 16px; margin-bottom: 10px; font-size: 0.82rem;
-}
-.draw-id { font-weight: 700; }
-.actual-result { color: var(--green); font-size: 0.82rem; }
-.pred-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-.pred-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 3px 6px 5px; border-bottom: 1px solid var(--border); }
-.pred-table td { padding: 4px 6px; border-bottom: 1px solid #1e2534; vertical-align: middle; }
-.pred-table tr:last-child td { border-bottom: none; }
-.pred-nums { display: flex; gap: 4px; flex-wrap: wrap; }
-.pball {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: #1e2738; font-size: 0.72rem; font-weight: 600;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.pball.hit { background: var(--green); color: #021a10; }
-.pball.sp { background: #2a2010; color: var(--yellow); }
-.pball.sp.hit { background: var(--green); color: #021a10; }
-.hit-score { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
-.hit-score.nonzero { color: var(--green); font-weight: 600; }
+.hist { font-size: 0.75rem; color: var(--muted); }
+.hist .hid { color: var(--text); font-weight: 600; }
 
-/* ── accuracy ── */
-.acc-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.acc-table th { color: var(--muted); font-weight: 500; text-align: left; padding: 4px 8px 6px; border-bottom: 1px solid var(--border); }
-.acc-table td { padding: 5px 8px; border-bottom: 1px solid #1e2534; }
-.acc-table tr:last-child td { border-bottom: none; }
-.ref-row td { color: var(--muted); }
-.baseline-note { font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
+.record { display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+  font-size: 0.78rem; margin-top: 2px; }
+.stat b { font-size: 0.95rem; color: var(--green); }
+.stat span { color: var(--muted); }
+
+.cmp { margin-top: 10px; padding-top: 10px; border-top: 1px solid #1e2534; font-size: 0.76rem; }
+.cmp .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.cmp .tag { color: var(--muted); min-width: 58px; }
+.score { font-size: 0.74rem; color: var(--muted); }
+.score.win { color: var(--green); font-weight: 700; }
 
 .loading { color: var(--muted); padding: 40px; text-align: center; }
 .error { color: var(--red); font-size: 0.82rem; padding: 20px; }
 </style>
 </head>
 <body>
-<h1>🎰 Lotto 5/35 – Dự đoán & Kết quả</h1>
+<h1>🧮 Lotto 5/35 – Bộ sưu tập Jackpot Config</h1>
 <div class="sub" id="gen-time">Đang tải...</div>
 
 <div class="notice">
-  ⚠️ <b>Lưu ý:</b> Lotto 5/35 hoàn toàn ngẫu nhiên — mọi bộ số có xác suất trúng Jackpot như nhau
-  (1/324.632). Trang này chỉ theo dõi và so sánh; không cách chọn số nào tăng xác suất trúng.
+  ⚠️ <b>Lưu ý trung thực:</b> Lotto 5/35 hoàn toàn ngẫu nhiên — mỗi config dưới đây từng trùng
+  jackpot trong quá khứ chỉ do <b>quét hàng tỷ seed</b> (survivorship bias). Xác suất kỳ tới của
+  <b>mọi</b> vé vẫn như nhau (Jackpot 2: 1/324.632 · Jackpot 1: 1/3.895.584). Không cách chọn số nào
+  tăng xác suất trúng. Trang này chỉ theo dõi & so sánh với kết quả thực — chỉ để giải trí.
 </div>
 
-<div id="app"><div class="loading">Đang tải dữ liệu...</div></div>
+<div id="app"><div class="loading">Đang tải dữ liệu…</div></div>
 
 <script>
-const TICKET_META = {
-  ticket_neural: { label: '🧠 Mạng nơ-ron', desc: 'Neural Perceptron – học từ 100 kỳ gần nhất' },
-  random_fair:   { label: '🎯 Mốc ngẫu nhiên', desc: 'Ngẫu nhiên đều, không lặp – chuẩn so sánh' },
-};
-
-function b(n, hit=false, sp=false) {
-  const cls = ['ball', hit && 'hit', sp && 'sp'].filter(Boolean).join(' ');
-  return `<div class="${cls}">${String(n).padStart(2,'0')}</div>`;
+function b(n, cls='') { return `<div class="ball ${cls}">${String(n).padStart(2,'0')}</div>`; }
+function sm(n, hit=false, sp=false) {
+  return `<div class="ball sm ${sp?'sp':''} ${hit?'hit':''}">${String(n).padStart(2,'0')}</div>`;
 }
-function pb(n, hit=false, sp=false) {
-  const cls = ['pball', hit && 'hit', sp && 'sp'].filter(Boolean).join(' ');
-  return `<div class="${cls}">${String(n).padStart(2,'0')}</div>`;
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function histLine(h, withSpecial) {
+  const nums = h.numbers.map(n => String(n).padStart(2,'0')).join(' ');
+  const sp = withSpecial && h.special != null ? ` + ĐB ${String(h.special).padStart(2,'0')}` : '';
+  return `<span class="hid">#${h.draw_id}</span> <span style="opacity:.7">${h.date}</span>: ${nums}${sp}`;
 }
 
-function renderPrediction(data) {
-  const lp = data.latest_prediction;
-  if (!lp) return `<div class="card"><p class="loading">Chưa có dự đoán (sẽ có sau lần chạy đầu tiên).</p></div>`;
-  const tickets = lp.tickets || {};
-  const keys = data.ticket_keys || Object.keys(TICKET_META);
-  let html = `<div class="card">
-    <div style="font-size:0.82rem;color:var(--muted);margin-bottom:12px">
-      Kỳ <strong>#${lp.target_draw_id}</strong> · dựa trên kỳ #${lp.based_on_draw_id || '—'} (${lp.based_on_draw_date || '—'})
-    </div>`;
-  for (const k of keys) {
-    const t = tickets[k];
-    const m = TICKET_META[k] || { label: k, desc: '' };
-    html += `<div class="ticket-label">${m.label}</div>`;
-    if (t && t.main && t.main.length) {
-      html += `<div class="balls">${t.main.map(n => b(n)).join('')}<span style="color:var(--muted);margin:0 2px">+</span>${b(t.special, false, true)}</div>`;
-      html += `<div class="trace">${m.desc}${t.trace ? ' · <code>' + t.trace + '</code>' : ''}</div>`;
-    } else {
-      html += `<div class="trace" style="margin-bottom:6px">Không có dữ liệu cho kỳ này.</div>`;
-    }
-    html += `<div style="height:12px"></div>`;
-  }
-  html += '</div>';
-  return html;
-}
-
-function renderAccuracy(data) {
-  const acc = data.ticket_accuracy;
-  const keys = data.ticket_keys || Object.keys(TICKET_META);
-  if (!acc || !Object.keys(acc).length) {
-    return `<div class="card"><p class="loading" style="padding:16px 0">Chưa có kỳ nào đã đối chiếu kết quả.</p></div>`;
-  }
-  const rows = keys.filter(k => acc[k]).map(k => {
-    const s = acc[k];
-    const diff = (s.avg_main_hits - s.expected_random_main_hits).toFixed(4);
-    const color = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--muted)';
-    return `<tr>
-      <td>${s.label}</td>
-      <td style="font-weight:600">${s.avg_main_hits.toFixed(3)}</td>
-      <td style="color:${color}">${diff > 0 ? '+' : ''}${diff}</td>
-      <td style="color:var(--muted)">${s.n} kỳ</td>
-    </tr>`;
-  }).join('');
-  return `<div class="card">
-    <table class="acc-table">
-      <thead><tr><th>Vé</th><th>Khớp TB</th><th>±Ngẫu nhiên (0.714)</th><th>Số kỳ</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="baseline-note">Kỳ vọng ngẫu nhiên = 0.714 số/kỳ. Sai lệch nhỏ &lt;2% ở dưới 50 kỳ là bình thường.</div>
+function compareBlock(lr, withSpecial) {
+  if (!lr) return '';
+  const actualSet = new Set(lr.actual);
+  const predBalls = lr.predicted.map(n => sm(n, actualSet.has(n))).join('');
+  const spHit = withSpecial && lr.special_hit;
+  const predSp = sm(lr.predicted_special, spHit, true);
+  const won = lr.main_hits === 5 && (!withSpecial || lr.special_hit);
+  const score = `${lr.main_hits}/5${withSpecial ? (lr.special_hit ? ' +ĐB ✓' : '') : ''}`;
+  const actNums = lr.actual.map(n => String(n).padStart(2,'0')).join(' ')
+    + (withSpecial && lr.actual_special != null ? ` + ${String(lr.actual_special).padStart(2,'0')}` : '');
+  return `<div class="cmp">
+    <div class="block-label" style="margin-top:0">Đối chiếu kỳ #${lr.draw_id} (vừa quay)</div>
+    <div class="row"><span class="tag">Kết quả</span><span style="color:var(--green)">✅ ${actNums}</span></div>
+    <div class="row"><span class="tag">Vé config</span>${predBalls}<span class="plus">+</span>${predSp}
+      <span class="score ${won?'win':(lr.main_hits>0?'':'')}">${score}</span></div>
   </div>`;
 }
 
-function renderHistory(data) {
-  const hist = data.draw_history;
-  if (!hist || !hist.length) {
-    return `<div class="draw-block"><p class="loading" style="padding:8px 0">Chưa có lịch sử kỳ quay.</p></div>`;
-  }
-  return hist.map(h => {
-    const actualSet = new Set(h.actual_main);
-    const preds = h.predictions || [];
-    const predRows = preds.map(p => {
-      if (!p.main || !p.main.length) return '';
-      const mainBalls = p.main.map(n => pb(n, actualSet.has(n))).join('');
-      const spHit = p.special_hit && p.special === h.actual_special;
-      const spBall = pb(p.special, spHit, true);
-      const hits = p.main_hits;
-      const scoreClass = hits > 0 ? 'hit-score nonzero' : 'hit-score';
-      const scoreText = hits == null ? '—' : `${hits}/5${spHit ? ' +ĐB' : ''}`;
-      return `<tr>
-        <td>${p.label || '—'}</td>
-        <td><div class="pred-nums">${mainBalls}<span style="color:var(--muted);margin:0 2px;align-self:center;font-size:0.7rem">+</span>${spBall}</div></td>
-        <td><span class="${scoreClass}">${scoreText}</span></td>
-      </tr>`;
-    }).join('');
-    const actualBalls = h.actual_main.map(n => b(n, false)).join('') + b(h.actual_special, false, true);
-    return `<div class="draw-block">
-      <div class="draw-meta">
-        <span class="draw-id">Kỳ #${h.target_draw_id} · ${h.draw_date}</span>
-        <span class="actual-result">✅ ${h.actual_main.map(n=>String(n).padStart(2,'0')).join(' - ')} + ${String(h.actual_special).padStart(2,'0')}</span>
-      </div>
-      <table class="pred-table">
-        <thead><tr><th>Vé</th><th>Dự đoán</th><th>Kết quả</th></tr></thead>
-        <tbody>${predRows}</tbody>
-      </table>
-    </div>`;
-  }).join('');
+function card(t, withSpecial) {
+  const rec = t.recent || {};
+  const next = t.numbers.map(n => b(n)).join('') + `<span class="plus">+</span>` + b(t.special, 'sp');
+  const hist = (t.history || []).map(h => `<div>${histLine(h, withSpecial)}</div>`).join('');
+  const nWin = (t.history || []).length;
+  const winWord = withSpecial ? 'Jackpot 1 (5 số + ĐB)' : 'Jackpot 2 (5/5 số chính)';
+  return `<div class="card ${withSpecial?'gold':''}">
+    <div class="name-row"><span class="mathname"><span class="em">${esc(t.name)}</span></span>
+      <span class="seed">seed ${t.seed}</span></div>
+    <div class="subline">🏅 Từng trúng ${winWord} · <b style="color:var(--gold)">${nWin} lần</b></div>
+
+    <div class="block-label">Vé kỳ tới</div>
+    <div class="balls">${next}</div>
+
+    <div class="block-label">Jackpot lịch sử</div>
+    <div class="hist">${hist || '—'}</div>
+
+    <div class="block-label">Đối chiếu ${rec.n||0} kỳ gần nhất</div>
+    <div class="record">
+      <span class="stat"><b>${(rec.avg_main_hits!=null?rec.avg_main_hits:0).toFixed(3)}</b> <span>số/kỳ khớp TB</span></span>
+      ${withSpecial ? `<span class="stat"><b>${rec.special_hits||0}</b> <span>lần trúng ĐB</span></span>` : ''}
+    </div>
+    ${compareBlock(t.last_result, withSpecial)}
+  </div>`;
+}
+
+function collection(d, withSpecial, title, icon) {
+  if (!d || !d.tickets || !d.tickets.length) return '';
+  const cards = d.tickets.map(t => card(t, withSpecial)).join('');
+  return `<div class="collection">
+    <div class="collection-head">
+      <div class="collection-title">${icon} ${title} — vé kỳ #${d.next_draw}</div>
+      <div class="collection-meta">${d.tickets.length} config · ${esc(d.prize||'')}</div>
+    </div>
+    <div class="grid">${cards}</div>
+  </div>`;
 }
 
 async function main() {
   try {
-    const res = await fetch('data.json?_=' + Date.now());
-    const data = await res.json();
-
-    const t = data.generated_at ? new Date(data.generated_at).toLocaleString('vi-VN') : '—';
+    const [j1, j2] = await Promise.all([
+      fetch('j1_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('config_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    const gen = (j2 && j2.generated_at) || (j1 && j1.generated_at);
     document.getElementById('gen-time').textContent =
-      `Cập nhật: ${t} · ${data.n_resolved_predictions || 0} kỳ đã đối chiếu`;
+      'Cập nhật: ' + (gen ? new Date(gen).toLocaleString('vi-VN') : '—')
+      + ' · so sánh trực tiếp vé của từng config với kết quả thực';
 
-    document.getElementById('app').innerHTML = `
-      <div class="section">
-        <div class="section-title">🎫 Dự đoán kỳ tới</div>
-        ${renderPrediction(data)}
-      </div>
-      <div class="section">
-        <div class="section-title">📊 Tổng kết so sánh</div>
-        ${renderAccuracy(data)}
-      </div>
-      <div class="section">
-        <div class="section-title">📋 Lịch sử các kỳ đã đối chiếu</div>
-        ${renderHistory(data)}
-      </div>
-    `;
+    const html =
+      collection(j1, true,  'Jackpot 1 · 5 số + ĐB', '🏆') +
+      collection(j2, false, 'Jackpot 2 · 5/5 số chính', '🎯');
+    document.getElementById('app').innerHTML = html ||
+      '<div class="error">Chưa có dữ liệu config. Sẽ có sau lần chạy pipeline đầu tiên.</div>';
   } catch (e) {
     document.getElementById('app').innerHTML =
-      `<div class="error">Lỗi tải dữ liệu: ${e.message}. Dữ liệu sẽ có sau lần chạy pipeline đầu tiên.</div>`;
+      `<div class="error">Lỗi tải dữ liệu: ${esc(e.message)}</div>`;
   }
 }
-
 main();
 </script>
-<div id="configs-panel"></div>
-<script src="configs_panel.js"></script>
 </body>
 </html>
