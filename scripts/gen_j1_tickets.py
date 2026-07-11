@@ -6,10 +6,26 @@ trong lich su, tim boi quet ~300 trieu seed. Xac suat ky toi: 1/3,895,584.
 
     python scripts/gen_j1_tickets.py --csv data/all.csv --out docs/j1_tickets.json
 """
-import argparse, json, sys, datetime
+import argparse, csv, json, sys, datetime
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "configs"))
 from jackpot_family import ticket, special  # noqa: E402
+
+
+def _load_draws(csv_path):
+    """Doc CSV bang module chuan (khong can pandas): tra (res, spc, dates)."""
+    res, spc, dates = {}, {}, {}
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            try:
+                did = int(row["draw_id"])
+                r = json.loads(row["result_json"])
+                res[did] = sorted(r["numbers"])
+                spc[did] = r["special_numbers"][0] if r.get("special_numbers") else None
+                dates[did] = row.get("draw_date", "")
+            except (ValueError, KeyError, json.JSONDecodeError):
+                continue
+    return res, spc, dates
 
 
 def _compare(seed, d, res, spc, dates):
@@ -47,11 +63,7 @@ def main():
     ap.add_argument("--reverify", action="store_true")
     a = ap.parse_args()
 
-    import pandas as pd
-    df = pd.read_csv(a.csv)
-    res = {int(r.draw_id): sorted(json.loads(r.result_json)["numbers"]) for _, r in df.iterrows()}
-    spc = {int(r.draw_id): json.loads(r.result_json)["special_numbers"][0] for _, r in df.iterrows()}
-    dates = {int(r.draw_id): r.draw_date for _, r in df.iterrows()}
+    res, spc, dates = _load_draws(a.csv)
     nd = a.draw or max(res) + 1
     prev = nd - 1
     cfg = json.load(open(a.configs, encoding="utf-8"))
