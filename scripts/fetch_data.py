@@ -5,10 +5,11 @@ Cập nhật data/all.csv với kết quả kỳ quay mới từ nhiều nguồn
 Chỉ THÊM kỳ mới (không ghi đè), an toàn khi chạy nhiều lần.
 
 Thứ tự nguồn:
-  1. minhchinh.com  — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
-  2. vietlott.vn    — phụ 1, kỳ mới nhất với draw_id chính thức
-  3. NhanAZ-Data    — phụ 2, dataset GitHub tổng hợp; dùng để bắt kịp kỳ
-                      bị bỏ qua (bù khoảng trống mà 2 nguồn trên chưa phủ)
+  1. minhchinh.com       — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
+  2. xosominhngoc.net.vn — phụ 1, trang tổng hợp kết quả Lotto 5/35
+  3. vietlott.vn         — phụ 2, kỳ mới nhất với draw_id chính thức
+  4. NhanAZ-Data         — phụ 3, dataset GitHub tổng hợp; dùng để bắt kịp kỳ
+                           bị bỏ qua (bù khoảng trống mà 3 nguồn trên chưa phủ)
 
 Nếu tất cả nguồn lỗi → giữ nguyên data/all.csv, pipeline vẫn chạy được.
 """
@@ -85,7 +86,7 @@ def _fetch_minhchinh() -> list[dict]:
         return []
 
 
-# ── Source 2: vietlott.vn ────────────────────────────────────────────────────
+# ── Source 3: vietlott.vn ────────────────────────────────────────────────────
 # Official site. Shows the latest draw result with the official draw_id.
 # Format observed: "Kỳ quay thưởng #00752 ngày 09/07/2026 ... 1419252830|04"
 _VL_URL = "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535"
@@ -257,7 +258,114 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
     return len(new_rows)
 
 
-# ── Source 3: NhanAZ-Data (supplementary) ────────────────────────────────────
+# ── Source 2: xosominhngoc.net.vn ────────────────────────────────────────────
+# Results aggregator for Lotto 5/35. The page renders draw results with a
+# date (dd/mm/yyyy), optional draw-time, 5 main numbers and 1 special number.
+#
+# Three layout patterns are tried in order (most→least specific):
+#   A) dd/mm/yyyy  Xh  ...  <10-digit-concat>  <2-digit-special>  (inline time)
+#   B) dd/mm/yyyy  ...  <10-digit-concat>  <2-digit-special>       (no inline time)
+#   C) dd/mm/yyyy  ...  N1 N2 N3 N4 N5  ...  SP                    (5 separate nums)
+#
+# If the site changes its layout, update the regex here and verify with:
+#   python - <<'EOF'
+#   import requests, re, sys
+#   sys.path.insert(0,"scripts"); from fetch_data import _fetch_minhngoc, _parse_minhngoc
+#   r = requests.get("https://xosominhngoc.net.vn/kqxs-lotto-535", timeout=25)
+#   print(_parse_minhngoc(r.text))
+#   EOF
+_MN_URL = "https://xosominhngoc.net.vn/kqxs-lotto-535"
+
+# Pattern A: 4-digit year + inline hour → groups (dd, mm, yyyy, hh, digits10, sp)
+_MN_RE_A = re.compile(
+    r"(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2})h.{0,250}?(?<!\d)(\d{10})(?!\d)\s*(\d{2})(?!\d)",
+    re.DOTALL,
+)
+# Pattern B: 4-digit year, no inline hour → groups (dd, mm, yyyy, digits10, sp)
+_MN_RE_B = re.compile(
+    r"(\d{2})/(\d{2})/(\d{4}).{0,250}?(?<!\d)(\d{10})(?!\d)\s*(\d{2})(?!\d)",
+    re.DOTALL,
+)
+# Pattern C: 5 separate 2-digit main numbers then a ≤2-digit special
+# Anchored by date; numbers must be space-separated; special follows within 80 chars
+_MN_RE_C = re.compile(
+    r"(\d{2})/(\d{2})/(\d{4}).{0,150}?"
+    r"(?<!\d)(\d{2})\s+(\d{2})\s+(\d{2})\s+(\d{2})\s+(\d{2})(?!\d)"
+    r".{0,80}?(?<!\d)(\d{1,2})(?!\d)",
+    re.DOTALL,
+)
+
+
+def _parse_minhngoc(html: str) -> list[dict]:
+    text = _strip(html)
+    rows: list[dict] = []
+
+    # Try pattern A first (has inline hour → best time accuracy)
+    for m in _MN_RE_A.finditer(text):
+        dd, mm, yyyy, hh, digits10, sp_str = m.groups()
+        draw_date = f"{yyyy}-{mm}-{dd}"
+        draw_time = "21:00" if int(hh) >= 20 else "13:00"
+        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": draw_time,
+                     "numbers": numbers, "special": sp,
+                     "source_url": _MN_URL, "draw_id_hint": None})
+    if rows:
+        return rows
+
+    # Pattern B: no inline hour (time will be inferred later)
+    for m in _MN_RE_B.finditer(text):
+        dd, mm, yyyy, digits10, sp_str = m.groups()
+        draw_date = f"{yyyy}-{mm}-{dd}"
+        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": _MN_URL, "draw_id_hint": None})
+    if rows:
+        return rows
+
+    # Pattern C: 5 separate numbers
+    for m in _MN_RE_C.finditer(text):
+        dd, mm, yyyy, n1, n2, n3, n4, n5, sp_str = m.groups()
+        draw_date = f"{yyyy}-{mm}-{dd}"
+        numbers = sorted(int(x) for x in (n1, n2, n3, n4, n5))
+        sp = int(sp_str)
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": _MN_URL, "draw_id_hint": None})
+    return rows
+
+
+def _fetch_minhngoc() -> list[dict]:
+    try:
+        r = requests.get(_MN_URL, timeout=TIMEOUT, headers=_HEADERS)
+        r.raise_for_status()
+        rows = _parse_minhngoc(r.text)
+        if rows:
+            print(f"xosominhngoc.net.vn: {len(rows)} recent draw(s) found")
+        else:
+            print("WARNING: xosominhngoc.net.vn: page fetched but no draws parsed "
+                  "(site layout may have changed — check _MN_RE_A/B/C)", file=sys.stderr)
+        return rows
+    except requests.RequestException as e:
+        print(f"WARNING: xosominhngoc.net.vn fetch failed: {e}", file=sys.stderr)
+        return []
+
+
+# ── Source 4: NhanAZ-Data (supplementary) ────────────────────────────────────────────
 # Full-history CSV dataset. Used as a gap-filler: any draws with draw_id
 # greater than our current max that minhchinh/vietlott didn't catch yet.
 # Schema matches data/all.csv exactly, so rows are used as-is.
@@ -331,17 +439,22 @@ def main():
     if mc:
         total += _append_draws(mc, "minhchinh_com_scraper")
 
-    # 2. vietlott.vn: phụ 1 — kỳ mới nhất với draw_id chính thức
+    # 2. xosominhngoc.net.vn: phụ 1 — trang tổng hợp kết quả Lotto 5/35
+    mn = _fetch_minhngoc()
+    if mn:
+        total += _append_draws(mn, "xosominhngoc_scraper")
+
+    # 3. vietlott.vn: phụ 2 — kỳ mới nhất với draw_id chính thức
     vl = _fetch_vietlott()
     if vl:
         total += _append_draws(vl, "vietlott_vn_official")
 
-    # 3. NhanAZ-Data: phụ 2 — bù khoảng trống mà 2 nguồn trên chưa phủ
+    # 4. NhanAZ-Data: phụ 3 — bù khoảng trống mà 3 nguồn trên chưa phủ
     nz = _fetch_nhanaz()
     if nz:
         total += _append_nhanaz_supplement(nz)
 
-    if not mc and not vl and not nz:
+    if not mc and not mn and not vl and not nz:
         print("WARNING: tất cả nguồn lỗi — giữ nguyên data/all.csv. "
               "Pipeline vẫn chạy trên dữ liệu cũ.", file=sys.stderr)
 
