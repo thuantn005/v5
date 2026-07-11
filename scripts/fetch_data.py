@@ -6,8 +6,8 @@ Chỉ THÊM kỳ mới (không ghi đè), an toàn khi chạy nhiều lần.
 
 Thứ tự nguồn:
   1.  minhchinh.com            — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
-  2.  xosominhngoc.net.vn      — phụ, trang tổng hợp Lotto 5/35
-  3.  vietlott.vn              — phụ, kỳ mới nhất với draw_id chính thức
+  2.  xosominhngoc.net.vn      — phụ, trang tổng hợp Lotto 5/35 (BeautifulSoup)
+  3.  vietlott.vn              — phụ, AJAX API chính thức
   4.  vietvudanh/vietlott-data — phụ, GitHub repo cào tự động hàng ngày
   5.  xskt.com.vn              — phụ, tổng hợp 30 kỳ gần nhất
   6.  xsmn.net                 — phụ, tổng hợp kết quả miền Nam
@@ -25,20 +25,33 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime, timezone
+from itertools import groupby
 
 import requests
+from bs4 import BeautifulSoup
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 DATA_PATH = "data/all.csv"
 TIMEOUT = 25
 
-_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-    ),
-    "Accept-Language": "vi-VN,vi;q=0.9",
-}
+_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+)
+
+
+def _make_session() -> requests.Session:
+    s = requests.Session()
+    retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+    s.mount("https://", HTTPAdapter(max_retries=retries))
+    s.mount("http://", HTTPAdapter(max_retries=retries))
+    s.headers.update({"User-Agent": _USER_AGENT, "Accept-Language": "vi-VN,vi;q=0.9"})
+    return s
+
+
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
@@ -48,7 +61,6 @@ def _strip(html: str) -> str:
 
 
 # ── Source 1: minhchinh.com ───────────────────────────────────────────────────
-# Shows ~15 recent draws; each row has date, hour, 10-digit result, 2-digit special.
 _MC_URL = "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html"
 _MC_RE = re.compile(
     r"(\d{2})/(\d{2})/(\d{2})\s+(\d{1,2})h.{0,200}?(\d{10})\s+(\d{2})(?!\d)",
@@ -77,7 +89,7 @@ def _parse_minhchinh(html: str) -> list[dict]:
 
 def _fetch_minhchinh() -> list[dict]:
     try:
-        r = requests.get(_MC_URL, timeout=TIMEOUT, headers=_HEADERS)
+        r = _make_session().get(_MC_URL, timeout=TIMEOUT)
         r.raise_for_status()
         rows = _parse_minhchinh(r.text)
         if rows:
@@ -91,57 +103,224 @@ def _fetch_minhchinh() -> list[dict]:
         return []
 
 
-# ── Source 3: vietlott.vn ────────────────────────────────────────────────────
-# Official site. Shows the latest draw result with the official draw_id.
-# Format observed: "Kỳ quay thưởng #00752 ngày 09/07/2026 ... 1419252830|04"
-_VL_URL = "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535"
-_VL_DRAW_RE = re.compile(
-    r"#(\d+)\s+ng[aà]y\s+(\d{2})/(\d{2})/(\d{4})"
-)
-_VL_RESULT_RE = re.compile(r"(\d{10})\|(\d{2})")
-_VL_TIME_RE = re.compile(r"(13|21)[h:]0*0")
+# ── Source 2: xosominhngoc.net.vn ────────────────────────────────────────────
+_MN_URL = "https://xosominhngoc.net.vn/kqxs-lotto-535"
 
 
-def _parse_vietlott(html: str) -> list[dict]:
-    text = _strip(html)
-    rows = []
-    for dm in _VL_DRAW_RE.finditer(text):
-        draw_id_str, dd, mm, yyyy = dm.groups()
-        draw_date = f"{yyyy}-{mm}-{dd}"
-        snippet = text[dm.start():dm.start() + 400]
-        rm = _VL_RESULT_RE.search(snippet)
-        if not rm:
+def _parse_minhngoc(html: str) -> list[dict]:
+    soup = BeautifulSoup(html, "lxml")
+    rows: list[dict] = []
+
+    articles = soup.select("article.xslotto535")
+    if not articles:
+        articles = soup.select("article")
+
+    for article in articles:
+        kyve = article.select_one(".kyve")
+        if not kyve:
             continue
-        digits10, sp_str = rm.groups()
-        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
-        sp = int(sp_str)
+        id_match = re.search(r"#(\d+)", kyve.get_text())
+        if not id_match:
+            continue
+        draw_id = id_match.group(1).zfill(5)
+
+        ngay = article.select_one(".ngay")
+        if not ngay:
+            continue
+        date_match = re.search(r"(\d{1,2}/\d{1,2}/\d{4})", ngay.get_text())
+        if not date_match:
+            continue
+        try:
+            dt = datetime.strptime(date_match.group(1), "%d/%m/%Y")
+            draw_date = dt.strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+
+        kq_spans = article.select("span.kq")
+        nums = []
+        for span in kq_spans:
+            txt = re.sub(r"[^\d]", "", span.get_text(strip=True))
+            if txt:
+                nums.append(int(txt))
+
+        if len(nums) < 6:
+            continue
+
+        numbers = sorted(nums[:5])
+        sp = nums[5]
+
         if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
             continue
         if sp < 1 or sp > 12:
             continue
-        tm = _VL_TIME_RE.search(snippet)
-        draw_time = f"{tm.group(1)}:00" if tm else None
-        rows.append({"draw_date": draw_date, "draw_time": draw_time,
+
+        rows.append({"draw_date": draw_date, "draw_time": None,
                      "numbers": numbers, "special": sp,
-                     "source_url": _VL_URL, "draw_id_hint": draw_id_str})
+                     "source_url": _MN_URL, "draw_id_hint": draw_id})
+    return rows
+
+
+def _fetch_minhngoc() -> list[dict]:
+    try:
+        r = _make_session().get(_MN_URL, timeout=TIMEOUT)
+        r.raise_for_status()
+        rows = _parse_minhngoc(r.text)
+        if rows:
+            print(f"xosominhngoc.net.vn: {len(rows)} recent draw(s) found")
+        else:
+            print("WARNING: xosominhngoc.net.vn: page fetched but no draws parsed "
+                  "(check CSS selectors: article.xslotto535, .kyve, .ngay, span.kq)",
+                  file=sys.stderr)
+        return rows
+    except requests.RequestException as e:
+        print(f"WARNING: xosominhngoc.net.vn fetch failed: {e}", file=sys.stderr)
+        return []
+
+
+# ── Source 3: vietlott.vn (AJAX API) ─────────────────────────────────────────
+_VL_BASE = "https://vietlott.vn"
+_VL_LIST_PATH = "/vi/trung-thuong/ket-qua-trung-thuong/winning-number-535"
+_VL_AJAX_PATH = (
+    "/ajaxpro/Vietlott.PlugIn.WebParts.Game535CompareWebPart,"
+    "Vietlott.PlugIn.WebParts.ashx"
+)
+
+
+def _parse_vietlott_ajax_html(html_content: str) -> list[dict]:
+    soup = BeautifulSoup(html_content, "lxml")
+    rows: list[dict] = []
+
+    for row in soup.select("table tr"):
+        cells = row.select("td")
+        if len(cells) < 3:
+            continue
+
+        id_text = cells[0].get_text(strip=True)
+        id_match = re.search(r"(\d+)", id_text)
+        if not id_match:
+            continue
+        draw_id = id_match.group(1).zfill(5)
+
+        date_text = cells[1].get_text(strip=True)
+        date_match = re.search(r"(\d{1,2}/\d{1,2}/\d{4})", date_text)
+        if not date_match:
+            continue
+        try:
+            dt = datetime.strptime(date_match.group(1), "%d/%m/%Y")
+            draw_date = dt.strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+
+        num_spans = row.select("span.ball, span.number, div.ball, .bong_so")
+        if not num_spans:
+            num_spans = row.select("span")
+
+        nums = []
+        for span in num_spans:
+            txt = re.sub(r"[^\d]", "", span.get_text(strip=True))
+            if txt and 1 <= int(txt) <= 35:
+                nums.append(int(txt))
+
+        if len(nums) < 5:
+            continue
+
+        numbers = sorted(nums[:5])
+        sp = nums[5] if len(nums) > 5 else 0
+
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp and (sp < 1 or sp > 12):
+            continue
+
+        rows.append({"draw_date": draw_date, "draw_time": None,
+                     "numbers": numbers, "special": sp,
+                     "source_url": _VL_BASE + _VL_LIST_PATH,
+                     "draw_id_hint": draw_id})
     return rows
 
 
 def _fetch_vietlott() -> list[dict]:
+    s = _make_session()
+    list_url = _VL_BASE + _VL_LIST_PATH
+    ajax_url = _VL_BASE + _VL_AJAX_PATH
+
+    print("Bootstrapping Vietlott AJAX key...")
     try:
-        r = requests.get(_VL_URL, timeout=TIMEOUT, headers=_HEADERS)
-        r.raise_for_status()
-        rows = _parse_vietlott(r.text)
-        if rows:
-            print(f"vietlott.vn: {len(rows)} draw(s) found (official ids: "
-                  f"{', '.join(d['draw_id_hint'] for d in rows if d['draw_id_hint'])})")
-        else:
-            print("WARNING: vietlott.vn: page fetched but no draws parsed "
-                  "(site layout may have changed)", file=sys.stderr)
-        return rows
+        resp = s.get(list_url, timeout=TIMEOUT)
+        resp.raise_for_status()
     except requests.RequestException as e:
-        print(f"WARNING: vietlott.vn fetch failed: {e}", file=sys.stderr)
+        print(f"WARNING: vietlott.vn list page failed: {e}", file=sys.stderr)
         return []
+
+    key_match = re.search(
+        r"ServerSideDrawResult\s*\(\s*RenderInfo\s*,\s*'([0-9a-fA-F]+)'",
+        resp.text,
+    )
+    if not key_match:
+        print("WARNING: vietlott.vn: could not extract AJAX key "
+              "(page layout may have changed)", file=sys.stderr)
+        return []
+
+    key = key_match.group(1)
+    print(f"Got Vietlott AJAX key: {key}")
+
+    all_draws: list[dict] = []
+    for page in range(5):
+        payload = json.dumps({
+            "ORenderInfo": {
+                "SiteId": "main.frontend.vi",
+                "SiteAlias": "main.frontend.vi",
+                "UserAgent": _USER_AGENT,
+                "SiteName": "Vietlott",
+                "SiteURL": "",
+                "FullURL": list_url,
+                "SubDomain": "",
+                "Is498Mobile": False,
+                "GameDrawType": "MATRIX",
+            },
+            "Key": key,
+            "GameDrawId": "",
+            "ArrayNumbers": [[]],
+            "CheckMulti": False,
+            "PageIndex": page,
+        })
+        try:
+            resp = s.post(
+                ajax_url,
+                data=payload,
+                headers={
+                    "Content-Type": "text/plain; charset=utf-8",
+                    "X-AjaxPro-Method": "ServerSideDrawResult",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Origin": _VL_BASE,
+                    "Referer": list_url,
+                },
+                timeout=TIMEOUT,
+            )
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            print(f"WARNING: vietlott.vn AJAX page {page} failed: {e}", file=sys.stderr)
+            break
+
+        try:
+            data = resp.json()
+            html_content = data.get("value", {}).get("HtmlContent", "")
+        except (json.JSONDecodeError, AttributeError):
+            print(f"WARNING: vietlott.vn: invalid JSON on page {page}", file=sys.stderr)
+            break
+
+        if not html_content:
+            break
+
+        draws = _parse_vietlott_ajax_html(html_content)
+        if not draws:
+            break
+
+        all_draws.extend(draws)
+        time.sleep(1)
+
+    print(f"vietlott.vn: {len(all_draws)} draw(s) found via AJAX")
+    return all_draws
 
 
 # ── CSV helpers ──────────────────────────────────────────────────────────────
@@ -156,7 +335,6 @@ def _load_csv() -> tuple[list[dict], list[str] | None]:
 
 
 def _existing_keys(rows: list[dict]) -> set[tuple]:
-    """(draw_date, draw_time) pairs already in the CSV, used for dedup."""
     keys = set()
     for r in rows:
         try:
@@ -168,7 +346,6 @@ def _existing_keys(rows: list[dict]) -> set[tuple]:
 
 
 def _max_draw_id(rows: list[dict]) -> tuple[int, int]:
-    """Returns (max_numeric_id, zero_pad_width)."""
     ids = [r["draw_id"] for r in rows if r.get("draw_id", "").isdigit()]
     if not ids:
         return 0, 5
@@ -176,7 +353,6 @@ def _max_draw_id(rows: list[dict]) -> tuple[int, int]:
 
 
 def _infer_time(draw_date: str, existing_keys: set[tuple]) -> str:
-    """If the scraper couldn't parse a time, infer from which slot is already taken."""
     if (draw_date, "13:00") in existing_keys:
         return "21:00"
     if (draw_date, "21:00") in existing_keys:
@@ -203,16 +379,13 @@ def _make_row(fieldnames: list[str], draw: dict, draw_id_str: str,
         "source_url": draw.get("source_url", ""),
         "prize_status": "unknown",
         "validation_status": "scraped",
-        "validation_warnings_json": json.dumps(
-            [f"scraped from {data_source}"]
-        ),
+        "validation_warnings_json": json.dumps([f"scraped from {data_source}"]),
         "fetched_at": datetime.now(timezone.utc).isoformat(),
     }
     return {k: row.get(k, "") for k in fieldnames}
 
 
 def _append_draws(scraped: list[dict], data_source: str) -> int:
-    """Append scraped draws not already in the CSV. Returns count appended."""
     existing_rows, fieldnames = _load_csv()
     if fieldnames is None:
         print(f"ERROR: {DATA_PATH} is empty or missing — cannot append.",
@@ -222,7 +395,6 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
     existing_k = _existing_keys(existing_rows)
     max_id, width = _max_draw_id(existing_rows)
 
-    # Sort oldest-first so IDs increment in chronological order
     scraped.sort(key=lambda d: (d["draw_date"], d.get("draw_time") or ""))
 
     new_rows = []
@@ -234,10 +406,8 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
         if key in existing_k:
             continue
 
-        # Prefer the official draw_id supplied by vietlott.vn when available
-        # and it makes sense (> current max, within a reasonable gap)
         hint = draw.get("draw_id_hint")
-        if hint and hint.isdigit():
+        if hint and str(hint).isdigit():
             hint_id = int(hint)
             if running_max < hint_id <= running_max + 10:
                 running_max = hint_id
@@ -263,129 +433,17 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
     return len(new_rows)
 
 
-# ── Source 2: xosominhngoc.net.vn ────────────────────────────────────────────
-# Results aggregator for Lotto 5/35. The page renders draw results with a
-# date (dd/mm/yyyy), optional draw-time, 5 main numbers and 1 special number.
-#
-# Three layout patterns are tried in order (most→least specific):
-#   A) dd/mm/yyyy  Xh  ...  <10-digit-concat>  <2-digit-special>  (inline time)
-#   B) dd/mm/yyyy  ...  <10-digit-concat>  <2-digit-special>       (no inline time)
-#   C) dd/mm/yyyy  ...  N1 N2 N3 N4 N5  ...  SP                    (5 separate nums)
-#
-# If the site changes its layout, update the regex here and verify with:
-#   python - <<'EOF'
-#   import requests, re, sys
-#   sys.path.insert(0,"scripts"); from fetch_data import _fetch_minhngoc, _parse_minhngoc
-#   r = requests.get("https://xosominhngoc.net.vn/kqxs-lotto-535", timeout=25)
-#   print(_parse_minhngoc(r.text))
-#   EOF
-_MN_URL = "https://xosominhngoc.net.vn/kqxs-lotto-535"
-
-# Pattern A: 4-digit year + inline hour → groups (dd, mm, yyyy, hh, digits10, sp)
-_MN_RE_A = re.compile(
-    r"(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2})h.{0,250}?(?<!\d)(\d{10})(?!\d)\s*(\d{2})(?!\d)",
-    re.DOTALL,
-)
-# Pattern B: 4-digit year, no inline hour → groups (dd, mm, yyyy, digits10, sp)
-_MN_RE_B = re.compile(
-    r"(\d{2})/(\d{2})/(\d{4}).{0,250}?(?<!\d)(\d{10})(?!\d)\s*(\d{2})(?!\d)",
-    re.DOTALL,
-)
-# Pattern C: 5 separate 2-digit main numbers then a ≤2-digit special
-# Anchored by date; numbers must be space-separated; special follows within 80 chars
-_MN_RE_C = re.compile(
-    r"(\d{2})/(\d{2})/(\d{4}).{0,150}?"
-    r"(?<!\d)(\d{2})\s+(\d{2})\s+(\d{2})\s+(\d{2})\s+(\d{2})(?!\d)"
-    r".{0,80}?(?<!\d)(\d{1,2})(?!\d)",
-    re.DOTALL,
-)
-
-
-def _parse_minhngoc(html: str) -> list[dict]:
-    text = _strip(html)
-    rows: list[dict] = []
-
-    # Try pattern A first (has inline hour → best time accuracy)
-    for m in _MN_RE_A.finditer(text):
-        dd, mm, yyyy, hh, digits10, sp_str = m.groups()
-        draw_date = f"{yyyy}-{mm}-{dd}"
-        draw_time = "21:00" if int(hh) >= 20 else "13:00"
-        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
-        sp = int(sp_str)
-        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
-            continue
-        if sp < 1 or sp > 12:
-            continue
-        rows.append({"draw_date": draw_date, "draw_time": draw_time,
-                     "numbers": numbers, "special": sp,
-                     "source_url": _MN_URL, "draw_id_hint": None})
-    if rows:
-        return rows
-
-    # Pattern B: no inline hour (time will be inferred later)
-    for m in _MN_RE_B.finditer(text):
-        dd, mm, yyyy, digits10, sp_str = m.groups()
-        draw_date = f"{yyyy}-{mm}-{dd}"
-        numbers = sorted(int(digits10[i:i + 2]) for i in range(0, 10, 2))
-        sp = int(sp_str)
-        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
-            continue
-        if sp < 1 or sp > 12:
-            continue
-        rows.append({"draw_date": draw_date, "draw_time": None,
-                     "numbers": numbers, "special": sp,
-                     "source_url": _MN_URL, "draw_id_hint": None})
-    if rows:
-        return rows
-
-    # Pattern C: 5 separate numbers
-    for m in _MN_RE_C.finditer(text):
-        dd, mm, yyyy, n1, n2, n3, n4, n5, sp_str = m.groups()
-        draw_date = f"{yyyy}-{mm}-{dd}"
-        numbers = sorted(int(x) for x in (n1, n2, n3, n4, n5))
-        sp = int(sp_str)
-        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
-            continue
-        if sp < 1 or sp > 12:
-            continue
-        rows.append({"draw_date": draw_date, "draw_time": None,
-                     "numbers": numbers, "special": sp,
-                     "source_url": _MN_URL, "draw_id_hint": None})
-    return rows
-
-
-def _fetch_minhngoc() -> list[dict]:
-    try:
-        r = requests.get(_MN_URL, timeout=TIMEOUT, headers=_HEADERS)
-        r.raise_for_status()
-        rows = _parse_minhngoc(r.text)
-        if rows:
-            print(f"xosominhngoc.net.vn: {len(rows)} recent draw(s) found")
-        else:
-            print("WARNING: xosominhngoc.net.vn: page fetched but no draws parsed "
-                  "(site layout may have changed — check _MN_RE_A/B/C)", file=sys.stderr)
-        return rows
-    except requests.RequestException as e:
-        print(f"WARNING: xosominhngoc.net.vn fetch failed: {e}", file=sys.stderr)
-        return []
-
-
-# ── Source 4: NhanAZ-Data (supplementary) ────────────────────────────────────────────
-# Full-history CSV dataset. Used as a gap-filler: any draws with draw_id
-# greater than our current max that minhchinh/vietlott didn't catch yet.
-# Schema matches data/all.csv exactly, so rows are used as-is.
+# ── Source 4: NhanAZ-Data (supplementary) ────────────────────────────────────
 _NHANAZ_URLS = [
     "https://raw.githubusercontent.com/NhanAZ-Data/vietlott-data-research"
     "/main/datasets/draws/lotto535/all.csv",
-    "https://cdn.jsdelivr.net/gh/NhanAZ-Data/vietlott-data-research"
-    "@main/datasets/draws/lotto535/all.csv",
 ]
 
 
 def _fetch_nhanaz() -> list[dict]:
     for url in _NHANAZ_URLS:
         try:
-            r = requests.get(url, timeout=TIMEOUT, headers=_HEADERS)
+            r = _make_session().get(url, timeout=TIMEOUT)
             r.raise_for_status()
             rows = list(csv.DictReader(r.text.splitlines()))
             if rows:
@@ -397,8 +455,6 @@ def _fetch_nhanaz() -> list[dict]:
 
 
 def _append_nhanaz_supplement(nhanaz_rows: list[dict]) -> int:
-    """Append rows from NhanAZ-Data whose draw_id exceeds our current max.
-    Their schema matches ours exactly, so rows are written directly."""
     existing_rows, fieldnames = _load_csv()
     if not existing_rows or fieldnames is None:
         return 0
@@ -431,11 +487,6 @@ def _append_nhanaz_supplement(nhanaz_rows: list[dict]) -> int:
 
 
 # ── Source 5: vietvudanh/vietlott-data (GitHub, power535.jsonl) ──────────────
-# Repo tự động cào vietlott.vn hàng ngày qua GitHub Actions.
-# Format: {"date":"YYYY-MM-DD","id":"NNNNN","result":[n1,n2,n3,n4,n5,sp],...}
-# result[0:5] = 5 số chính (1-35), result[5] = số đặc biệt (1-12).
-# Không có thông tin giờ quay → suy ra từ thứ tự id trong cùng ngày:
-#   id nhỏ hơn của ngày → 13:00 ; id lớn hơn → 21:00.
 _VD_URL = (
     "https://raw.githubusercontent.com/vietvudanh/vietlott-data"
     "/main/data/power535.jsonl"
@@ -444,13 +495,12 @@ _VD_URL = (
 
 def _fetch_vietvudanh() -> list[dict]:
     try:
-        r = requests.get(_VD_URL, timeout=TIMEOUT, headers=_HEADERS)
+        r = _make_session().get(_VD_URL, timeout=TIMEOUT)
         r.raise_for_status()
     except requests.RequestException as e:
         print(f"WARNING: vietvudanh/vietlott-data fetch failed: {e}", file=sys.stderr)
         return []
 
-    # Parse JSONL — collect all valid rows
     raw: list[dict] = []
     for line in r.text.splitlines():
         line = line.strip()
@@ -481,8 +531,6 @@ def _fetch_vietvudanh() -> list[dict]:
               file=sys.stderr)
         return []
 
-    # Assign draw time by order within each date (lowest id → 13:00, next → 21:00)
-    from itertools import groupby
     raw.sort(key=lambda d: (d["draw_date"], d["draw_id_hint"] or ""))
     rows: list[dict] = []
     for date, group in groupby(raw, key=lambda d: d["draw_date"]):
@@ -503,13 +551,6 @@ def _fetch_vietvudanh() -> list[dict]:
 
 
 # ── Sources 6-10: web scrapers bổ sung ───────────────────────────────────────
-# Các trang tổng hợp kết quả Lotto 5/35. Dùng chung 3 regex pattern:
-#   A) dd/mm/yyyy Xh ... <10digits> <2-digit-sp>    (có giờ inline)
-#   B) dd/mm/yyyy ...  <10digits> <2-digit-sp>       (không có giờ)
-#   C) dd/mm/yyyy ... N1 N2 N3 N4 N5 ... SP          (5 số riêng lẻ)
-# HTML không được kiểm tra trực tiếp do proxy session chặn.
-# Chạy được trên GitHub Actions.
-
 _EXTRA_SOURCES = [
     ("xskt_com_vn",        "https://xskt.com.vn/xslotto-5-35"),
     ("xsmn_net",           "https://xsmn.net/kqxslotto535"),
@@ -586,7 +627,7 @@ def _parse_generic(html: str, source_url: str) -> list[dict]:
 
 def _fetch_extra(key: str, url: str) -> list[dict]:
     try:
-        r = requests.get(url, timeout=TIMEOUT, headers=_HEADERS)
+        r = _make_session().get(url, timeout=TIMEOUT)
         r.raise_for_status()
         rows = _parse_generic(r.text, url)
         if rows:
@@ -609,22 +650,22 @@ def main():
 
     total = 0
 
-    # 1. minhchinh.com: chính — ~15 kỳ gần nhất có giờ quay
+    # 1. minhchinh.com
     mc = _fetch_minhchinh()
     if mc:
         total += _append_draws(mc, "minhchinh_com_scraper")
 
-    # 2. xosominhngoc.net.vn: phụ 1 — trang tổng hợp kết quả Lotto 5/35
+    # 2. xosominhngoc.net.vn (BeautifulSoup + CSS selectors)
     mn = _fetch_minhngoc()
     if mn:
         total += _append_draws(mn, "xosominhngoc_scraper")
 
-    # 3. vietlott.vn: phụ 2 — kỳ mới nhất với draw_id chính thức
+    # 3. vietlott.vn (AJAX API)
     vl = _fetch_vietlott()
     if vl:
         total += _append_draws(vl, "vietlott_vn_official")
 
-    # 4. vietvudanh/vietlott-data: phụ 3 — repo GitHub cào tự động hàng ngày
+    # 4. vietvudanh/vietlott-data
     vd = _fetch_vietvudanh()
     if vd:
         total += _append_draws(vd, "vietvudanh_github")
