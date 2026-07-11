@@ -5,11 +5,11 @@ Cập nhật data/all.csv với kết quả kỳ quay mới từ nhiều nguồn
 Chỉ THÊM kỳ mới (không ghi đè), an toàn khi chạy nhiều lần.
 
 Thứ tự nguồn:
-  1. minhchinh.com       — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
-  2. xosominhngoc.net.vn — phụ 1, trang tổng hợp kết quả Lotto 5/35
-  3. vietlott.vn         — phụ 2, kỳ mới nhất với draw_id chính thức
-  4. NhanAZ-Data         — phụ 3, dataset GitHub tổng hợp; dùng để bắt kịp kỳ
-                           bị bỏ qua (bù khoảng trống mà 3 nguồn trên chưa phủ)
+  1. minhchinh.com            — chính, ~15 kỳ gần nhất, có giờ quay (13:00/21:00)
+  2. xosominhngoc.net.vn      — phụ 1, trang tổng hợp kết quả Lotto 5/35
+  3. vietlott.vn              — phụ 2, kỳ mới nhất với draw_id chính thức
+  4. vietvudanh/vietlott-data — phụ 3, repo GitHub cào tự động hàng ngày (power535.jsonl)
+  5. NhanAZ-Data              — phụ 4, dataset GitHub tổng hợp; bù khoảng trống còn lại
 
 Nếu tất cả nguồn lỗi → giữ nguyên data/all.csv, pipeline vẫn chạy được.
 """
@@ -425,6 +425,78 @@ def _append_nhanaz_supplement(nhanaz_rows: list[dict]) -> int:
     return len(new_rows)
 
 
+# ── Source 5: vietvudanh/vietlott-data (GitHub, power535.jsonl) ──────────────
+# Repo tự động cào vietlott.vn hàng ngày qua GitHub Actions.
+# Format: {"date":"YYYY-MM-DD","id":"NNNNN","result":[n1,n2,n3,n4,n5,sp],...}
+# result[0:5] = 5 số chính (1-35), result[5] = số đặc biệt (1-12).
+# Không có thông tin giờ quay → suy ra từ thứ tự id trong cùng ngày:
+#   id nhỏ hơn của ngày → 13:00 ; id lớn hơn → 21:00.
+_VD_URL = (
+    "https://raw.githubusercontent.com/vietvudanh/vietlott-data"
+    "/main/data/power535.jsonl"
+)
+
+
+def _fetch_vietvudanh() -> list[dict]:
+    try:
+        r = requests.get(_VD_URL, timeout=TIMEOUT, headers=_HEADERS)
+        r.raise_for_status()
+    except requests.RequestException as e:
+        print(f"WARNING: vietvudanh/vietlott-data fetch failed: {e}", file=sys.stderr)
+        return []
+
+    # Parse JSONL — collect all valid rows
+    raw: list[dict] = []
+    for line in r.text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        result = obj.get("result") or []
+        if len(result) != 6:
+            continue
+        numbers = sorted(result[:5])
+        sp = result[5]
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if sp < 1 or sp > 12:
+            continue
+        raw.append({
+            "draw_date": obj["date"],
+            "draw_id_hint": obj.get("id"),
+            "numbers": numbers,
+            "special": sp,
+        })
+
+    if not raw:
+        print("WARNING: vietvudanh/vietlott-data: fetched but no valid rows parsed",
+              file=sys.stderr)
+        return []
+
+    # Assign draw time by order within each date (lowest id → 13:00, next → 21:00)
+    from itertools import groupby
+    raw.sort(key=lambda d: (d["draw_date"], d["draw_id_hint"] or ""))
+    rows: list[dict] = []
+    for date, group in groupby(raw, key=lambda d: d["draw_date"]):
+        entries = list(group)
+        times = ["13:00", "21:00"] if len(entries) >= 2 else ["21:00"]
+        for i, entry in enumerate(entries[:2]):
+            rows.append({
+                "draw_date": date,
+                "draw_time": times[i] if i < len(times) else "21:00",
+                "numbers": entry["numbers"],
+                "special": entry["special"],
+                "source_url": _VD_URL,
+                "draw_id_hint": entry["draw_id_hint"],
+            })
+
+    print(f"vietvudanh/vietlott-data: {len(rows)} total draw(s) in dataset")
+    return rows
+
+
 def main():
     if not os.path.exists(DATA_PATH):
         print(f"ERROR: {DATA_PATH} not found. "
@@ -449,12 +521,17 @@ def main():
     if vl:
         total += _append_draws(vl, "vietlott_vn_official")
 
-    # 4. NhanAZ-Data: phụ 3 — bù khoảng trống mà 3 nguồn trên chưa phủ
+    # 4. vietvudanh/vietlott-data: phụ 3 — repo GitHub cào tự động hàng ngày
+    vd = _fetch_vietvudanh()
+    if vd:
+        total += _append_draws(vd, "vietvudanh_github")
+
+    # 5. NhanAZ-Data: phụ 4 — bù khoảng trống còn lại
     nz = _fetch_nhanaz()
     if nz:
         total += _append_nhanaz_supplement(nz)
 
-    if not mc and not mn and not vl and not nz:
+    if not mc and not mn and not vl and not vd and not nz:
         print("WARNING: tất cả nguồn lỗi — giữ nguyên data/all.csv. "
               "Pipeline vẫn chạy trên dữ liệu cũ.", file=sys.stderr)
 
