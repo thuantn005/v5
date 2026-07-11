@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-07-11T09:20:57+00:00",
- "next_draw": 759,
+ "generated_at": "2026-07-11T09:47:50+00:00",
+ "next_draw": 777,
  "disclaimer": "Cac config nay tung trung >=2 jackpot trong qua khu do quet hang chuc trieu seed (survivorship). Xac suat ky toi cua moi ve: 1/324,632 — khong co edge. Chi giai tri.",
  "tickets": [
   {
@@ -8,13 +8,13 @@
    "type": "splitmix64",
    "seed": 4072,
    "numbers": [
-    9,
-    15,
-    28,
-    29,
-    34
+    7,
+    8,
+    23,
+    31,
+    33
    ],
-   "special": 7,
+   "special": 11,
    "history": [
     {
      "draw_id": 145,
@@ -45,11 +45,11 @@
    "type": "splitmix64",
    "seed": 59024,
    "numbers": [
-    3,
-    10,
-    12,
-    26,
-    34
+    8,
+    17,
+    24,
+    34,
+    35
    ],
    "special": 8,
    "history": [
@@ -82,13 +82,13 @@
    "type": "splitmix64",
    "seed": 717182,
    "numbers": [
-    5,
+    7,
+    8,
     11,
     12,
-    15,
-    24
+    29
    ],
-   "special": 11,
+   "special": 2,
    "history": [
     {
      "draw_id": 454,
@@ -119,13 +119,13 @@
    "type": "splitmix64",
    "seed": 867915,
    "numbers": [
-    2,
-    3,
-    13,
-    22,
-    29
+    17,
+    20,
+    21,
+    25,
+    26
    ],
-   "special": 11,
+   "special": 2,
    "history": [
     {
      "draw_id": 472,
@@ -156,13 +156,13 @@
    "type": "splitmix64",
    "seed": 1360035,
    "numbers": [
-    10,
-    18,
+    9,
+    11,
+    17,
     26,
-    32,
-    33
+    29
    ],
-   "special": 8,
+   "special": 7,
    "history": [
     {
      "draw_id": 17,
@@ -193,13 +193,13 @@
    "type": "splitmix64",
    "seed": 1394040,
    "numbers": [
-    2,
     6,
-    18,
-    19,
-    26
+    8,
+    14,
+    28,
+    31
    ],
-   "special": 11,
+   "special": 1,
    "history": [
     {
      "draw_id": 407,
@@ -230,13 +230,13 @@
    "type": "splitmix64",
    "seed": 1538954,
    "numbers": [
-    4,
     10,
     19,
-    24,
-    32
+    21,
+    23,
+    34
    ],
-   "special": 12,
+   "special": 11,
    "history": [
     {
      "draw_id": 13,
@@ -267,13 +267,13 @@
    "type": "splitmix64",
    "seed": 1565959,
    "numbers": [
-    1,
-    11,
+    5,
     14,
-    18,
-    22
+    15,
+    29,
+    32
    ],
-   "special": 1,
+   "special": 10,
    "history": [
     {
      "draw_id": 328,
@@ -306,11 +306,11 @@
    "numbers": [
     3,
     6,
-    12,
-    22,
-    32
+    8,
+    15,
+    34
    ],
-   "special": 8,
+   "special": 10,
    "history": [
     {
      "draw_id": 55,
@@ -342,12 +342,12 @@
    "seed": 1681215,
    "numbers": [
     5,
-    8,
-    10,
-    26,
-    34
+    12,
+    22,
+    29,
+    30
    ],
-   "special": 9,
+   "special": 5,
    "history": [
     {
      "draw_id": 376,
@@ -378,13 +378,13 @@
    "type": "splitmix64",
    "seed": 1726631,
    "numbers": [
-    14,
-    16,
+    7,
+    9,
+    11,
     23,
-    25,
-    28
+    24
    ],
-   "special": 8,
+   "special": 3,
    "history": [
     {
      "draw_id": 121,
@@ -415,13 +415,13 @@
    "type": "splitmix64",
    "seed": 1949226,
    "numbers": [
-    10,
+    5,
+    15,
     18,
-    19,
-    25,
-    29
+    23,
+    34
    ],
-   "special": 3,
+   "special": 10,
    "history": [
     {
      "draw_id": 366,
@@ -452,13 +452,13 @@
    "type": "splitmix64",
    "seed": 2038070,
    "numbers": [
-    21,
     23,
-    25,
-    28,
-    31
+    26,
+    27,
+    31,
+    35
    ],
-   "special": 11,
+   "special": 3,
    "history": [
     {
      "draw_id": 542,
@@ -490,12 +490,12 @@
    "seed": 2273895,
    "numbers": [
     4,
-    5,
-    25,
+    18,
     27,
-    31
+    31,
+    32
    ],
-   "special": 1,
+   "special": 2,
    "history": [
     {
      "draw_id": 207,
@@ -526,13 +526,13 @@
    "type": "splitmix64",
    "seed": 2407230,
    "numbers": [
-    8,
-    14,
-    18,
-    22,
-    30
+    12,
+    15,
+    17,
+    20,
+    28
    ],
-   "special": 5,
+   "special": 12,
    "history": [
     {
      "draw_id": 440,
@@ -563,13 +563,13 @@
    "type": "splitmix64",
    "seed": 2707350,
    "numbers": [
+    1,
     17,
-    23,
-    29,
-    33,
-    35
+    19,
+    22,
+    25
    ],
-   "special": 4,
+   "special": 11,
    "history": [
     {
      "draw_id": 10,
@@ -600,11 +600,11 @@
    "type": "splitmix64",
    "seed": 3053886,
    "numbers": [
-    8,
-    21,
-    23,
-    27,
-    34
+    3,
+    19,
+    20,
+    22,
+    27
    ],
    "special": 9,
    "history": [
@@ -637,13 +637,13 @@
    "type": "splitmix64",
    "seed": 3115884,
    "numbers": [
-    7,
+    1,
+    6,
     10,
-    13,
     28,
-    31
+    35
    ],
-   "special": 4,
+   "special": 6,
    "history": [
     {
      "draw_id": 36,
@@ -674,13 +674,13 @@
    "type": "splitmix64",
    "seed": 3219818,
    "numbers": [
-    3,
-    4,
+    6,
     8,
-    18,
-    19
+    9,
+    24,
+    31
    ],
-   "special": 12,
+   "special": 2,
    "history": [
     {
      "draw_id": 213,
@@ -711,13 +711,13 @@
    "type": "splitmix64",
    "seed": 3311556,
    "numbers": [
-    2,
-    4,
-    9,
-    21,
-    30
+    19,
+    27,
+    28,
+    29,
+    35
    ],
-   "special": 5,
+   "special": 6,
    "history": [
     {
      "draw_id": 585,
@@ -748,13 +748,13 @@
    "type": "splitmix64",
    "seed": 3678554,
    "numbers": [
-    15,
-    24,
+    5,
+    19,
+    23,
     27,
-    28,
-    34
+    33
    ],
-   "special": 1,
+   "special": 3,
    "history": [
     {
      "draw_id": 130,
@@ -785,13 +785,13 @@
    "type": "splitmix64",
    "seed": 4539053,
    "numbers": [
-    1,
     9,
-    29,
-    33,
-    35
+    14,
+    18,
+    27,
+    33
    ],
-   "special": 1,
+   "special": 9,
    "history": [
     {
      "draw_id": 467,
@@ -822,13 +822,13 @@
    "type": "splitmix64",
    "seed": 4656846,
    "numbers": [
-    6,
-    10,
-    13,
-    28,
-    35
+    8,
+    12,
+    14,
+    16,
+    21
    ],
-   "special": 5,
+   "special": 4,
    "history": [
     {
      "draw_id": 66,
@@ -859,13 +859,13 @@
    "type": "splitmix64",
    "seed": 5119835,
    "numbers": [
-    8,
-    22,
-    29,
-    31,
+    6,
+    9,
+    24,
+    26,
     34
    ],
-   "special": 6,
+   "special": 7,
    "history": [
     {
      "draw_id": 508,
@@ -896,13 +896,13 @@
    "type": "splitmix64",
    "seed": 5331995,
    "numbers": [
-    2,
-    13,
-    23,
-    31,
-    33
+    4,
+    8,
+    20,
+    24,
+    29
    ],
-   "special": 1,
+   "special": 5,
    "history": [
     {
      "draw_id": 431,
@@ -934,12 +934,12 @@
    "seed": 5551886,
    "numbers": [
     4,
-    6,
-    12,
-    15,
-    25
+    13,
+    20,
+    24,
+    35
    ],
-   "special": 11,
+   "special": 3,
    "history": [
     {
      "draw_id": 301,
@@ -970,13 +970,13 @@
    "type": "splitmix64",
    "seed": 5704897,
    "numbers": [
-    4,
-    6,
-    10,
-    20,
-    26
+    3,
+    12,
+    14,
+    22,
+    25
    ],
-   "special": 11,
+   "special": 9,
    "history": [
     {
      "draw_id": 239,
@@ -1007,13 +1007,13 @@
    "type": "splitmix64",
    "seed": 6112910,
    "numbers": [
-    27,
-    28,
-    30,
-    31,
-    34
+    1,
+    5,
+    20,
+    24,
+    31
    ],
-   "special": 10,
+   "special": 11,
    "history": [
     {
      "draw_id": 660,
@@ -1044,11 +1044,11 @@
    "type": "splitmix64",
    "seed": 6280633,
    "numbers": [
-    4,
-    6,
-    8,
-    19,
-    20
+    13,
+    14,
+    30,
+    32,
+    34
    ],
    "special": 8,
    "history": [
@@ -1081,13 +1081,13 @@
    "type": "splitmix64",
    "seed": 6506536,
    "numbers": [
-    1,
-    8,
-    9,
-    11,
-    29
+    5,
+    10,
+    26,
+    30,
+    32
    ],
-   "special": 6,
+   "special": 10,
    "history": [
     {
      "draw_id": 87,
@@ -1118,11 +1118,11 @@
    "type": "splitmix64",
    "seed": 6516654,
    "numbers": [
-    16,
+    14,
+    18,
     23,
-    30,
-    31,
-    34
+    26,
+    30
    ],
    "special": 7,
    "history": [
@@ -1155,13 +1155,13 @@
    "type": "splitmix64",
    "seed": 6648650,
    "numbers": [
-    1,
-    11,
-    19,
-    21,
-    25
+    2,
+    6,
+    8,
+    9,
+    12
    ],
-   "special": 6,
+   "special": 1,
    "history": [
     {
      "draw_id": 543,
@@ -1192,13 +1192,13 @@
    "type": "splitmix64",
    "seed": 7145220,
    "numbers": [
-    1,
-    9,
-    11,
-    21,
-    24
+    3,
+    5,
+    13,
+    27,
+    33
    ],
-   "special": 5,
+   "special": 11,
    "history": [
     {
      "draw_id": 2,
@@ -1230,12 +1230,12 @@
    "seed": 7155246,
    "numbers": [
     3,
-    4,
-    6,
-    20,
-    25
+    12,
+    14,
+    32,
+    34
    ],
-   "special": 5,
+   "special": 6,
    "history": [
     {
      "draw_id": 322,
@@ -1266,11 +1266,11 @@
    "type": "splitmix64",
    "seed": 7222423,
    "numbers": [
-    10,
-    12,
-    13,
-    15,
-    23
+    4,
+    9,
+    17,
+    27,
+    30
    ],
    "special": 11,
    "history": [
@@ -1303,13 +1303,13 @@
    "type": "splitmix64",
    "seed": 7593425,
    "numbers": [
-    8,
-    12,
-    22,
-    27,
+    5,
+    13,
+    26,
+    33,
     35
    ],
-   "special": 3,
+   "special": 11,
    "history": [
     {
      "draw_id": 273,
@@ -1340,11 +1340,11 @@
    "type": "splitmix64",
    "seed": 7805308,
    "numbers": [
+    7,
+    13,
     19,
-    21,
-    22,
-    25,
-    34
+    26,
+    27
    ],
    "special": 9,
    "history": [
@@ -1377,13 +1377,13 @@
    "type": "splitmix64",
    "seed": 7901439,
    "numbers": [
+    2,
     6,
+    10,
     16,
-    18,
-    28,
-    32
+    35
    ],
-   "special": 7,
+   "special": 8,
    "history": [
     {
      "draw_id": 196,
@@ -1414,13 +1414,13 @@
    "type": "splitmix64",
    "seed": 9863974,
    "numbers": [
-    19,
-    21,
-    26,
-    29,
-    32
+    2,
+    13,
+    17,
+    24,
+    30
    ],
-   "special": 4,
+   "special": 1,
    "history": [
     {
      "draw_id": 105,
@@ -1451,13 +1451,13 @@
    "type": "splitmix64",
    "seed": 9920742,
    "numbers": [
-    2,
-    13,
-    16,
-    18,
-    23
+    5,
+    7,
+    15,
+    22,
+    30
    ],
-   "special": 4,
+   "special": 10,
    "history": [
     {
      "draw_id": 188,
@@ -1488,13 +1488,13 @@
    "type": "splitmix64",
    "seed": 10100257,
    "numbers": [
-    1,
-    2,
-    7,
-    14,
-    35
+    8,
+    25,
+    26,
+    30,
+    34
    ],
-   "special": 4,
+   "special": 2,
    "history": [
     {
      "draw_id": 725,
