@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from model import parse_draws
 from ensemble import ensemble_predict, load_tuned_params
 from jackpot_check import check_jackpot
-from jackpot_watch import check_early_alert, check_scrape_alert, get_threshold_crossed_date
+from jackpot_watch import check_share_draw, get_threshold_crossed_date
 from references import compute_tickets as compute_references
 from notify_ntfy import send as _ntfy_send_raw
 from multi_log import append_prediction, resolve_all, load_log, _next_draw_id
@@ -168,100 +168,56 @@ def main():
     print(f"Giống nhanaz-data:      {_ref_str('nhanaz')} "
           f"(available={references.get('nhanaz', {}).get('available')})")
 
-    # --- Step 5: jackpot checks ---
-    # threshold_crossed_date (set on a prior run when the jackpot first passed
-    # 12B) lets check_jackpot pin the sharing round to "21:00 of the next day".
+    # --- Step 5: jackpot check (scrape value) ---
     jackpot = check_jackpot(last_draw.draw_date, last_draw.draw_time,
                             get_threshold_crossed_date(),
                             last_draw_id=last_draw.draw_id)
-    # Surface the "silent blind spot": if every jackpot source failed we
-    # can't tell whether the next draw is the sharing round -- alert once.
-    scrape_alert = check_scrape_alert(jackpot["jackpot_vnd"])
-    early_alert = check_early_alert(jackpot["jackpot_vnd"], last_draw.draw_date)
 
-    # NOTE: the old "high ensemble confidence" notify trigger is gone.
-    # uniform_seeded assigns uniformly random scores by design -- there is
-    # no such thing as an "unusually confident" round for a fair coin flip,
-    # so that trigger would have just been noise dressed up as a signal.
-    # Notifications now fire only for genuine jackpot-timing events.
+    jackpot_vnd   = jackpot["jackpot_vnd"]
     jackpot_round = jackpot["is_sharing_round"]
-    should_notify = jackpot_round
-
-    main_str = "-".join(f"{n:02d}" for n in pred["main_numbers"])
-    special_str = f"{pred['special_number']:02d}"
 
     print(f"\n=== Bộ vé cho draw #{target_id} ===")
     t_main = "-".join(f"{n:02d}" for n in pred["main_numbers"])
-    print(f"🧠 Mạng nơ-ron (Neural): {t_main} + special {pred['special_number']:02d}")
-    print(f"Jackpot: {jackpot}")
-    print(f"Early alert: {early_alert}")
-    print(f"Notify: {should_notify} (jackpot_round={jackpot_round})")
-    print(f"Scrape alert: {scrape_alert}")
+    print(f"🧠 Neural: {t_main} + special {pred['special_number']:02d}")
+    print(f"Jackpot: {jackpot_vnd} VND | sharing_round={jackpot_round}")
+    print(f"Reason: {jackpot['reason']}")
 
-    # --- Step 7 (blind-spot): jackpot scrape failed on every source ---
-    # Without a jackpot figure, is_sharing_round is forced False and both
-    # jackpot alerts stay silent. Warn once so the user can check manually
-    # instead of silently missing the sharing round.
-    if scrape_alert["should_alert"]:
+    # --- Step 7: jackpot state machine ---
+    # Handles: scheduled / reminder / cancelled / completed / scrape_fail
+    share_events = check_share_draw(
+        jackpot_vnd,
+        last_draw_id=last_draw.draw_id,
+        last_draw_date=last_draw.draw_date,
+    )
+
+    neural_str  = "-".join(f"{n:02d}" for n in pred["main_numbers"])
+    neural_line = f"🧠 Neural: {neural_str} + đặc biệt {pred['special_number']:02d}"
+    ev_note = (
+        "\n💡 Kỳ chia giải: quỹ Độc Đắc phân bổ xuống giải thấp hơn ngay cả khi "
+        "không ai trúng 5/5 — lý do duy nhất làm kỳ vọng cao hơn bình thường, "
+        "không liên quan đến việc chọn số."
+    )
+
+    for ev in share_events:
+        extra = ""
+        if ev["kind"] in ("scheduled", "reminder"):
+            extra = (
+                f"\n{neural_line}"
+                f"\n🎯 Ngẫu nhiên chuẩn: {_ref_str('random_fair')}"
+                f"{ev_note}"
+                f"\nMọi bộ số có xác suất trúng như nhau. Chơi có trách nhiệm."
+            )
         ntfy_send(
             NTFY_TOPIC,
-            title="⚠️ Lotto 5/35 – Không lấy được số Jackpot",
-            message=(
-                "Tất cả các nguồn tra cứu giá trị Giải Độc Đắc đều lỗi ở kỳ này, "
-                "nên hệ thống TẠM THỜI không thể tự xác định kỳ CHIA GIẢI ĐỘC ĐẮC.\n"
-                "Bạn nên kiểm tra thủ công trên vietlott.vn để không bỏ lỡ kỳ chia "
-                "giải. Bạn sẽ chỉ nhận cảnh báo này 1 lần cho tới khi việc tra cứu "
-                "hoạt động trở lại."
-            ),
-            priority="high",
-            tags="warning",
+            title=ev["title"],
+            message=ev["message"] + extra,
+            priority=ev["priority"],
+            tags=ev["tags"],
         )
 
-    # --- Step 7a: early jackpot-crossing alert (independent of main notify) ---
-    if early_alert["should_alert"]:
-        jackpot_str = f"{early_alert['jackpot_vnd']:,}".replace(",", ".")
-        ntfy_send(
-            NTFY_TOPIC,
-            title="🔔 Lotto 5/35 – Jackpot vừa vượt 12 tỷ!",
-            message=(
-                f"Giải Độc Đắc hiện tại: {jackpot_str} đồng.\n"
-                f"Nếu không ai trúng ở các kỳ tiếp theo, kỳ quay 21h00 của "
-                f"ngày kế tiếp sẽ là kỳ CHIA GIẢI ĐỘC ĐẮC."
-            ),
-            priority="high",
-            tags="rotating_light,moneybag",
-        )
+    should_notify = bool(share_events)
+    print(f"Notify: {should_notify} (events={[e['kind'] for e in share_events]})")
 
-    # --- Step 7b: main notify ---
-    if should_notify:
-        reason_text = f"kỳ tới ({jackpot['next_draw_date']} 21:00) là kỳ CHIA GIẢI ĐỘC ĐẮC"
-
-        ev_note = (
-            "\n💡 Góc nhìn 'săn jackpot' thật: kỳ chia giải là lúc quỹ Độc Đắc "
-            "được phân bổ xuống các giải thấp hơn NGAY CẢ KHI không ai khớp đủ "
-            "5/5 — đây là điều thật duy nhất làm giá trị kỳ vọng của kỳ này cao "
-            "hơn bình thường, không liên quan đến việc chọn số nào."
-        )
-
-        neural_str = "-".join(f"{n:02d}" for n in pred["main_numbers"])
-        neural_line = f"🧠 Mạng nơ-ron (Neural): {neural_str} + đặc biệt {pred['special_number']:02d}"
-
-        message = (
-            f"Sau kỳ #{last_draw.draw_id} ({last_draw.draw_date}):\n"
-            f"{neural_line}\n"
-            f"— Mốc so sánh —\n"
-            f"🎯 Ngẫu nhiên chuẩn: {_ref_str('random_fair')}\n"
-            f"{ev_note}\n"
-            f"Lý do gửi: {reason_text}.\n"
-            f"Lưu ý: mọi bộ số đều có xác suất trúng như nhau. Chơi có trách nhiệm."
-        )
-        ntfy_send(
-            NTFY_TOPIC,
-            title="🎯 Lotto 5/35 – Bộ vé kỳ tới",
-            message=message,
-            priority="high" if jackpot_round else "default",
-            tags="game_die,bar_chart",
-        )
 
     # --- Step 8: log the full prediction ---
     per_strategy_serializable = {
