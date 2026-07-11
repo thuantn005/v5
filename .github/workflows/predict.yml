@@ -55,6 +55,11 @@ jobs:
           NTFY_TOPIC: lotto535-thuan
         run: python scripts/run_pipeline.py
 
+      - name: Notify via ntfy if any config ticket won a prize
+        env:
+          NTFY_TOPIC: lotto535-thuan
+        run: python scripts/notify_config_wins.py --csv data/all.csv
+
       - name: Generate dashboard data for GitHub Pages
         run: python scripts/generate_dashboard_data.py
 
