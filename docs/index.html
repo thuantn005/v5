@@ -136,6 +136,27 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 .arch-ball { width:28px; height:28px; border-radius:50%; background:#12a150; color:#fff;
   display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700; }
 .arch-ball.sp { background:#e0a400; color:#201400; }
+
+/* ── Đăng ký ntfy ── */
+.subscribe {
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  background: linear-gradient(135deg, #16233a, #182a20);
+  border:1px solid #2b6cb0; border-radius:12px; padding:14px 16px; margin-bottom:22px;
+}
+.subscribe .sb-icon { font-size:1.6rem; }
+.subscribe .sb-text { flex:1; min-width:200px; font-size:.85rem; }
+.subscribe .sb-text b { color:#e2e8f4; }
+.subscribe .sb-text .sb-topic { font-family:monospace; background:#0d1420; border:1px solid var(--border);
+  border-radius:5px; padding:1px 6px; color:#7fd0ff; }
+.subscribe .sb-btn {
+  display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  background:#2b6cb0; color:#fff; font-weight:700; font-size:.85rem;
+  padding:9px 16px; border-radius:9px; text-decoration:none;
+  box-shadow:0 3px 12px rgba(43,108,176,.4);
+}
+.subscribe .sb-btn:hover { background:#3b7ec4; }
+.subscribe .sb-hint { font-size:.72rem; color:var(--muted); width:100%; }
+.subscribe .sb-hint a { color:#7fd0ff; }
 </style>
 </head>
 <body>
@@ -147,6 +168,21 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
   jackpot trong quá khứ chỉ do <b>quét hàng tỷ seed</b> (survivorship bias). Xác suất kỳ tới của
   <b>mọi</b> vé vẫn như nhau (Jackpot 2: 1/324.632 · Jackpot 1: 1/3.895.584). Không cách chọn số nào
   tăng xác suất trúng. Trang này chỉ theo dõi & so sánh với kết quả thực — chỉ để giải trí.
+</div>
+
+<div class="subscribe">
+  <span class="sb-icon">🔔</span>
+  <span class="sb-text">
+    <b>Đăng ký nhận thông báo</b> — báo ngay khi có vé config trúng giải và khi tới kỳ
+    CHIA GIẢI Độc Đắc. Chủ đề (topic): <span class="sb-topic">lotto535-thuan</span>
+  </span>
+  <a class="sb-btn" href="https://ntfy.sh/lotto535-thuan" target="_blank" rel="noopener">🔔 Mở &amp; đăng ký</a>
+  <span class="sb-hint">
+    Trên điện thoại: cài app <b>ntfy</b>
+    (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> ·
+    <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iOS</a>)
+    → “Subscribe to topic” → nhập <b>lotto535-thuan</b> (server mặc định ntfy.sh). Miễn phí, không cần tài khoản.
+  </span>
 </div>
 
 <div id="jackpot-pin"></div>
