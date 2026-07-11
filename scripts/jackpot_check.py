@@ -47,10 +47,13 @@ import requests
 # xsmn.mobi/xs-lotto-5-35.html shows "Giá trị Độc Đắc: X đồng" prominently.
 # Pure result pages (xosominhngoc, xskt…) do NOT show jackpot value — excluded.
 JACKPOT_SOURCES = [
+    # Nguồn 1: vietlott.vn trang kết quả — chính thức, cập nhật ngay sau kỳ quay
     "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535",
+    # Nguồn 2: vietlott.vn trang giới thiệu sản phẩm — thường hiển thị jackpot hiện tại
     "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535",
+    # Nguồn 3: xsmn.mobi — có field "Giá trị Độc Đắc" rõ ràng, cập nhật nhanh
     "https://xsmn.mobi/xs-lotto-5-35.html",
-    "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html",
+    # minhchinh.com đã xóa: chậm cập nhật, không đáng tin cậy
 ]
 THRESHOLD_VND = 12_000_000_000
 
@@ -128,16 +131,18 @@ def _extract_jackpot_vnd(html: str) -> int | None:
 
 def _scrape_jackpot_vnd() -> tuple[int | None, str | None]:
     for url in JACKPOT_SOURCES:
+        label = url.split("/")[2]  # hostname để log ngắn gọn
         try:
             resp = requests.get(url, timeout=20, headers=_HEADERS)
             resp.raise_for_status()
             amount = _extract_jackpot_vnd(resp.text)
             if amount is not None:
+                print(f"[jackpot] {label}: {amount:,} VND ✓")
                 return amount, url
-            print(f"WARNING: fetched {url} but could not find jackpot figure", file=sys.stderr)
+            print(f"WARNING: [jackpot] {label}: OK nhưng không tìm được số Độc Đắc", file=sys.stderr)
         except requests.RequestException as e:
-            print(f"WARNING: jackpot source failed {url}: {e}", file=sys.stderr)
-    print(f"WARNING: all {len(JACKPOT_SOURCES)} jackpot sources failed", file=sys.stderr)
+            print(f"WARNING: [jackpot] {label}: {e}", file=sys.stderr)
+    print(f"WARNING: [jackpot] tất cả {len(JACKPOT_SOURCES)} nguồn đều thất bại", file=sys.stderr)
     return None, None
 
 
