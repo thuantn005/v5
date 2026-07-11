@@ -51,8 +51,7 @@ JACKPOT_SOURCES = [
     "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535",
     # Nguồn 2: vietlott.vn trang giới thiệu sản phẩm — thường hiển thị jackpot hiện tại
     "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535",
-    # Nguồn 3: xsmn.mobi — có field "Giá trị Độc Đắc" rõ ràng, cập nhật nhanh
-    "https://xsmn.mobi/xs-lotto-5-35.html",
+    # xsmn.mobi đã xóa: trả số cũ, không đồng bộ với vietlott.vn
     # minhchinh.com đã xóa: chậm cập nhật, không đáng tin cậy
 ]
 THRESHOLD_VND = 12_000_000_000
