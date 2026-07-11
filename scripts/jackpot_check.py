@@ -278,10 +278,19 @@ def _self_test_parser():
     xosominhngoc = ("KQXS Lotto 5/35 – Kỳ #00756 ngày 11/07/2026\n"
                     "Giá trị giải Độc Đắc: 11.925.318.500 đồng\n"
                     "Giá trị Jackpot dự kiến kỳ tới: 13.000.000.000 đồng")
+    # Định dạng THẬT trên xosominhngoc.net.vn (đối chiếu trực tiếp kỳ #00756):
+    # nhãn nằm dòng riêng, con số ở dòng kế, KHÔNG có chữ "đồng", có khoảng
+    # trắng cuối — vẫn phải lấy đúng nhờ số nằm sát ngay sau nhãn "Độc Đắc".
+    # Dòng "01 04 11 21 27 11" (bộ số + số đặc biệt) KHÔNG được nhận nhầm.
+    xosominhngoc_real = ("Kỳ QSMT: #00756 Thứ bảy, Ngày: 11/07/2026 - 21:00\n"
+                         "01 04 11 21 27 11\n"
+                         "Giá trị giải Độc Đắc\n"
+                         "6.652.382.500 ")
     cases = [
         (vietlott, 6_231_022_500),
         (xsmn, 6_088_615_000),
         (xosominhngoc, 11_925_318_500),
+        (xosominhngoc_real, 6_652_382_500),
         ("Giải phụ 2.000.000.000 đồng. Giải khác 3.000.000.000 đồng.", 3_000_000_000),
         ("Thông tin Jackpot cập nhật sau." + "x" * 600 + "99.000.000.000 đồng", None),
     ]
