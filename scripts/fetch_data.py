@@ -465,7 +465,7 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
 
 # ── Source 4: NhanAZ-Data (supplementary) ────────────────────────────────────
 _NHANAZ_URLS = [
-    "https://raw.githubusercontent.com",
+    "https://github.com/thuantn005/V51/blob/claude/applied-and-pushed-pm94ja/data/lotto535.csv",
 ]
 
 
