@@ -465,8 +465,7 @@ def _append_draws(scraped: list[dict], data_source: str) -> int:
 
 # ── Source 4: NhanAZ-Data (supplementary) ────────────────────────────────────
 _NHANAZ_URLS = [
-    "https://raw.githubusercontent.com/NhanAZ-Data/vietlott-data-research"
-    "/main/datasets/draws/lotto535/all.csv",
+    "https://raw.githubusercontent.com",
 ]
 
 
@@ -518,11 +517,11 @@ def _append_nhanaz_supplement(nhanaz_rows: list[dict]) -> int:
 
 # ── Sources 4-8: web scrapers bổ sung ────────────────────────────────────────
 _EXTRA_SOURCES = [
-    ("xskt_com_vn",        "https://xskt.com.vn/xslotto-5-35"),
-    ("xsmn_net",           "https://xsmn.net/kqxslotto535"),
-    ("xsmn_mobi",          "https://xsmn.mobi/xs-lotto-5-35.html"),
-    ("onbit_vn",           "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535"),
-    ("ketquadientoan_com", "https://www.ketquadientoan.com/ket-qua-xo-so-dien-toan-lotto-535.html"),
+    ("xskt_com_vn",        "https://xskt.com.vn"),
+    ("xsmn_net",           "https://xsmn.net"),
+    ("xsmn_mobi",          "https://xsmn.mobi"),
+    ("onbit_vn",           "https://onbit.vn"),
+    ("ketquadientoan_com", "https://www.ketquadientoan.com"),
 ]
 
 _EXTRA_RE_A = re.compile(
