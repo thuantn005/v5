@@ -131,9 +131,20 @@ def main():
     target_id_preview = _next_draw_id(draws[-1].draw_id)
     if already_predicted(target_id_preview):
         print(f"Draw #{target_id_preview} was already predicted in an earlier "
-              f"run today (primary/backup dedup) -- skipping to avoid duplicate "
-              f"notifications. Still resolving any newly-available past results.")
+              f"run today (primary/backup dedup) -- skipping prediction. "
+              f"Still resolving results and checking jackpot state.")
         notify_perfect_wins(resolve_all())
+        # Vẫn chạy jackpot state machine — reminder kỳ chia giải phải gửi
+        # đúng ngày dù pipeline dedup bỏ qua bước predict.
+        jackpot = check_jackpot(draws[-1].draw_date, draws[-1].draw_time,
+                                get_threshold_crossed_date(),
+                                last_draw_id=draws[-1].draw_id)
+        for ev in check_share_draw(jackpot["jackpot_vnd"],
+                                   last_draw_id=draws[-1].draw_id,
+                                   last_draw_date=draws[-1].draw_date):
+            ntfy_send(NTFY_TOPIC, title=ev["title"],
+                      message=ev["message"], priority=ev["priority"],
+                      tags=ev["tags"])
         return
 
     # --- Step 2: scheduled auto-tuning (no-op for uniform_seeded, kept for
