@@ -74,10 +74,23 @@ def _fmt(vnd: int | None) -> str:
     return f"{s} đ (~{vnd / 1e9:.1f} tỷ)" if vnd >= 1e9 else f"{s} đ"
 
 
+# Chỉ gửi thông báo cho các loại sự kiện này. Theo yêu cầu: CHỈ nhắc khi ĐẾN
+# kỳ chia giải ('reminder'); bỏ 'scheduled' (đã lên lịch), 'cancelled' (huỷ),
+# 'completed' (đã xong) và 'scrape_fail' (lỗi tra cứu). Máy trạng thái vẫn chạy
+# đầy đủ (theo dõi pot, đặt/huỷ lịch, reset) — chỉ chặn khâu thông báo.
+NOTIFY_KINDS = {"reminder"}
+
+
 def _event(kind: str, title: str, message: str,
            priority: str = "high", tags: str = "moneybag") -> dict:
     return {"kind": kind, "title": title, "message": message,
             "priority": priority, "tags": tags}
+
+
+def _emit(events: list[dict], ev: dict) -> None:
+    """Chỉ thêm sự kiện vào danh sách thông báo nếu thuộc NOTIFY_KINDS."""
+    if ev["kind"] in NOTIFY_KINDS:
+        events.append(ev)
 
 
 def _reminder_event(share_date, peak_jackpot) -> dict:
@@ -136,13 +149,13 @@ def check_share_draw(jackpot_vnd: int | None,
                 and today == share_date and not state.get("reminded")):
             state["reminded"] = True
             _save(state)
-            events.append(_reminder_event(share_date, state.get("peak_jackpot")))
+            _emit(events, _reminder_event(share_date, state.get("peak_jackpot")))
             return events
 
         if not state.get("scrape_fail_alerted"):
             state["scrape_fail_alerted"] = True
             _save(state)
-            events.append(_event(
+            _emit(events, _event(
                 "scrape_fail",
                 "⚠️ Lotto 5/35 – Không lấy được số Jackpot",
                 "Tất cả nguồn tra cứu giá trị Giải Độc Đắc đều lỗi. "
@@ -172,7 +185,7 @@ def check_share_draw(jackpot_vnd: int | None,
         if jackpot_vnd < JACKPOT_THRESHOLD and jackpot_vnd < peak * 0.8:
             # Pot đã reset → có người trúng Độc Đắc hoặc kỳ chia giải đã diễn ra
             if today <= share_date:
-                events.append(_event(
+                _emit(events, _event(
                     "cancelled",
                     "🚫 Huỷ kỳ chia giải Lotto 5/35",
                     f"Đã có người trúng Độc Đắc (~{_fmt(peak)}) trước kỳ "
@@ -181,7 +194,7 @@ def check_share_draw(jackpot_vnd: int | None,
                     tags="x,tada",
                 ))
             else:
-                events.append(_event(
+                _emit(events, _event(
                     "completed",
                     "✅ Kỳ chia giải Lotto 5/35 đã diễn ra",
                     f"Kỳ chia giải ngày {share_date:%d/%m/%Y} đã xong "
@@ -196,7 +209,7 @@ def check_share_draw(jackpot_vnd: int | None,
         else:
             state["peak_jackpot"] = max(peak, jackpot_vnd)
             if today == share_date and not state["reminded"]:
-                events.append(_reminder_event(share_date, state["peak_jackpot"]))
+                _emit(events, _reminder_event(share_date, state["peak_jackpot"]))
                 state["reminded"] = True
             elif (today - share_date).days > 2:
                 # Dữ liệu trễ bất thường → reset cho sạch
@@ -225,7 +238,7 @@ def check_share_draw(jackpot_vnd: int | None,
                 "trigger_draw_id": last_draw_id,
                 "trigger_draw_date": trigger_date.isoformat(),
             })
-            events.append(_event(
+            _emit(events, _event(
                 "scheduled",
                 "🔔 Lotto 5/35 – Jackpot vừa vượt 12 tỷ!",
                 f"Giải Độc Đắc: {_fmt(jackpot_vnd)}.\n"
