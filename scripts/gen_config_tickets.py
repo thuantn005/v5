@@ -3,6 +3,10 @@
 
 Chay trong CI sau buoc cap nhat data:
     python scripts/gen_config_tickets.py --csv data/all.csv --out docs/config_tickets.json
+
+Moi ticket xuat ra them:
+  - last_result: {draw_id, draw_date, actual, predicted, main_hits, special_hit}
+    (ky lien truoc next_draw -- ky vua quay, so sanh ve da sinh voi ket qua thuc)
 """
 import argparse, csv, json, sys, datetime
 from pathlib import Path
@@ -11,17 +15,42 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "configs"))
 from jackpot_family import ticket, special, verify  # noqa: E402
 
 
-def _load_draws(csv_path: str) -> dict[int, list[int]]:
+def _load_draws(csv_path: str) -> dict[int, dict]:
     draws = {}
     with open(csv_path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             try:
                 draw_id = int(row["draw_id"])
-                numbers = sorted(json.loads(row["result_json"])["numbers"])
-                draws[draw_id] = numbers
+                result = json.loads(row["result_json"])
+                draws[draw_id] = {
+                    "numbers": sorted(result["numbers"]),
+                    "special": result["special_numbers"][0] if result.get("special_numbers") else None,
+                    "draw_date": row.get("draw_date", ""),
+                }
             except (ValueError, KeyError, json.JSONDecodeError):
                 continue
     return draws
+
+
+def _last_result(seed: int, prev_draw_id: int, draws: dict) -> dict | None:
+    """Ket qua doi chieu cua config nay tai ky prev_draw_id (ky vua quay)."""
+    if prev_draw_id not in draws:
+        return None
+    actual = draws[prev_draw_id]
+    predicted_main = ticket(seed, prev_draw_id)
+    predicted_sp = special(seed, prev_draw_id)
+    main_hits = len(set(predicted_main) & set(actual["numbers"]))
+    special_hit = (predicted_sp == actual["special"]) if actual["special"] is not None else False
+    return {
+        "draw_id": prev_draw_id,
+        "draw_date": actual["draw_date"],
+        "actual": actual["numbers"],
+        "actual_special": actual["special"],
+        "predicted": predicted_main,
+        "predicted_special": predicted_sp,
+        "main_hits": main_hits,
+        "special_hit": bool(special_hit),
+    }
 
 
 def main():
@@ -35,11 +64,13 @@ def main():
 
     draws = _load_draws(a.csv)
     next_draw = a.draw or max(draws) + 1
+    prev_draw = next_draw - 1
 
     cfg = json.load(open(a.configs, encoding="utf-8"))
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "next_draw": next_draw,
+        "prev_draw": prev_draw,
         "disclaimer": ("Cac config nay tung trung >=2 jackpot trong qua khu do quet "
                        "hang chuc trieu seed (survivorship). Xac suat ky toi cua moi "
                        "ve: 1/324,632 — khong co edge. Chi giai tri."),
@@ -49,7 +80,7 @@ def main():
     for c in cfg["algorithm_configs"]:
         s = int(c["seed"])
         if a.reverify:
-            got = verify(s, draws)
+            got = verify(s, {k: v["numbers"] for k, v in draws.items()})
             want = [j["draw_id"] for j in c["jackpots"]]
             if sorted(got) != sorted(want):
                 print(f"WARNING: seed {s}: got {got}, expected {want}", file=sys.stderr)
@@ -57,6 +88,7 @@ def main():
             "id": f"seed-{s}", "type": "splitmix64", "seed": s,
             "numbers": ticket(s, next_draw), "special": special(s, next_draw),
             "history": c["jackpots"],
+            "last_result": _last_result(s, prev_draw, draws),
         })
 
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)

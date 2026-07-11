@@ -1,6 +1,7 @@
 {
- "generated_at": "2026-07-11T10:01:56+00:00",
+ "generated_at": "2026-07-11T10:12:01+00:00",
  "next_draw": 756,
+ "prev_draw": 755,
  "disclaimer": "Cac config nay tung trung >=2 jackpot trong qua khu do quet hang chuc trieu seed (survivorship). Xac suat ky toi cua moi ve: 1/324,632 — khong co edge. Chi giai tri.",
  "tickets": [
   {
@@ -38,7 +39,29 @@
       28
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     14,
+     15,
+     21,
+     26,
+     29
+    ],
+    "predicted_special": 6,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-59024",
@@ -75,7 +98,29 @@
       35
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     6,
+     10,
+     15,
+     33,
+     35
+    ],
+    "predicted_special": 5,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-717182",
@@ -112,7 +157,29 @@
       28
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     12,
+     14,
+     28,
+     29,
+     34
+    ],
+    "predicted_special": 10,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-867915",
@@ -149,7 +216,29 @@
       32
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     16,
+     21,
+     25,
+     26,
+     30
+    ],
+    "predicted_special": 1,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1360035",
@@ -186,7 +275,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     3,
+     23,
+     26,
+     29,
+     33
+    ],
+    "predicted_special": 7,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1394040",
@@ -223,7 +334,29 @@
       19
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     13,
+     16,
+     18,
+     20,
+     28
+    ],
+    "predicted_special": 11,
+    "main_hits": 2,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1538954",
@@ -260,7 +393,29 @@
       24
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     4,
+     13,
+     28,
+     33
+    ],
+    "predicted_special": 12,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1565959",
@@ -297,7 +452,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     4,
+     8,
+     13,
+     17,
+     19
+    ],
+    "predicted_special": 9,
+    "main_hits": 0,
+    "special_hit": true
+   }
   },
   {
    "id": "seed-1660256",
@@ -334,7 +511,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     5,
+     9,
+     16,
+     18,
+     31
+    ],
+    "predicted_special": 8,
+    "main_hits": 2,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1681215",
@@ -371,7 +570,29 @@
       29
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     10,
+     12,
+     15,
+     26,
+     31
+    ],
+    "predicted_special": 2,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1726631",
@@ -408,7 +629,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     22,
+     25,
+     27,
+     33,
+     35
+    ],
+    "predicted_special": 12,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-1949226",
@@ -445,7 +688,29 @@
       33
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     7,
+     21,
+     26,
+     29
+    ],
+    "predicted_special": 10,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-2038070",
@@ -482,7 +747,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     3,
+     9,
+     18,
+     33
+    ],
+    "predicted_special": 7,
+    "main_hits": 2,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-2273895",
@@ -519,7 +806,29 @@
       18
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     4,
+     11,
+     14,
+     18,
+     20
+    ],
+    "predicted_special": 10,
+    "main_hits": 2,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-2407230",
@@ -556,7 +865,29 @@
       22
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     1,
+     2,
+     10,
+     12,
+     29
+    ],
+    "predicted_special": 2,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-2707350",
@@ -593,7 +924,29 @@
       31
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     5,
+     9,
+     20,
+     25,
+     32
+    ],
+    "predicted_special": 12,
+    "main_hits": 2,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-3053886",
@@ -630,7 +983,29 @@
       24
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     18,
+     22,
+     25,
+     27,
+     30
+    ],
+    "predicted_special": 9,
+    "main_hits": 0,
+    "special_hit": true
+   }
   },
   {
    "id": "seed-3115884",
@@ -667,7 +1042,29 @@
       31
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     6,
+     8,
+     9,
+     32
+    ],
+    "predicted_special": 4,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-3219818",
@@ -704,7 +1101,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     3,
+     9,
+     13,
+     30
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-3311556",
@@ -741,7 +1160,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     6,
+     13,
+     15,
+     25,
+     34
+    ],
+    "predicted_special": 4,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-3678554",
@@ -778,7 +1219,29 @@
       30
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     4,
+     6,
+     21,
+     31
+    ],
+    "predicted_special": 4,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-4539053",
@@ -815,7 +1278,29 @@
       33
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     13,
+     16,
+     20,
+     33
+    ],
+    "predicted_special": 2,
+    "main_hits": 3,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-4656846",
@@ -852,7 +1337,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     5,
+     15,
+     22,
+     26,
+     28
+    ],
+    "predicted_special": 12,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-5119835",
@@ -889,7 +1396,29 @@
       27
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     1,
+     4,
+     14,
+     16,
+     32
+    ],
+    "predicted_special": 5,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-5331995",
@@ -926,7 +1455,29 @@
       29
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     8,
+     20,
+     27,
+     29
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-5551886",
@@ -963,7 +1514,29 @@
       27
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     5,
+     10,
+     14,
+     20,
+     24
+    ],
+    "predicted_special": 1,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-5704897",
@@ -1000,7 +1573,29 @@
       31
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     1,
+     8,
+     15,
+     18,
+     32
+    ],
+    "predicted_special": 9,
+    "main_hits": 0,
+    "special_hit": true
+   }
   },
   {
    "id": "seed-6112910",
@@ -1037,7 +1632,29 @@
       14
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     5,
+     8,
+     11,
+     24,
+     26
+    ],
+    "predicted_special": 5,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-6280633",
@@ -1074,7 +1691,29 @@
       35
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     3,
+     13,
+     20,
+     23,
+     34
+    ],
+    "predicted_special": 2,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-6506536",
@@ -1111,7 +1750,29 @@
       33
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     4,
+     13,
+     24,
+     25,
+     30
+    ],
+    "predicted_special": 9,
+    "main_hits": 0,
+    "special_hit": true
+   }
   },
   {
    "id": "seed-6516654",
@@ -1148,7 +1809,29 @@
       30
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     3,
+     12,
+     19,
+     21,
+     27
+    ],
+    "predicted_special": 12,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-6648650",
@@ -1185,7 +1868,29 @@
       31
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     1,
+     13,
+     22,
+     34,
+     35
+    ],
+    "predicted_special": 1,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-7145220",
@@ -1222,7 +1927,29 @@
       33
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     9,
+     14,
+     24,
+     26,
+     32
+    ],
+    "predicted_special": 2,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-7155246",
@@ -1259,7 +1986,29 @@
       32
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     7,
+     23,
+     26,
+     28,
+     34
+    ],
+    "predicted_special": 1,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-7222423",
@@ -1296,7 +2045,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     6,
+     8,
+     11,
+     26
+    ],
+    "predicted_special": 7,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-7593425",
@@ -1333,7 +2104,29 @@
       28
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     2,
+     15,
+     20,
+     27,
+     34
+    ],
+    "predicted_special": 9,
+    "main_hits": 1,
+    "special_hit": true
+   }
   },
   {
    "id": "seed-7805308",
@@ -1370,7 +2163,29 @@
       31
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     1,
+     19,
+     24,
+     29,
+     30
+    ],
+    "predicted_special": 3,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-7901439",
@@ -1407,7 +2222,29 @@
       34
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     3,
+     8,
+     10,
+     23,
+     30
+    ],
+    "predicted_special": 8,
+    "main_hits": 0,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-9863974",
@@ -1444,7 +2281,29 @@
       33
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     5,
+     9,
+     18,
+     23,
+     30
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-9920742",
@@ -1481,7 +2340,29 @@
       28
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     1,
+     4,
+     8,
+     17,
+     33
+    ],
+    "predicted_special": 8,
+    "main_hits": 1,
+    "special_hit": false
+   }
   },
   {
    "id": "seed-10100257",
@@ -1518,7 +2399,29 @@
       32
      ]
     }
-   ]
+   ],
+   "last_result": {
+    "draw_id": 755,
+    "draw_date": "2026-07-11",
+    "actual": [
+     9,
+     11,
+     16,
+     20,
+     33
+    ],
+    "actual_special": 9,
+    "predicted": [
+     14,
+     15,
+     18,
+     26,
+     35
+    ],
+    "predicted_special": 7,
+    "main_hits": 0,
+    "special_hit": false
+   }
   }
  ]
 }
