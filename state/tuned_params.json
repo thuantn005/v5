@@ -1,3 +1,11 @@
 {
-  "uniform_seeded": {}
+  "uniform_seeded": {},
+  "momentum_seeded": {},
+  "momentum_pure": {},
+  "vedic_chakra": {},
+  "vedic_virahanka": {},
+  "ramanujan_sigma": {},
+  "aryabhata_cycle": {},
+  "neural_perceptron": {},
+  "indian_per_slot": {}
 }

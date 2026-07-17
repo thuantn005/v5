@@ -1,13 +1,69 @@
 {
-  "tuned_at": "2026-07-10T02:04:56.945189+00:00",
+  "tuned_at": "2026-07-17T08:39:26.866513+00:00",
   "train_fraction": 0.7,
   "results": {
     "uniform_seeded": {
       "chosen_params": {},
-      "train_avg_hits": 0.7146,
-      "holdout_avg_hits": 0.7788,
-      "train_draws": 466,
-      "holdout_draws": 226
+      "train_avg_hits": 0.7143,
+      "holdout_avg_hits": 0.7749,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "momentum_seeded": {
+      "chosen_params": {},
+      "train_avg_hits": 0.7017,
+      "holdout_avg_hits": 0.619,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "momentum_pure": {
+      "chosen_params": {},
+      "train_avg_hits": 0.7584,
+      "holdout_avg_hits": 0.7229,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "vedic_chakra": {
+      "chosen_params": {},
+      "train_avg_hits": 0.6723,
+      "holdout_avg_hits": 0.7576,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "vedic_virahanka": {
+      "chosen_params": {},
+      "train_avg_hits": 0.7521,
+      "holdout_avg_hits": 0.7229,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "ramanujan_sigma": {
+      "chosen_params": {},
+      "train_avg_hits": 0.6681,
+      "holdout_avg_hits": 0.71,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "aryabhata_cycle": {
+      "chosen_params": {},
+      "train_avg_hits": 0.6828,
+      "holdout_avg_hits": 0.6797,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "neural_perceptron": {
+      "chosen_params": {},
+      "train_avg_hits": 0.7689,
+      "holdout_avg_hits": 0.7446,
+      "train_draws": 476,
+      "holdout_draws": 231
+    },
+    "indian_per_slot": {
+      "chosen_params": {},
+      "train_avg_hits": 0.7479,
+      "holdout_avg_hits": 0.645,
+      "train_draws": 476,
+      "holdout_draws": 231
     }
   },
   "note": "Params are chosen on the TRAIN split only, then re-scored on a held-out VALIDATION split never used for selection. If holdout_avg_hits isn't consistently close to or above train_avg_hits across strategies, the 'best' params on train are likely just fitting noise -- expected for a genuinely random game."
