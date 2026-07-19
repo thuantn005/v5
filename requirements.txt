@@ -2,4 +2,4 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
 numpy>=1.24
-# tensorflow>=2.12  # bỏ comment để dùng LSTM TF thật (lstm_tf fallback numpy nếu không có)
+tensorflow>=2.12
