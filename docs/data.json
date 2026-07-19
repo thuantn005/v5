@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T20:11:09.489028+00:00",
+  "generated_at": "2026-07-19T21:24:47.042865+00:00",
   "latest_prediction": {
     "generated_at": "2026-07-19T16:39:26.791296+00:00",
     "based_on_draw_id": "00772",
@@ -156,6 +156,8 @@
   },
   "ticket_keys": [
     "ticket_neural",
+    "lstm_numpy",
+    "lstm_tf",
     "random_fair"
   ],
   "performance_over_time": {
@@ -202,6 +204,48 @@
         0.8824,
         0.8889
       ],
+      "lstm_numpy": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "lstm_tf": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
       "random_fair": [
         1.0,
         1.0,
@@ -226,6 +270,8 @@
     },
     "labels_by_key": {
       "ticket_neural": "Mạng nơ-ron (Perceptron)",
+      "lstm_numpy": "LSTM NumPy",
+      "lstm_tf": "LSTM TensorFlow",
       "random_fair": "Mốc so sánh công bằng"
     }
   },
