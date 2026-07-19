@@ -16,7 +16,7 @@ alongside random_fair so the comparison is always visible.
 """
 
 from model import MAIN_MIN, MAIN_MAX, SPECIAL_MIN, SPECIAL_MAX, MAIN_K, SPECIAL_K
-from strategies import neural_perceptron, pick_topk, dataset_fingerprint
+from strategies import neural_perceptron, pick_topk, dataset_fingerprint, lstm_numpy, lstm_tf
 
 
 def load_tuned_params():
@@ -37,16 +37,51 @@ def ensemble_predict(history, tuned_params=None):
     main_pick = pick_topk(np_main, MAIN_K)
     special_pick = pick_topk(np_spec, 1)[0]
 
+    # ── LSTM NumPy ──────────────────────────────────────────────────────────
+    try:
+        ln_main = lstm_numpy(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+        ln_spec = lstm_numpy(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+        ln_main_pick    = pick_topk(ln_main, MAIN_K)
+        ln_special_pick = pick_topk(ln_spec, 1)[0]
+        trace_ln = f"lotto535|lstm-numpy|target={target_draw_id}|data={fp}"
+        lstm_numpy_entry = {
+            "main": ln_main_pick, "special": ln_special_pick,
+            "trace": trace_ln, "label": "LSTM NumPy",
+        }
+    except Exception as _e:
+        import logging; logging.getLogger(__name__).warning("lstm_numpy failed: %s", _e)
+        lstm_numpy_entry = None
+
+    # ── LSTM TensorFlow (fallback numpy nếu không có TF) ────────────────────
+    try:
+        lt_main = lstm_tf(history, MAIN_MIN, MAIN_MAX, MAIN_K, False)
+        lt_spec = lstm_tf(history, SPECIAL_MIN, SPECIAL_MAX, SPECIAL_K, True)
+        lt_main_pick    = pick_topk(lt_main, MAIN_K)
+        lt_special_pick = pick_topk(lt_spec, 1)[0]
+        trace_lt = f"lotto535|lstm-tf|target={target_draw_id}|data={fp}"
+        lstm_tf_entry = {
+            "main": lt_main_pick, "special": lt_special_pick,
+            "trace": trace_lt, "label": "LSTM TensorFlow",
+        }
+    except Exception as _e:
+        import logging; logging.getLogger(__name__).warning("lstm_tf failed: %s", _e)
+        lstm_tf_entry = None
+
+    per_strategy = {
+        "ticket_neural": {
+            "main": main_pick, "special": special_pick,
+            "trace": trace_np, "label": "Mạng nơ-ron (Perceptron)",
+        },
+    }
+    if lstm_numpy_entry:
+        per_strategy["lstm_numpy"] = lstm_numpy_entry
+    if lstm_tf_entry:
+        per_strategy["lstm_tf"] = lstm_tf_entry
+
     return {
         "main_numbers": main_pick,
         "special_number": special_pick,
         "confidence": 0.0,
-        "per_strategy_picks": {
-            "ticket_neural": {
-                "main": main_pick,
-                "special": special_pick,
-                "trace": trace_np,
-                "label": "Mạng nơ-ron (Perceptron)",
-            }
-        },
+        "per_strategy_picks": per_strategy,
     }
+
