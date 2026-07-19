@@ -396,3 +396,42 @@ DEFAULT_PARAMS = {
     "neural_perceptron": {},
     "indian_per_slot": {},
 }
+
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LSTM models — thêm vào STRATEGIES + DEFAULT_PARAMS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def lstm_numpy(history, pool_min, pool_max, k, use_special=False, params=None):
+    """LSTM numpy thuần — không cần TensorFlow, chạy trên GitHub Actions.
+    Kiến trúc 1-lớp LSTM (H=24) + Adam. Refit mỗi 34 kỳ.
+    Honest caveat: p-value chưa có ý nghĩa thống kê — tương đương random."""
+    try:
+        from scripts.lstm_numpy_model import predict as _p
+    except ImportError:
+        from lstm_numpy_model import predict as _p
+    return _p(history, pool_min, pool_max, k, use_special, params)
+
+
+def lstm_tf(history, pool_min, pool_max, k, use_special=False, params=None):
+    """LSTM TensorFlow/Keras — 2 lớp LSTM (64→32) + dropout + early stopping.
+    Tự fallback về lstm_numpy nếu TF không có mặt.
+    Honest caveat: p-value chưa có ý nghĩa thống kê — tương đương random."""
+    try:
+        from scripts.lstm_tf_model import predict as _p
+    except ImportError:
+        from lstm_tf_model import predict as _p
+    return _p(history, pool_min, pool_max, k, use_special, params)
+
+
+STRATEGIES["lstm_numpy"] = lstm_numpy
+STRATEGIES["lstm_tf"]    = lstm_tf
+
+DEFAULT_PARAMS["lstm_numpy"] = {
+    "T": 20, "H": 24, "epochs": 80, "lr": 3e-3, "refit": 34,
+}
+DEFAULT_PARAMS["lstm_tf"] = {
+    "T": 20, "H1": 64, "H2": 32, "dropout": 0.2,
+    "epochs": 1000, "batch": 30, "patience": 200, "refit": 34,
+}
