@@ -1,48 +1,48 @@
 {
-  "generated_at": "2026-07-20T04:19:22.126399+00:00",
+  "generated_at": "2026-07-20T13:02:37.464412+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-20T04:19:16.969274+00:00",
-    "based_on_draw_id": "00772",
-    "based_on_draw_date": "2026-07-19",
-    "target_draw_id": "00773",
+    "generated_at": "2026-07-20T13:02:31.149402+00:00",
+    "based_on_draw_id": "00773",
+    "based_on_draw_date": "2026-07-20",
+    "target_draw_id": "00774",
     "ensemble": {
       "main": [
-        12,
+        3,
+        6,
+        14,
         16,
-        17,
-        24,
-        25
+        24
       ],
-      "special": 6,
+      "special": 2,
       "confidence": 0.0
     },
     "references": {
       "random_fair": {
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
         "main": [
-          12,
-          21,
-          24,
+          1,
+          8,
+          20,
           29,
           32
         ],
-        "special": 11,
-        "trace": "L535-00773-FAIR",
-        "seed": 773,
+        "special": 12,
+        "trace": "L535-00774-FAIR",
+        "seed": 774,
         "method": "rng = random.Random(seed); main = sorted(rng.sample(range(1, 36), 5)); special = rng.randint(1, 12)"
       },
       "random_repeat": {
         "label": "Chọn ngẫu nhiên (có thể lặp lại)",
         "main": [
-          8,
-          11,
-          19,
-          26,
-          33
+          1,
+          15,
+          20,
+          25,
+          27
         ],
-        "special": 1,
-        "trace": "L535-00773-REPEAT",
-        "seed": 1000773,
+        "special": 9,
+        "trace": "L535-00774-REPEAT",
+        "seed": 1000774,
         "method": "rng = random.Random(seed); main = sorted(rng.randint(1, 35) for _ in range(5)); special = rng.randint(1, 12)"
       },
       "nhanaz": {
@@ -63,119 +63,119 @@
     "per_strategy": {
       "ticket_neural": {
         "main": [
-          12,
+          3,
+          6,
+          14,
           16,
-          17,
-          24,
-          25
+          24
         ],
-        "special": 6,
+        "special": 2,
         "label": "Mạng nơ-ron (Perceptron)",
-        "trace": "lotto535|neural-perceptron|target=00773|data=29171e37b8b1"
+        "trace": "lotto535|neural-perceptron|target=00774|data=ebc814bf5f14"
       },
       "lstm_numpy": {
         "main": [
+          10,
           14,
           20,
           22,
-          28,
           34
         ],
         "special": 12,
         "label": "LSTM NumPy",
-        "trace": "lotto535|lstm-numpy|target=00773|data=29171e37b8b1"
+        "trace": "lotto535|lstm-numpy|target=00774|data=ebc814bf5f14"
       },
       "lstm_tf": {
         "main": [
           10,
           14,
           20,
-          30,
+          23,
           34
         ],
-        "special": 10,
+        "special": 11,
         "label": "LSTM TensorFlow",
-        "trace": "lotto535|lstm-tf|target=00773|data=29171e37b8b1"
+        "trace": "lotto535|lstm-tf|target=00774|data=ebc814bf5f14"
       },
       "random_fair": {
         "main": [
-          12,
-          21,
-          24,
+          1,
+          8,
+          20,
           29,
           32
         ],
-        "special": 11,
-        "trace": "L535-00773-FAIR",
+        "special": 12,
+        "trace": "L535-00774-FAIR",
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)"
       }
     },
     "notified": false,
-    "jackpot_vnd": 6644892500,
+    "jackpot_vnd": 6751232500,
     "resolved": false,
     "actual": null,
     "hits": null,
     "tickets": {
       "ticket_neural": {
         "main": [
-          12,
+          3,
+          6,
+          14,
           16,
-          17,
-          24,
-          25
+          24
         ],
-        "special": 6,
+        "special": 2,
         "label": "Mạng nơ-ron (Perceptron)",
-        "trace": "lotto535|neural-perceptron|target=00773|data=29171e37b8b1"
+        "trace": "lotto535|neural-perceptron|target=00774|data=ebc814bf5f14"
       },
       "lstm_numpy": {
         "main": [
+          10,
           14,
           20,
           22,
-          28,
           34
         ],
         "special": 12,
         "label": "LSTM NumPy",
-        "trace": "lotto535|lstm-numpy|target=00773|data=29171e37b8b1"
+        "trace": "lotto535|lstm-numpy|target=00774|data=ebc814bf5f14"
       },
       "lstm_tf": {
         "main": [
           10,
           14,
           20,
-          30,
+          23,
           34
         ],
-        "special": 10,
+        "special": 11,
         "label": "LSTM TensorFlow",
-        "trace": "lotto535|lstm-tf|target=00773|data=29171e37b8b1"
+        "trace": "lotto535|lstm-tf|target=00774|data=ebc814bf5f14"
       },
       "random_fair": {
         "main": [
-          12,
-          21,
-          24,
+          1,
+          8,
+          20,
           29,
           32
         ],
-        "special": 11,
+        "special": 12,
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
-        "trace": "L535-00773-FAIR",
+        "trace": "L535-00774-FAIR",
         "method": "rng = random.Random(seed); main = sorted(rng.sample(range(1, 36), 5)); special = rng.randint(1, 12)"
       },
       "random_repeat": {
         "main": [
-          8,
-          11,
-          19,
-          26,
-          33
+          1,
+          15,
+          20,
+          25,
+          27
         ],
-        "special": 1,
+        "special": 9,
         "label": "Chọn ngẫu nhiên (có thể lặp lại)",
-        "trace": "L535-00773-REPEAT",
+        "trace": "L535-00774-REPEAT",
         "method": "rng = random.Random(seed); main = sorted(rng.randint(1, 35) for _ in range(5)); special = rng.randint(1, 12)"
       },
       "nhanaz": {
@@ -193,13 +193,13 @@
       },
       "ensemble": {
         "main": [
-          12,
+          3,
+          6,
+          14,
           16,
-          17,
-          24,
-          25
+          24
         ],
-        "special": 6,
+        "special": 2,
         "label": "Ensemble"
       }
     }
@@ -230,7 +230,8 @@
       "00769",
       "00770",
       "00771",
-      "00772"
+      "00772",
+      "00773"
     ],
     "series": {
       "ticket_neural": [
@@ -252,7 +253,8 @@
         0.9333,
         0.875,
         0.8824,
-        0.8889
+        0.8889,
+        0.8421
       ],
       "lstm_numpy": [
         null,
@@ -273,7 +275,8 @@
         null,
         null,
         null,
-        null
+        null,
+        0.0
       ],
       "lstm_tf": [
         null,
@@ -294,7 +297,8 @@
         null,
         null,
         null,
-        null
+        null,
+        0.0
       ],
       "random_fair": [
         1.0,
@@ -315,7 +319,8 @@
         0.8125,
         0.7647,
         0.8333,
-        0.7895
+        0.7895,
+        0.75
       ]
     },
     "labels_by_key": {
@@ -328,20 +333,152 @@
   "ticket_accuracy": {
     "ticket_neural": {
       "label": "Mạng nơ-ron (Perceptron)",
-      "n": 18,
-      "avg_main_hits": 0.8889,
-      "special_hit_rate": 0.2222,
+      "n": 19,
+      "avg_main_hits": 0.8421,
+      "special_hit_rate": 0.2105,
+      "expected_random_main_hits": 0.7143
+    },
+    "lstm_numpy": {
+      "label": "LSTM NumPy",
+      "n": 1,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0,
+      "expected_random_main_hits": 0.7143
+    },
+    "lstm_tf": {
+      "label": "LSTM TensorFlow",
+      "n": 1,
+      "avg_main_hits": 0,
+      "special_hit_rate": 0,
       "expected_random_main_hits": 0.7143
     },
     "random_fair": {
       "label": "Mốc so sánh công bằng",
-      "n": 19,
-      "avg_main_hits": 0.7895,
+      "n": 20,
+      "avg_main_hits": 0.75,
       "special_hit_rate": 0,
       "expected_random_main_hits": 0.7143
     }
   },
   "draw_history": [
+    {
+      "target_draw_id": "00773",
+      "draw_date": "2026-07-20",
+      "actual_main": [
+        3,
+        8,
+        23,
+        27,
+        35
+      ],
+      "actual_special": 8,
+      "predictions": [
+        {
+          "label": "Ensemble",
+          "main": [
+            12,
+            16,
+            17,
+            24,
+            25
+          ],
+          "special": 6,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
+          "main": [
+            12,
+            21,
+            24,
+            29,
+            32
+          ],
+          "special": 11,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "Chọn ngẫu nhiên (có thể lặp lại)",
+          "main": [
+            8,
+            11,
+            19,
+            26,
+            33
+          ],
+          "special": 1,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "Giống nhanaz-data (đồng thuận công cụ tham khảo)",
+          "main": [
+            10,
+            12,
+            22,
+            27,
+            29
+          ],
+          "special": 9,
+          "main_hits": 1,
+          "special_hit": false
+        },
+        {
+          "label": "Mạng nơ-ron (Perceptron)",
+          "main": [
+            12,
+            16,
+            17,
+            24,
+            25
+          ],
+          "special": 6,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "LSTM NumPy",
+          "main": [
+            14,
+            20,
+            22,
+            28,
+            34
+          ],
+          "special": 12,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "LSTM TensorFlow",
+          "main": [
+            10,
+            14,
+            20,
+            30,
+            34
+          ],
+          "special": 10,
+          "main_hits": 0,
+          "special_hit": false
+        },
+        {
+          "label": "Mốc so sánh công bằng",
+          "main": [
+            12,
+            21,
+            24,
+            29,
+            32
+          ],
+          "special": 11,
+          "main_hits": 0,
+          "special_hit": false
+        }
+      ]
+    },
     {
       "target_draw_id": "00772",
       "draw_date": "2026-07-19",
