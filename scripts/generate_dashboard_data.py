@@ -120,10 +120,10 @@ def _normalize_latest(entry: dict) -> dict:
     for k, pick in (entry.get("per_strategy") or {}).items():
         if pick and pick.get("main") and pick.get("special") is not None:
             tickets[k] = {
-                "main": pick["main"],
+                "main":    pick["main"],
                 "special": pick["special"],
-                "label": pick.get("label") or TICKET_LABELS.get(k, k),
-                "trace": pick.get("trace"),
+                "label":   pick.get("label") or TICKET_LABELS.get(k, k),
+                "trace":   pick.get("trace"),
             }
     for k, ref in (entry.get("references") or {}).items():
         if ref and ref.get("main") and ref.get("special") is not None:
