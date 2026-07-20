@@ -232,7 +232,12 @@ def main():
 
     # --- Step 8: log the full prediction ---
     per_strategy_serializable = {
-        name: {"main": pick["main"], "special": pick["special"]}
+        name: {
+            "main":    pick["main"],
+            "special": pick["special"],
+            "label":   pick.get("label", name),
+            "trace":   pick.get("trace"),
+        }
         for name, pick in pred["per_strategy_picks"].items()
     }
     # Include random_fair in per_strategy so resolve_all() tracks its hits
