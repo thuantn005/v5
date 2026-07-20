@@ -433,5 +433,5 @@ DEFAULT_PARAMS["lstm_numpy"] = {
 }
 DEFAULT_PARAMS["lstm_tf"] = {
     "T": 20, "H1": 64, "H2": 32, "dropout": 0.2,
-    "epochs": 1000, "batch": 30, "patience": 200, "refit": 34,
+    "epochs": 200, "batch": 30, "patience": 30, "refit": 34,
 }
