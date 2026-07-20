@@ -104,17 +104,33 @@ def notify_perfect_wins(newly_resolved):
         )
 
 
-def notify_resolved_comparison(newly_resolved):
-    """Push a "đối chiếu kết quả" summary for every draw that just became
-    resolvable — ensemble + each strategy vs. the real numbers, with hit
-    counts. Driven by resolve_all()'s newly_resolved list, so if a slot was
-    skipped (e.g. cron-job.org dropped a run), the đối chiếu for that kỳ is
-    sent automatically the next time the pipeline runs, exactly once per
-    draw (the `resolved` flag prevents re-notifying)."""
+def notify_resolved_comparison(newly_resolved, latest_draw_id):
+    """Push a "đối chiếu kết quả" summary — but ONLY for kỳ bị lỡ nhịp, i.e. a
+    draw whose own timely run was skipped and is only being resolved late now.
+
+    Detection: at resolution time a strictly-newer draw already exists in the
+    data (int(target) < int(latest_draw_id)). The latest draw itself resolved
+    on time, so it is NOT reported here — per user's rule, an on-time kỳ only
+    notifies when it actually wins (notify_perfect_wins). Driven by
+    resolve_all()'s newly_resolved list, so a skipped kỳ is reported exactly
+    once (the `resolved` flag prevents re-notifying)."""
+    try:
+        latest = int(latest_draw_id)
+    except (TypeError, ValueError):
+        latest = None
+
     for entry in newly_resolved:
         actual = entry.get("actual") or {}
         hits = entry.get("hits") or {}
         if not actual or not hits:
+            continue
+
+        # Chỉ báo đối chiếu cho kỳ BỊ LỠ (đã có kỳ mới hơn khi resolve).
+        try:
+            is_missed = latest is not None and int(entry.get("target_draw_id")) < latest
+        except (TypeError, ValueError):
+            is_missed = False
+        if not is_missed:
             continue
 
         actual_main = "-".join(f"{n:02d}" for n in actual.get("main", []))
@@ -148,8 +164,9 @@ def notify_resolved_comparison(newly_resolved):
 
         ntfy_send(
             NTFY_TOPIC,
-            title=f"📊 Đối chiếu kỳ #{entry.get('target_draw_id')} ({actual.get('draw_date')})",
+            title=f"📊 Đối chiếu bù kỳ lỡ #{entry.get('target_draw_id')} ({actual.get('draw_date')})",
             message=(
+                f"(Kỳ này bị lỡ lịch tự động — đối chiếu bù)\n"
                 f"Kết quả thật: {actual_main} + đặc biệt {actual_special}\n\n"
                 + "\n".join(lines)
                 + f"\n\nCao nhất: {best} khớp. Mọi bộ số có xác suất như nhau — "
@@ -191,7 +208,7 @@ def main():
               f"Still resolving results and checking jackpot state.")
         newly = resolve_all()
         notify_perfect_wins(newly)
-        notify_resolved_comparison(newly)
+        notify_resolved_comparison(newly, draws[-1].draw_id)
         # Vẫn chạy jackpot state machine — reminder kỳ chia giải phải gửi
         # đúng ngày dù pipeline dedup bỏ qua bước predict.
         jackpot = check_jackpot(draws[-1].draw_date, draws[-1].draw_time,
@@ -332,7 +349,7 @@ def main():
     print("\n=== Resolving past predictions ===")
     newly = resolve_all()
     notify_perfect_wins(newly)
-    notify_resolved_comparison(newly)
+    notify_resolved_comparison(newly, last_draw.draw_id)
 
 
 if __name__ == "__main__":
