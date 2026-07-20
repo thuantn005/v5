@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-20T03:49:07.858031+00:00",
+  "generated_at": "2026-07-20T04:19:22.126399+00:00",
   "latest_prediction": {
-    "generated_at": "2026-07-19T16:39:26.791296+00:00",
+    "generated_at": "2026-07-20T04:19:16.969274+00:00",
     "based_on_draw_id": "00772",
     "based_on_draw_date": "2026-07-19",
     "target_draw_id": "00773",
@@ -69,7 +69,33 @@
           24,
           25
         ],
-        "special": 6
+        "special": 6,
+        "label": "Mạng nơ-ron (Perceptron)",
+        "trace": "lotto535|neural-perceptron|target=00773|data=29171e37b8b1"
+      },
+      "lstm_numpy": {
+        "main": [
+          14,
+          20,
+          22,
+          28,
+          34
+        ],
+        "special": 12,
+        "label": "LSTM NumPy",
+        "trace": "lotto535|lstm-numpy|target=00773|data=29171e37b8b1"
+      },
+      "lstm_tf": {
+        "main": [
+          10,
+          14,
+          20,
+          30,
+          34
+        ],
+        "special": 10,
+        "label": "LSTM TensorFlow",
+        "trace": "lotto535|lstm-tf|target=00773|data=29171e37b8b1"
       },
       "random_fair": {
         "main": [
@@ -100,7 +126,31 @@
         ],
         "special": 6,
         "label": "Mạng nơ-ron (Perceptron)",
-        "trace": null
+        "trace": "lotto535|neural-perceptron|target=00773|data=29171e37b8b1"
+      },
+      "lstm_numpy": {
+        "main": [
+          14,
+          20,
+          22,
+          28,
+          34
+        ],
+        "special": 12,
+        "label": "LSTM NumPy",
+        "trace": "lotto535|lstm-numpy|target=00773|data=29171e37b8b1"
+      },
+      "lstm_tf": {
+        "main": [
+          10,
+          14,
+          20,
+          30,
+          34
+        ],
+        "special": 10,
+        "label": "LSTM TensorFlow",
+        "trace": "lotto535|lstm-tf|target=00773|data=29171e37b8b1"
       },
       "random_fair": {
         "main": [

@@ -216,6 +216,54 @@
         "5": 0
       }
     },
+    "lstm_numpy": {
+      "n_backtested": 712,
+      "avg_main_hits": 0.6854,
+      "avg_main_hits_se": 0.0268,
+      "avg_main_hits_ci95": [
+        0.6329,
+        0.7379
+      ],
+      "expected_random_main_hits": 0.7143,
+      "diff_vs_random": -0.0289,
+      "p_value_vs_random": 0.2942,
+      "significant_at_0.05": false,
+      "significant_after_bonferroni": false,
+      "special_hit_rate": 0.0716,
+      "expected_random_special_rate": 0.0833,
+      "main_hit_distribution": {
+        "0": 319,
+        "1": 308,
+        "2": 75,
+        "3": 10,
+        "4": 0,
+        "5": 0
+      }
+    },
+    "lstm_tf": {
+      "n_backtested": 712,
+      "avg_main_hits": 0.6812,
+      "avg_main_hits_se": 0.0262,
+      "avg_main_hits_ci95": [
+        0.6298,
+        0.7326
+      ],
+      "expected_random_main_hits": 0.7143,
+      "diff_vs_random": -0.0331,
+      "p_value_vs_random": 0.2294,
+      "significant_at_0.05": false,
+      "significant_after_bonferroni": false,
+      "special_hit_rate": 0.0787,
+      "expected_random_special_rate": 0.0833,
+      "main_hit_distribution": {
+        "0": 317,
+        "1": 312,
+        "2": 76,
+        "3": 7,
+        "4": 0,
+        "5": 0
+      }
+    },
     "random_baseline": {
       "n_backtested": 7120,
       "avg_main_hits": 0.7107,
@@ -299,6 +347,10 @@
       "avg_main_hits": 0.698
     },
     {
+      "strategy": "lstm_numpy",
+      "avg_main_hits": 0.6854
+    },
+    {
       "strategy": "ramanujan_sigma",
       "avg_main_hits": 0.6826
     },
@@ -307,11 +359,15 @@
       "avg_main_hits": 0.6826
     },
     {
+      "strategy": "lstm_tf",
+      "avg_main_hits": 0.6812
+    },
+    {
       "strategy": "random_repeat",
       "avg_main_hits": 0.6677
     }
   ],
-  "n_hypotheses_tested": 9,
-  "bonferroni_alpha": 0.00556,
-  "note": "Rankings reflect avg main-number hits vs the exact random baseline (5/35 pick, expected 0.7143 hits), with a two-sided p-value and a 95% confidence interval (avg_main_hits_ci95). Across ~700 draws a genuinely random strategy still deviates by chance, and testing 9 strategies at once means ~1 would look 'significant' at 0.05 by luck alone -- so significant_after_bonferroni (alpha = 0.05/9 = 0.00556) is the honest bar; a CI that straddles 0.7143 means indistinguishable from random. random_repeat samples WITH replacement and should score BELOW the baseline (duplicates waste slots). None of these change the actual jackpot odds, fixed at 1-in-324,632 regardless of numbers chosen."
+  "n_hypotheses_tested": 11,
+  "bonferroni_alpha": 0.00455,
+  "note": "Rankings reflect avg main-number hits vs the exact random baseline (5/35 pick, expected 0.7143 hits), with a two-sided p-value and a 95% confidence interval (avg_main_hits_ci95). Across ~700 draws a genuinely random strategy still deviates by chance, and testing 11 strategies at once means ~1 would look 'significant' at 0.05 by luck alone -- so significant_after_bonferroni (alpha = 0.05/11 = 0.00455) is the honest bar; a CI that straddles 0.7143 means indistinguishable from random. random_repeat samples WITH replacement and should score BELOW the baseline (duplicates waste slots). None of these change the actual jackpot odds, fixed at 1-in-324,632 regardless of numbers chosen."
 }
