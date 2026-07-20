@@ -104,6 +104,62 @@ def notify_perfect_wins(newly_resolved):
         )
 
 
+def notify_resolved_comparison(newly_resolved):
+    """Push a "đối chiếu kết quả" summary for every draw that just became
+    resolvable — ensemble + each strategy vs. the real numbers, with hit
+    counts. Driven by resolve_all()'s newly_resolved list, so if a slot was
+    skipped (e.g. cron-job.org dropped a run), the đối chiếu for that kỳ is
+    sent automatically the next time the pipeline runs, exactly once per
+    draw (the `resolved` flag prevents re-notifying)."""
+    for entry in newly_resolved:
+        actual = entry.get("actual") or {}
+        hits = entry.get("hits") or {}
+        if not actual or not hits:
+            continue
+
+        actual_main = "-".join(f"{n:02d}" for n in actual.get("main", []))
+        asp = actual.get("special")
+        actual_special = f"{asp:02d}" if asp is not None else "??"
+
+        # Report the ensemble first, then each individual strategy (which
+        # already includes the fair random baseline). Skip the duplicated
+        # ref_* / legacy keys so the message stays clean.
+        report_keys = (["ensemble"] if "ensemble" in hits else []) + [
+            k for k in (entry.get("per_strategy") or {}) if k in hits
+        ]
+
+        def _label(key):
+            if key == "ensemble":
+                return "🧠 Ensemble"
+            return (entry.get("per_strategy") or {}).get(key, {}).get("label", key)
+
+        lines = []
+        best = 0
+        for key in report_keys:
+            h = hits.get(key) or {}
+            main_hits = int(h.get("main_hits", 0))
+            special_hit = bool(h.get("special_hit"))
+            best = max(best, main_hits + (1 if special_hit else 0))
+            main, special = _predicted_numbers(entry, key)
+            main_str = "-".join(f"{n:02d}" for n in (main or []))
+            sp_str = f"{special:02d}" if special is not None else "??"
+            mark = " 🎯ĐB" if special_hit else ""
+            lines.append(f"• {_label(key)}: {main_str} + {sp_str} → {main_hits}/5{mark}")
+
+        ntfy_send(
+            NTFY_TOPIC,
+            title=f"📊 Đối chiếu kỳ #{entry.get('target_draw_id')} ({actual.get('draw_date')})",
+            message=(
+                f"Kết quả thật: {actual_main} + đặc biệt {actual_special}\n\n"
+                + "\n".join(lines)
+                + f"\n\nCao nhất: {best} khớp. Mọi bộ số có xác suất như nhau — "
+                "chơi có trách nhiệm."
+            ),
+            priority="default",
+            tags="bar_chart",
+        )
+
+
 def load_draws():
     with open(DATA_PATH, newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
@@ -133,7 +189,9 @@ def main():
         print(f"Draw #{target_id_preview} was already predicted in an earlier "
               f"run today (primary/backup dedup) -- skipping prediction. "
               f"Still resolving results and checking jackpot state.")
-        notify_perfect_wins(resolve_all())
+        newly = resolve_all()
+        notify_perfect_wins(newly)
+        notify_resolved_comparison(newly)
         # Vẫn chạy jackpot state machine — reminder kỳ chia giải phải gửi
         # đúng ngày dù pipeline dedup bỏ qua bước predict.
         jackpot = check_jackpot(draws[-1].draw_date, draws[-1].draw_time,
@@ -269,9 +327,12 @@ def main():
         "hits": None,
     })
 
-    # --- Step 9: resolve past predictions (+ alert on any 5-main+special win) ---
+    # --- Step 9: resolve past predictions (+ alert on any 5-main+special win,
+    # + đối chiếu summary for every kỳ that just resolved, incl. skipped slots) ---
     print("\n=== Resolving past predictions ===")
-    notify_perfect_wins(resolve_all())
+    newly = resolve_all()
+    notify_perfect_wins(newly)
+    notify_resolved_comparison(newly)
 
 
 if __name__ == "__main__":
