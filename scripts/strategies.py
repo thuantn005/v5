@@ -411,7 +411,10 @@ def lstm_numpy(history, pool_min, pool_max, k, use_special=False, params=None):
         from scripts.lstm_numpy_model import predict as _p
     except ImportError:
         from lstm_numpy_model import predict as _p
-    return _p(history, pool_min, pool_max, k, use_special, params)
+    # Áp DEFAULT_PARAMS khi caller không truyền params (ensemble gọi params=None),
+    # để cấu hình nhẹ đã hiệu chỉnh thực sự có hiệu lực.
+    merged = {**DEFAULT_PARAMS.get("lstm_numpy", {}), **(params or {})}
+    return _p(history, pool_min, pool_max, k, use_special, merged)
 
 
 def lstm_tf(history, pool_min, pool_max, k, use_special=False, params=None):
@@ -422,7 +425,11 @@ def lstm_tf(history, pool_min, pool_max, k, use_special=False, params=None):
         from scripts.lstm_tf_model import predict as _p
     except ImportError:
         from lstm_tf_model import predict as _p
-    return _p(history, pool_min, pool_max, k, use_special, params)
+    # QUAN TRỌNG: ensemble gọi với params=None → nếu không merge ở đây, model sẽ
+    # rơi về _DEF nội bộ (epochs=1000) và gây timeout trên GitHub Actions. Merge
+    # DEFAULT_PARAMS (epochs=200, patience=30) để cấu hình nhẹ thực sự được dùng.
+    merged = {**DEFAULT_PARAMS.get("lstm_tf", {}), **(params or {})}
+    return _p(history, pool_min, pool_max, k, use_special, merged)
 
 
 STRATEGIES["lstm_numpy"] = lstm_numpy
