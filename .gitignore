@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# File số sạch do lstm_experiment.py --export-clean tạo ra (tái tạo được)
+lotto_data.csv
