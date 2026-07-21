@@ -1,0 +1,1833 @@
+{
+ "generated_at": "2026-07-21T14:49:04+00:00",
+ "next_draw": 774,
+ "prev_draw": 773,
+ "count": 50,
+ "disclaimer": "Mọi vé đều có xác suất trúng như nhau (1/324.632) — đây là các bộ số ngẫu nhiên có seed để tái lập & đối chiếu trung thực, KHÔNG có khả năng dự đoán. Chơi có trách nhiệm.",
+ "baselines": [
+  {
+   "id": "fair",
+   "name": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
+   "badge": "RANDOM",
+   "numbers": [
+    1,
+    8,
+    20,
+    29,
+    32
+   ],
+   "special": 12,
+   "trace": "L535-774-FAIR",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     12,
+     21,
+     24,
+     29,
+     32
+    ],
+    "predicted_special": 11,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "repeat",
+   "name": "Chọn ngẫu nhiên (có thể lặp lại)",
+   "badge": "RANDOM",
+   "numbers": [
+    1,
+    15,
+    20,
+    25,
+    27
+   ],
+   "special": 9,
+   "trace": "L535-774-REPEAT",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     11,
+     19,
+     26,
+     33
+    ],
+    "predicted_special": 1,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  }
+ ],
+ "tickets": [
+  {
+   "id": "R01",
+   "seed": 10000774,
+   "numbers": [
+    2,
+    5,
+    15,
+    20,
+    27
+   ],
+   "special": 1,
+   "trace": "L535-774-R01",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     7,
+     9,
+     13,
+     20
+    ],
+    "predicted_special": 10,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R02",
+   "seed": 20000774,
+   "numbers": [
+    1,
+    6,
+    8,
+    14,
+    19
+   ],
+   "special": 10,
+   "trace": "L535-774-R02",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     4,
+     9,
+     11,
+     22,
+     34
+    ],
+    "predicted_special": 12,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R03",
+   "seed": 30000774,
+   "numbers": [
+    6,
+    19,
+    32,
+    33,
+    34
+   ],
+   "special": 6,
+   "trace": "L535-774-R03",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     16,
+     17,
+     18,
+     20
+    ],
+    "predicted_special": 10,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R04",
+   "seed": 40000774,
+   "numbers": [
+    10,
+    16,
+    18,
+    27,
+    29
+   ],
+   "special": 7,
+   "trace": "L535-774-R04",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     6,
+     8,
+     24,
+     25,
+     34
+    ],
+    "predicted_special": 10,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R05",
+   "seed": 50000774,
+   "numbers": [
+    2,
+    12,
+    15,
+    17,
+    32
+   ],
+   "special": 2,
+   "trace": "L535-774-R05",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     15,
+     20,
+     25,
+     35
+    ],
+    "predicted_special": 2,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R06",
+   "seed": 60000774,
+   "numbers": [
+    3,
+    6,
+    16,
+    33,
+    34
+   ],
+   "special": 4,
+   "trace": "L535-774-R06",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     1,
+     7,
+     8,
+     12,
+     26
+    ],
+    "predicted_special": 2,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R07",
+   "seed": 70000774,
+   "numbers": [
+    5,
+    11,
+    16,
+    20,
+    28
+   ],
+   "special": 8,
+   "trace": "L535-774-R07",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     4,
+     22,
+     23,
+     24
+    ],
+    "predicted_special": 5,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R08",
+   "seed": 80000774,
+   "numbers": [
+    9,
+    12,
+    13,
+    24,
+    32
+   ],
+   "special": 12,
+   "trace": "L535-774-R08",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     2,
+     5,
+     8,
+     9,
+     35
+    ],
+    "predicted_special": 12,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R09",
+   "seed": 90000774,
+   "numbers": [
+    7,
+    10,
+    11,
+    24,
+    31
+   ],
+   "special": 10,
+   "trace": "L535-774-R09",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     1,
+     11,
+     16,
+     20,
+     33
+    ],
+    "predicted_special": 5,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R10",
+   "seed": 100000774,
+   "numbers": [
+    5,
+    10,
+    11,
+    20,
+    32
+   ],
+   "special": 11,
+   "trace": "L535-774-R10",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     6,
+     10,
+     23,
+     25,
+     33
+    ],
+    "predicted_special": 4,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R11",
+   "seed": 110000774,
+   "numbers": [
+    5,
+    9,
+    18,
+    24,
+    30
+   ],
+   "special": 11,
+   "trace": "L535-774-R11",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     9,
+     14,
+     21,
+     22
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R12",
+   "seed": 120000774,
+   "numbers": [
+    6,
+    24,
+    27,
+    30,
+    33
+   ],
+   "special": 7,
+   "trace": "L535-774-R12",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     12,
+     16,
+     20,
+     30
+    ],
+    "predicted_special": 12,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R13",
+   "seed": 130000774,
+   "numbers": [
+    7,
+    10,
+    17,
+    22,
+    30
+   ],
+   "special": 10,
+   "trace": "L535-774-R13",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     12,
+     13,
+     20,
+     31
+    ],
+    "predicted_special": 9,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R14",
+   "seed": 140000774,
+   "numbers": [
+    11,
+    16,
+    25,
+    33,
+    34
+   ],
+   "special": 3,
+   "trace": "L535-774-R14",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     4,
+     7,
+     13,
+     24
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R15",
+   "seed": 150000774,
+   "numbers": [
+    1,
+    7,
+    19,
+    20,
+    32
+   ],
+   "special": 2,
+   "trace": "L535-774-R15",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     1,
+     3,
+     9,
+     11,
+     15
+    ],
+    "predicted_special": 9,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R16",
+   "seed": 160000774,
+   "numbers": [
+    12,
+    14,
+    23,
+    24,
+    35
+   ],
+   "special": 1,
+   "trace": "L535-774-R16",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     1,
+     2,
+     12,
+     14,
+     23
+    ],
+    "predicted_special": 3,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R17",
+   "seed": 170000774,
+   "numbers": [
+    4,
+    17,
+    20,
+    28,
+    35
+   ],
+   "special": 1,
+   "trace": "L535-774-R17",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     17,
+     20,
+     30,
+     33
+    ],
+    "predicted_special": 3,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R18",
+   "seed": 180000774,
+   "numbers": [
+    9,
+    12,
+    15,
+    20,
+    23
+   ],
+   "special": 2,
+   "trace": "L535-774-R18",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     19,
+     21,
+     25,
+     28,
+     30
+    ],
+    "predicted_special": 7,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R19",
+   "seed": 190000774,
+   "numbers": [
+    20,
+    21,
+    23,
+    25,
+    32
+   ],
+   "special": 8,
+   "trace": "L535-774-R19",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     8,
+     18,
+     28,
+     34
+    ],
+    "predicted_special": 7,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R20",
+   "seed": 200000774,
+   "numbers": [
+    3,
+    8,
+    19,
+    25,
+    32
+   ],
+   "special": 1,
+   "trace": "L535-774-R20",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     7,
+     10,
+     15,
+     29,
+     30
+    ],
+    "predicted_special": 10,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R21",
+   "seed": 210000774,
+   "numbers": [
+    6,
+    13,
+    16,
+    17,
+    20
+   ],
+   "special": 11,
+   "trace": "L535-774-R21",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     18,
+     24,
+     28,
+     34
+    ],
+    "predicted_special": 1,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R22",
+   "seed": 220000774,
+   "numbers": [
+    12,
+    22,
+    27,
+    29,
+    32
+   ],
+   "special": 5,
+   "trace": "L535-774-R22",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     2,
+     3,
+     19,
+     24,
+     29
+    ],
+    "predicted_special": 7,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R23",
+   "seed": 230000774,
+   "numbers": [
+    4,
+    6,
+    24,
+    28,
+    35
+   ],
+   "special": 11,
+   "trace": "L535-774-R23",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     11,
+     14,
+     17,
+     32
+    ],
+    "predicted_special": 1,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R24",
+   "seed": 240000774,
+   "numbers": [
+    10,
+    18,
+    25,
+    28,
+    32
+   ],
+   "special": 10,
+   "trace": "L535-774-R24",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     11,
+     16,
+     26,
+     31,
+     34
+    ],
+    "predicted_special": 2,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R25",
+   "seed": 250000774,
+   "numbers": [
+    1,
+    11,
+    13,
+    15,
+    22
+   ],
+   "special": 5,
+   "trace": "L535-774-R25",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     8,
+     14,
+     24,
+     33
+    ],
+    "predicted_special": 3,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R26",
+   "seed": 260000774,
+   "numbers": [
+    14,
+    24,
+    25,
+    27,
+    31
+   ],
+   "special": 9,
+   "trace": "L535-774-R26",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     11,
+     26,
+     27,
+     30,
+     33
+    ],
+    "predicted_special": 1,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R27",
+   "seed": 270000774,
+   "numbers": [
+    20,
+    26,
+    29,
+    31,
+    34
+   ],
+   "special": 11,
+   "trace": "L535-774-R27",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     16,
+     18,
+     22,
+     30,
+     32
+    ],
+    "predicted_special": 5,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R28",
+   "seed": 280000774,
+   "numbers": [
+    10,
+    13,
+    18,
+    30,
+    35
+   ],
+   "special": 8,
+   "trace": "L535-774-R28",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     11,
+     19,
+     30,
+     34
+    ],
+    "predicted_special": 12,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R29",
+   "seed": 290000774,
+   "numbers": [
+    5,
+    8,
+    11,
+    15,
+    16
+   ],
+   "special": 7,
+   "trace": "L535-774-R29",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     6,
+     8,
+     14,
+     23,
+     33
+    ],
+    "predicted_special": 6,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R30",
+   "seed": 300000774,
+   "numbers": [
+    5,
+    15,
+    22,
+    28,
+    35
+   ],
+   "special": 8,
+   "trace": "L535-774-R30",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     1,
+     2,
+     8,
+     25,
+     29
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R31",
+   "seed": 310000774,
+   "numbers": [
+    14,
+    16,
+    17,
+    24,
+    29
+   ],
+   "special": 4,
+   "trace": "L535-774-R31",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     13,
+     16,
+     20,
+     26,
+     29
+    ],
+    "predicted_special": 3,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R32",
+   "seed": 320000774,
+   "numbers": [
+    4,
+    13,
+    16,
+    21,
+    35
+   ],
+   "special": 11,
+   "trace": "L535-774-R32",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     9,
+     18,
+     26,
+     32,
+     34
+    ],
+    "predicted_special": 8,
+    "main_hits": 0,
+    "special_hit": true
+   }
+  },
+  {
+   "id": "R33",
+   "seed": 330000774,
+   "numbers": [
+    3,
+    12,
+    24,
+    31,
+    32
+   ],
+   "special": 3,
+   "trace": "L535-774-R33",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     8,
+     13,
+     18,
+     24,
+     34
+    ],
+    "predicted_special": 4,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R34",
+   "seed": 340000774,
+   "numbers": [
+    2,
+    8,
+    16,
+    24,
+    29
+   ],
+   "special": 1,
+   "trace": "L535-774-R34",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     1,
+     23,
+     24,
+     30,
+     35
+    ],
+    "predicted_special": 8,
+    "main_hits": 2,
+    "special_hit": true
+   }
+  },
+  {
+   "id": "R35",
+   "seed": 350000774,
+   "numbers": [
+    6,
+    15,
+    17,
+    33,
+    34
+   ],
+   "special": 8,
+   "trace": "L535-774-R35",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     16,
+     28,
+     32,
+     33
+    ],
+    "predicted_special": 9,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R36",
+   "seed": 360000774,
+   "numbers": [
+    8,
+    13,
+    16,
+    26,
+    29
+   ],
+   "special": 4,
+   "trace": "L535-774-R36",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     18,
+     20,
+     23,
+     30,
+     34
+    ],
+    "predicted_special": 5,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R37",
+   "seed": 370000774,
+   "numbers": [
+    14,
+    15,
+    24,
+    29,
+    33
+   ],
+   "special": 9,
+   "trace": "L535-774-R37",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     9,
+     10,
+     18,
+     28
+    ],
+    "predicted_special": 6,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R38",
+   "seed": 380000774,
+   "numbers": [
+    8,
+    13,
+    18,
+    28,
+    34
+   ],
+   "special": 7,
+   "trace": "L535-774-R38",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     2,
+     5,
+     8,
+     13,
+     31
+    ],
+    "predicted_special": 8,
+    "main_hits": 1,
+    "special_hit": true
+   }
+  },
+  {
+   "id": "R39",
+   "seed": 390000774,
+   "numbers": [
+    9,
+    11,
+    21,
+    24,
+    28
+   ],
+   "special": 9,
+   "trace": "L535-774-R39",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     6,
+     13,
+     21,
+     29,
+     30
+    ],
+    "predicted_special": 1,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R40",
+   "seed": 400000774,
+   "numbers": [
+    3,
+    10,
+    11,
+    20,
+    30
+   ],
+   "special": 2,
+   "trace": "L535-774-R40",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     7,
+     8,
+     23,
+     24,
+     32
+    ],
+    "predicted_special": 8,
+    "main_hits": 2,
+    "special_hit": true
+   }
+  },
+  {
+   "id": "R41",
+   "seed": 410000774,
+   "numbers": [
+    7,
+    11,
+    23,
+    32,
+    34
+   ],
+   "special": 2,
+   "trace": "L535-774-R41",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     20,
+     25,
+     28,
+     29,
+     35
+    ],
+    "predicted_special": 12,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R42",
+   "seed": 420000774,
+   "numbers": [
+    9,
+    21,
+    22,
+    27,
+    28
+   ],
+   "special": 11,
+   "trace": "L535-774-R42",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     20,
+     21,
+     26,
+     30
+    ],
+    "predicted_special": 6,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R43",
+   "seed": 430000774,
+   "numbers": [
+    9,
+    13,
+    14,
+    19,
+    26
+   ],
+   "special": 4,
+   "trace": "L535-774-R43",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     6,
+     8,
+     23,
+     29,
+     32
+    ],
+    "predicted_special": 3,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R44",
+   "seed": 440000774,
+   "numbers": [
+    13,
+    14,
+    19,
+    20,
+    32
+   ],
+   "special": 4,
+   "trace": "L535-774-R44",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     14,
+     20,
+     30,
+     32
+    ],
+    "predicted_special": 8,
+    "main_hits": 1,
+    "special_hit": true
+   }
+  },
+  {
+   "id": "R45",
+   "seed": 450000774,
+   "numbers": [
+    1,
+    12,
+    16,
+    30,
+    32
+   ],
+   "special": 9,
+   "trace": "L535-774-R45",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     2,
+     7,
+     8,
+     11,
+     33
+    ],
+    "predicted_special": 7,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R46",
+   "seed": 460000774,
+   "numbers": [
+    5,
+    6,
+    16,
+    20,
+    26
+   ],
+   "special": 11,
+   "trace": "L535-774-R46",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     17,
+     21,
+     22,
+     32
+    ],
+    "predicted_special": 6,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R47",
+   "seed": 470000774,
+   "numbers": [
+    1,
+    16,
+    20,
+    22,
+    28
+   ],
+   "special": 12,
+   "trace": "L535-774-R47",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     4,
+     25,
+     30,
+     31,
+     34
+    ],
+    "predicted_special": 10,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R48",
+   "seed": 480000774,
+   "numbers": [
+    7,
+    13,
+    19,
+    20,
+    30
+   ],
+   "special": 11,
+   "trace": "L535-774-R48",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     5,
+     15,
+     18,
+     21,
+     26
+    ],
+    "predicted_special": 11,
+    "main_hits": 0,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R49",
+   "seed": 490000774,
+   "numbers": [
+    11,
+    15,
+    19,
+    24,
+    30
+   ],
+   "special": 3,
+   "trace": "L535-774-R49",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     3,
+     6,
+     21,
+     29,
+     35
+    ],
+    "predicted_special": 1,
+    "main_hits": 2,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "R50",
+   "seed": 500000774,
+   "numbers": [
+    8,
+    10,
+    11,
+    27,
+    35
+   ],
+   "special": 3,
+   "trace": "L535-774-R50",
+   "last_result": {
+    "draw_id": 773,
+    "draw_date": "2026-07-20",
+    "actual": [
+     3,
+     8,
+     23,
+     27,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     9,
+     17,
+     19,
+     21,
+     35
+    ],
+    "predicted_special": 11,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  }
+ ]
+}

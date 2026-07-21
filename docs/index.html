@@ -219,6 +219,7 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 </div>
 
 <div id="model-predictions"></div>
+<div id="random-tickets"></div>
 <div id="jackpot-pin"></div>
 <div id="app"><div class="loading">Đang tải dữ liệu…</div></div>
 <div id="jackpot-archive"></div>
@@ -236,7 +237,7 @@ function histLine(h, withSpecial) {
   return `<span class="hid">#${h.draw_id}</span> <span style="opacity:.7">${h.date}</span>: ${nums}${sp}`;
 }
 
-function compareBlock(lr, withSpecial) {
+function compareBlock(lr, withSpecial, predLabel) {
   if (!lr) return '';
   const actualSet = new Set(lr.actual);
   const predBalls = lr.predicted.map(n => sm(n, actualSet.has(n))).join('');
@@ -249,7 +250,7 @@ function compareBlock(lr, withSpecial) {
   return `<div class="cmp">
     <div class="block-label" style="margin-top:0">Đối chiếu kỳ #${lr.draw_id} (vừa quay)</div>
     <div class="row"><span class="tag">Kết quả</span><span style="color:var(--green)">✅ ${actNums}</span></div>
-    <div class="row"><span class="tag">Vé config</span>${predBalls}<span class="plus">+</span>${predSp}
+    <div class="row"><span class="tag">${predLabel || 'Vé config'}</span>${predBalls}<span class="plus">+</span>${predSp}
       <span class="score ${won?'win':(lr.main_hits>0?'':'')}">${score}</span></div>
   </div>`;
 }
@@ -361,66 +362,64 @@ function mpBall(n, sp) {
   return '<div class="mp-ball ' + (sp?'sp':'') + '">' + String(n).padStart(2,'0') + '</div>';
 }
 
-var MP_META = {
-  ticket_neural: { label:"Mạng nơ-ron (Perceptron)", cls:"neural",  badgeCls:"badge-neural",  badgeTxt:"NEURAL",  sub:"Transition weight matrix W — 100 kỳ gần nhất" },
-  lstm_numpy:    { label:"LSTM NumPy",                cls:"lstm-np", badgeCls:"badge-lstm-np", badgeTxt:"LSTM",    sub:"LSTM 1 lớp (H=24) · numpy thuần · không cần TensorFlow" },
-  lstm_tf:       { label:"LSTM TensorFlow",           cls:"lstm-tf", badgeCls:"badge-lstm-tf", badgeTxt:"LSTM TF", sub:"LSTM 2 lớp (64→32) · Keras · fallback numpy nếu không có TF" },
-  random_fair:   { label:"Mốc so sánh công bằng",    cls:"random",  badgeCls:"badge-random",  badgeTxt:"RANDOM",  sub:"Ngẫu nhiên có seed — baseline trung thực để so sánh" },
-};
-var MP_ORDER = ["ticket_neural","lstm_numpy","lstm_tf","random_fair"];
+// ── 2 mục ngẫu nhiên + N vé ngẫu nhiên có seed, mỗi vé kèm đối chiếu ──
+function ticketCard(t) {
+  var balls = t.numbers.map(function(n){ return b(n); }).join('') +
+    '<span class="plus">+</span>' + b(t.special, 'sp');
+  var nameHtml = t.name
+    ? '<div class="mp-name">' + esc(t.name) +
+        (t.badge ? '<span class="badge badge-random">' + esc(t.badge) + '</span>' : '') + '</div>'
+    : '<div class="mp-name">Vé ' + esc(t.id) + '</div>';
+  var traceHtml = t.trace ? '<div class="mp-trace">🔑 ' + esc(t.trace) + '</div>' : '';
+  return '<div class="card">' + nameHtml +
+    '<div class="block-label" style="margin-top:8px">Vé kỳ tới</div>' +
+    '<div class="balls">' + balls + '</div>' +
+    compareBlock(t.last_result, true, 'Vé') +
+    traceHtml + '</div>';
+}
 
-function renderModelPredictions(data) {
-  var host = document.getElementById('model-predictions');
-  if (!host) return;
-  var latest = data && data.latest_prediction;
-  if (!latest) { host.innerHTML = ''; return; }
+function renderRandomTickets(rt) {
+  var baseHost = document.getElementById('model-predictions');
+  var host = document.getElementById('random-tickets');
+  if (!rt) {
+    if (baseHost) baseHost.innerHTML = '';
+    if (host) host.innerHTML = '';
+    return;
+  }
+  var gen = rt.generated_at ? new Date(rt.generated_at).toLocaleString('vi-VN') : '—';
 
-  var tickets = latest.tickets || {};
-  var ps = latest.per_strategy || {};
-  Object.keys(ps).forEach(function(k) { if (!tickets[k] && ps[k] && ps[k].main) tickets[k] = ps[k]; });
+  if (baseHost) {
+    var baseCards = (rt.baselines || []).map(ticketCard).join('');
+    baseHost.innerHTML =
+      '<div class="mp-head">' +
+        '<div class="mp-title">🎲 Mục ngẫu nhiên — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
+        '<div class="mp-meta">Cập nhật: ' + gen + '</div>' +
+      '</div>' +
+      '<div class="grid">' + (baseCards || '<div class="mp-no-data">Chưa có dữ liệu.</div>') + '</div>';
+  }
 
-  var drawId = latest.target_draw_id || '—';
-  var gen = latest.generated_at ? new Date(latest.generated_at).toLocaleString('vi-VN') : '—';
-
-  var order = MP_ORDER.slice();
-  Object.keys(tickets).forEach(function(k) { if (order.indexOf(k) === -1) order.push(k); });
-
-  var cards = order.map(function(k) {
-    var t = tickets[k];
-    if (!t || !t.main || t.main.length === 0) return '';
-    var meta = MP_META[k] || { label:k, cls:'', badgeCls:'badge-random', badgeTxt:'', sub:'' };
-    var balls = t.main.map(function(n){ return mpBall(n, false); }).join('') +
-      '<span class="plus" style="color:var(--muted);margin:0 3px">+</span>' +
-      mpBall(t.special, true);
-    var traceHtml = t.trace ? '<div class="mp-trace">🔑 ' + esc(t.trace) + '</div>' : '';
-    return '<div class="mp-card ' + meta.cls + '">' +
-      '<div class="mp-name">' + esc(t.label || meta.label) +
-        '<span class="badge ' + meta.badgeCls + '">' + meta.badgeTxt + '</span></div>' +
-      '<div class="mp-sub">' + meta.sub + '</div>' +
-      '<div class="mp-balls-row">' + balls + '</div>' +
-      traceHtml +
-      '</div>';
-  }).join('');
-
-  host.innerHTML =
-    '<div class="mp-head">' +
-      '<div class="mp-title">🤖 Dự đoán tất cả model — kỳ #' + esc(String(drawId)) + '</div>' +
-      '<div class="mp-meta">Cập nhật: ' + gen + '</div>' +
-    '</div>' +
-    '<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px;">⚠️ Không model nào vượt baseline ngẫu nhiên có ý nghĩa thống kê. Hiển thị đầy đủ để so sánh trung thực, không phải để gợi ý đầu tư.</div>' +
-    '<div class="mp-grid">' + (cards || '<div class="mp-no-data">Chưa có dữ liệu dự đoán.</div>') + '</div>';
+  if (host) {
+    var cards = (rt.tickets || []).map(ticketCard).join('');
+    host.innerHTML =
+      '<div class="mp-head" style="margin-top:24px">' +
+        '<div class="mp-title">🎟️ ' + (rt.count || 0) + ' vé ngẫu nhiên có seed — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
+        '<div class="mp-meta">mỗi vé kèm đối chiếu kỳ #' + esc(String(rt.prev_draw)) + '</div>' +
+      '</div>' +
+      '<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px;">⚠️ ' + esc(rt.disclaimer || '') + '</div>' +
+      '<div class="grid">' + (cards || '<div class="mp-no-data">Chưa có vé.</div>') + '</div>';
+  }
 }
 
 async function main() {
   try {
-    const [j1, j2, wins, mlData] = await Promise.all([
+    const [j1, j2, wins, rtData] = await Promise.all([
       fetch('j1_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
       fetch('config_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
       fetch('jackpot_wins.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('data.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('random_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     renderPin(wins);
-    renderModelPredictions(mlData);
+    renderRandomTickets(rtData);
     renderArchive(wins);
     const gen = (j2 && j2.generated_at) || (j1 && j1.generated_at);
     document.getElementById('gen-time').textContent =

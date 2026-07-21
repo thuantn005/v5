@@ -69,10 +69,13 @@ jobs:
       - name: Generate J1 config tickets for dashboard (Jackpot 1 – 5 mains + special)
         run: python scripts/gen_j1_tickets.py --csv data/all.csv --out docs/j1_tickets.json --reverify
 
+      - name: Generate 50 seeded random tickets (+ 2 baselines) for dashboard
+        run: python scripts/gen_random_tickets.py --csv data/all.csv --out docs/random_tickets.json
+
       - name: Commit updated data, logs & dashboard
         run: |
           git config user.name "lotto535-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/all.csv state/ docs/data.json docs/config_tickets.json docs/j1_tickets.json docs/jackpot_wins.json
+          git add data/all.csv state/ docs/data.json docs/config_tickets.json docs/j1_tickets.json docs/jackpot_wins.json docs/random_tickets.json
           git diff --cached --quiet || git commit -m "chore: update data, model logs & dashboard [skip ci]"
           git push
