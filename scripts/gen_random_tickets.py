@@ -171,15 +171,26 @@ def _recent_ids(draws: dict, upto_draw: int, n: int):
 
 
 def _recent_stats(gen_fn, idx: int, draws: dict, recent_ids) -> dict:
-    total = sp = cnt = 0
+    """Thống kê chỉ tính TRÚNG khi khớp >=3 số chính (giải thấp nhất)."""
+    cnt = sp = best = 0
+    tier = {3: 0, 4: 0, 5: 0}
     for d in recent_ids:
         main, special = gen_fn(idx, d)
         c = _compare(main, special, d, draws)
         if c:
-            total += c["main_hits"]
-            sp += 1 if c["special_hit"] else 0
             cnt += 1
-    return {"n": cnt, "avg_main_hits": round(total / cnt, 3) if cnt else 0.0, "special_hits": sp}
+            mh = c["main_hits"]
+            best = max(best, mh)
+            if mh >= 3:
+                tier[mh] = tier.get(mh, 0) + 1
+            if c["special_hit"]:
+                sp += 1
+    return {
+        "n": cnt,
+        "wins": tier[3] + tier[4] + tier[5],  # số lần trúng >=3 số
+        "tier3": tier[3], "tier4": tier[4], "tier5": tier[5],
+        "best": best, "special_hits": sp,
+    }
 
 
 def _build_ticket(gen_fn, idx: int, next_draw: int, prev_draw: int, draws: dict,
@@ -195,10 +206,11 @@ def _build_ticket(gen_fn, idx: int, next_draw: int, prev_draw: int, draws: dict,
 
 
 def _rank(t):
+    """Xếp hạng: SỐ LẦN trúng >=3 số nhiều nhất lên đầu, rồi tới hạng giải cao,
+    rồi số khớp tốt nhất và trúng ĐB."""
     r = t.get("recent") or {}
-    lr = t.get("last_result") or {}
-    return (r.get("avg_main_hits", 0), r.get("special_hits", 0),
-            lr.get("main_hits", 0), 1 if lr.get("special_hit") else 0)
+    tierscore = r.get("tier5", 0) * 1000 + r.get("tier4", 0) * 100 + r.get("tier3", 0) * 10
+    return (r.get("wins", 0), tierscore, r.get("best", 0), r.get("special_hits", 0))
 
 
 def main():
