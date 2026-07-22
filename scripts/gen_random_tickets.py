@@ -30,7 +30,7 @@ from references import _fair_from_seed, _repeat_from_seed, REPEAT_SEED_OFFSET  #
 # Mỗi vé thứ i có seed lệch i * STRIDE (đủ lớn để các seed không chồng nhau
 # giữa fair/repeat và baseline).
 TICKET_SEED_STRIDE = 10_000_000
-N_FAIR = 50
+N_FAIR = 500
 N_REPEAT = 500
 RECENT_N = 20  # số kỳ gần nhất để tính thống kê
 
