@@ -427,8 +427,7 @@ async function main() {
       + ' · so sánh trực tiếp vé của từng config với kết quả thực';
 
     const html =
-      collection(j1, true,  'Jackpot 1 · 5 số + ĐB', '🏆') +
-      collection(j2, false, 'Jackpot 2 · 5/5 số chính', '🎯');
+      collection(j1, true,  'Jackpot 1 · 5 số + ĐB', '🏆');
     document.getElementById('app').innerHTML = html ||
       '<div class="error">Chưa có dữ liệu config. Sẽ có sau lần chạy pipeline đầu tiên.</div>';
   } catch (e) {
