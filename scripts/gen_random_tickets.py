@@ -28,7 +28,7 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from references import _fair_from_seed, _repeat_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
+from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
@@ -58,12 +58,12 @@ def _load_draws(csv_path: str) -> dict[int, dict]:
     return draws
 
 
-# ── Vé ngẫu nhiên thuần (fair / repeat) ──────────────────────────────────────
-def _gen_random(method: str, idx: int, draw_id: int):
-    if method == "fair":
-        t = _fair_from_seed(draw_id + idx * TICKET_SEED_STRIDE)
-    else:  # repeat (có lặp)
-        t = _repeat_from_seed(draw_id + REPEAT_SEED_OFFSET + idx * TICKET_SEED_STRIDE)
+# ── Vé ngẫu nhiên (LUÔN 5 số khác nhau — hợp lệ) ─────────────────────────────
+def _gen_distinct(offset: int, idx: int, draw_id: int):
+    """Vé 5 SỐ KHÁC NHAU, tái lập từ seed = draw_id + offset + idx*STRIDE.
+    'Lặp lại' được điều khiển ở mức NHÓM (cho phép trùng vé hay không), KHÔNG
+    phải bằng cách nhét số trùng vào một vé."""
+    t = _fair_from_seed(draw_id + offset + idx * TICKET_SEED_STRIDE)
     return t["main"], t["special"]
 
 
@@ -219,48 +219,58 @@ def main():
     prev_draw = next_draw - 1
     recent_ids = _recent_ids(draws, prev_draw, a.recent_n)
 
-    def gen_random(method):
-        return lambda idx, d: _gen_random(method, idx, d)
+    def distinct_gen(offset):
+        return lambda idx, d: _gen_distinct(offset, idx, d)
 
-    fair_gen = gen_random("fair")
-    repeat_gen = gen_random("repeat")
+    fair_gen = distinct_gen(0)                     # nhóm KHÔNG trùng vé
+    repeat_gen = distinct_gen(REPEAT_SEED_OFFSET)  # nhóm CHO PHÉP trùng vé
     # vé dấu hiệu cần trọng số ở next_draw + tất cả kỳ dùng cho thống kê
     signal_gen = _make_signal_gen(draws, set([next_draw]) | set(recent_ids))
 
-    def build_group(gen_fn, count, prefix, offset_base):
-        items = [
-            _build_ticket(gen_fn, i, next_draw, prev_draw, draws, f"{prefix}{i:03d}",
-                          recent_ids, next_draw + offset_base + i * TICKET_SEED_STRIDE)
-            for i in range(1, count + 1)
-        ]
+    def build_group(gen_fn, count, prefix, offset_base, *, unique):
+        """unique=True: bỏ các vé TRÙNG NHAU (theo bộ số kỳ tới) -> 500 vé khác
+        nhau. unique=False: giữ nguyên, cho phép trùng vé."""
+        items, seen, i = [], set(), 0
+        while len(items) < count and i < count * 20:
+            i += 1
+            main, sp = gen_fn(i, next_draw)
+            if unique:
+                key = (tuple(main), sp)
+                if key in seen:
+                    continue
+                seen.add(key)
+            tid = f"{prefix}{len(items) + 1:03d}"
+            items.append(_build_ticket(gen_fn, i, next_draw, prev_draw, draws, tid,
+                                       recent_ids, next_draw + offset_base + i * TICKET_SEED_STRIDE))
         items.sort(key=_rank, reverse=True)  # vé trúng nhiều lên đầu
         return items
 
-    fair_tickets = build_group(fair_gen, a.fair, "F", 0)
-    repeat_tickets = build_group(repeat_gen, a.repeat, "R", REPEAT_SEED_OFFSET)
-    signal_tickets = build_group(signal_gen, a.signal, "S", SIGNAL_SEED_OFFSET)
+    fair_tickets = build_group(fair_gen, a.fair, "F", 0, unique=True)
+    repeat_tickets = build_group(repeat_gen, a.repeat, "R", REPEAT_SEED_OFFSET, unique=False)
+    signal_tickets = build_group(signal_gen, a.signal, "S", SIGNAL_SEED_OFFSET, unique=False)
 
-    # baseline (idx=0)
+    # baseline (idx=0) — cũng là 5 số khác nhau hợp lệ
     baselines = [
         {**_build_ticket(fair_gen, 0, next_draw, prev_draw, draws, "FAIR", recent_ids, next_draw),
-         "name": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)", "badge": "RANDOM"},
+         "name": "Mốc so sánh công bằng (5 số khác nhau)", "badge": "RANDOM"},
         {**_build_ticket(repeat_gen, 0, next_draw, prev_draw, draws, "REPEAT", recent_ids,
                          next_draw + REPEAT_SEED_OFFSET),
-         "name": "Chọn ngẫu nhiên (có thể lặp lại)", "badge": "RANDOM"},
+         "name": "Chọn ngẫu nhiên (có thể trùng vé)", "badge": "RANDOM"},
     ]
 
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "next_draw": next_draw, "prev_draw": prev_draw, "recent_n": a.recent_n,
-        "disclaimer": ("Mọi vé đều có xác suất trúng như nhau (1/324.632). Các 'dấu hiệu lịch "
-                       "sử' KHÔNG tạo lợi thế dự đoán (kỳ quay độc lập) — chỉ là cách chọn số "
-                       "có hệ thống, tái lập & đối chiếu được. Chơi có trách nhiệm."),
+        "disclaimer": ("Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ) — 'lặp lại' nghĩa là có thể "
+                       "trùng VÉ, KHÔNG phải trùng số trong một vé. Mọi vé có xác suất trúng "
+                       "như nhau (1/324.632); các 'dấu hiệu lịch sử' KHÔNG tạo lợi thế dự đoán "
+                       "(kỳ quay độc lập). Chơi có trách nhiệm."),
         "baselines": baselines,
         "groups": [
-            {"label": f"{len(fair_tickets)} vé ngẫu nhiên KHÔNG lặp", "method": "fair",
-             "tickets": fair_tickets},
-            {"label": f"{len(repeat_tickets)} vé ngẫu nhiên CÓ lặp", "method": "repeat",
-             "tickets": repeat_tickets},
+            {"label": f"{len(fair_tickets)} vé KHÔNG trùng nhau", "method": "fair",
+             "note": "500 vé khác nhau · mỗi vé 5 số khác nhau", "tickets": fair_tickets},
+            {"label": f"{len(repeat_tickets)} vé ngẫu nhiên (cho phép TRÙNG VÉ)", "method": "repeat",
+             "note": "cho phép 2 vé trùng nhau · mỗi vé vẫn 5 số khác nhau", "tickets": repeat_tickets},
             {"label": f"{len(signal_tickets)} vé kết hợp 3 dấu hiệu lịch sử",
              "note": "nóng (tần suất) · quá hạn (lâu chưa ra) · đồng hành (hay ra cùng kỳ gần nhất)",
              "method": "signal", "tickets": signal_tickets},
