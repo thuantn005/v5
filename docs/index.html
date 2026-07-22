@@ -363,6 +363,16 @@ function mpBall(n, sp) {
 }
 
 // ── 2 mục ngẫu nhiên + N vé ngẫu nhiên có seed, mỗi vé kèm đối chiếu ──
+function statBlock(rec) {
+  if (!rec) return '';
+  var avg = (rec.avg_main_hits != null ? rec.avg_main_hits : 0).toFixed(3);
+  return '<div class="block-label">Thống kê ' + (rec.n || 0) + ' kỳ gần nhất</div>' +
+    '<div class="record">' +
+      '<span class="stat"><b>' + avg + '</b> <span>số/kỳ khớp TB</span></span>' +
+      '<span class="stat"><b>' + (rec.special_hits || 0) + '</b> <span>lần trúng ĐB</span></span>' +
+    '</div>';
+}
+
 function ticketCard(t) {
   var balls = t.numbers.map(function(n){ return b(n); }).join('') +
     '<span class="plus">+</span>' + b(t.special, 'sp');
@@ -374,6 +384,7 @@ function ticketCard(t) {
   return '<div class="card">' + nameHtml +
     '<div class="block-label" style="margin-top:8px">Vé kỳ tới</div>' +
     '<div class="balls">' + balls + '</div>' +
+    statBlock(t.recent) +
     compareBlock(t.last_result, true, 'Vé') +
     traceHtml + '</div>';
 }
@@ -399,14 +410,20 @@ function renderRandomTickets(rt) {
   }
 
   if (host) {
-    var cards = (rt.tickets || []).map(ticketCard).join('');
-    host.innerHTML =
-      '<div class="mp-head" style="margin-top:24px">' +
-        '<div class="mp-title">🎟️ ' + (rt.count || 0) + ' vé ngẫu nhiên có seed — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
-        '<div class="mp-meta">mỗi vé kèm đối chiếu kỳ #' + esc(String(rt.prev_draw)) + '</div>' +
-      '</div>' +
-      '<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px;">⚠️ ' + esc(rt.disclaimer || '') + '</div>' +
-      '<div class="grid">' + (cards || '<div class="mp-no-data">Chưa có vé.</div>') + '</div>';
+    // Hỗ trợ cả định dạng cũ (rt.tickets) lẫn mới (rt.groups).
+    var groups = rt.groups || (rt.tickets ? [{ label: 'Vé ngẫu nhiên', tickets: rt.tickets }] : []);
+    var html = '';
+    groups.forEach(function(g, gi) {
+      var cards = (g.tickets || []).map(ticketCard).join('');
+      html +=
+        '<div class="mp-head" style="margin-top:24px">' +
+          '<div class="mp-title">🎟️ ' + esc(g.label) + ' — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
+          '<div class="mp-meta">mỗi vé kèm thống kê + đối chiếu kỳ #' + esc(String(rt.prev_draw)) + '</div>' +
+        '</div>' +
+        (gi === 0 ? '<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px;">⚠️ ' + esc(rt.disclaimer || '') + '</div>' : '') +
+        '<div class="grid">' + (cards || '<div class="mp-no-data">Chưa có vé.</div>') + '</div>';
+    });
+    host.innerHTML = html;
   }
 }
 
