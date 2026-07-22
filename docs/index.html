@@ -415,10 +415,12 @@ function renderRandomTickets(rt) {
     var html = '';
     groups.forEach(function(g, gi) {
       var cards = (g.tickets || []).map(ticketCard).join('');
+      var noteHtml = g.note ? '<div class="mp-meta" style="width:100%">🔎 ' + esc(g.note) + '</div>' : '';
       html +=
         '<div class="mp-head" style="margin-top:24px">' +
           '<div class="mp-title">🎟️ ' + esc(g.label) + ' — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
           '<div class="mp-meta">sắp xếp: trúng nhiều → ít · mỗi vé kèm thống kê + đối chiếu kỳ #' + esc(String(rt.prev_draw)) + '</div>' +
+          noteHtml +
         '</div>' +
         (gi === 0 ? '<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px;">⚠️ ' + esc(rt.disclaimer || '') + '</div>' : '') +
         '<div class="grid">' + (cards || '<div class="mp-no-data">Chưa có vé.</div>') + '</div>';

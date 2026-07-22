@@ -1,38 +1,44 @@
 #!/usr/bin/env python3
-"""gen_random_tickets.py — sinh các nhóm vé ngẫu nhiên có seed cho dashboard.
+"""gen_random_tickets.py — sinh các nhóm vé có seed cho dashboard.
 
 Xuất docs/random_tickets.json gồm:
   - 2 mục ngẫu nhiên (baseline): fair (không lặp) + repeat (có lặp).
-  - Nhóm "không lặp": N_FAIR vé (mặc định 50), 5 số phân biệt.
-  - Nhóm "có lặp":   N_REPEAT vé (mặc định 500), 5 số cho phép trùng.
+  - Nhóm "không lặp": N_FAIR vé, 5 số phân biệt (ngẫu nhiên đều).
+  - Nhóm "có lặp":   N_REPEAT vé, 5 số cho phép trùng.
+  - Nhóm "kết hợp 3 dấu hiệu lịch sử": N_SIGNAL vé, lấy mẫu theo trọng số kết
+    hợp: (1) SỐ NÓNG (tần suất), (2) SỐ QUÁ HẠN (lâu chưa ra), (3) SỐ ĐỒNG HÀNH
+    (hay xuất hiện cùng nhóm số của kỳ gần nhất). Tính walk-forward: mỗi kỳ chỉ
+    dùng dữ liệu TRƯỚC kỳ đó -> thống kê/đối chiếu không nhìn trộm tương lai.
 
 MỖI vé đều có:
-  - last_result: đối chiếu với kết quả kỳ VỪA QUAY (số đã chọn vs thực tế).
-  - recent (THỐNG KÊ): qua N kỳ gần nhất — trung bình số chính khớp / kỳ và số
-    lần trúng ĐB. Vì mỗi kỳ vé sinh lại từ seed nên đây là đối chiếu trung thực.
+  - last_result: đối chiếu kết quả kỳ VỪA QUAY (số đã chọn vs thực tế).
+  - recent (THỐNG KÊ): qua N kỳ gần nhất — TB số chính khớp/kỳ + số lần trúng ĐB.
 
-Chạy trong CI sau bước cập nhật data:
-    python scripts/gen_random_tickets.py --csv data/all.csv --out docs/random_tickets.json
-
-Lưu ý trung thực: mọi vé đều có xác suất trúng như nhau (1/324.632). Đây là các
-bộ số ngẫu nhiên có seed để tái lập & đối chiếu — KHÔNG có khả năng dự đoán.
+Lưu ý trung thực: mọi vé đều có xác suất trúng như nhau (1/324.632). Các "dấu
+hiệu lịch sử" KHÔNG tạo lợi thế dự đoán (kỳ quay độc lập) — đây chỉ là cách chọn
+số có hệ thống, tái lập & đối chiếu được, KHÔNG phải công cụ dự đoán.
 """
 import argparse
 import csv
 import datetime
 import json
+import random
 import sys
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from references import _fair_from_seed, _repeat_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
-# Mỗi vé thứ i có seed lệch i * STRIDE (đủ lớn để các seed không chồng nhau
-# giữa fair/repeat và baseline).
 TICKET_SEED_STRIDE = 10_000_000
+SIGNAL_SEED_OFFSET = 3_000_000_000
 N_FAIR = 500
 N_REPEAT = 500
+N_SIGNAL = 500
 RECENT_N = 20  # số kỳ gần nhất để tính thống kê
+
+MAIN_MIN, MAIN_MAX, MAIN_K = 1, 35, 5
+SPECIAL_MIN, SPECIAL_MAX = 1, 12
 
 
 def _load_draws(csv_path: str) -> dict[int, dict]:
@@ -52,8 +58,8 @@ def _load_draws(csv_path: str) -> dict[int, dict]:
     return draws
 
 
-def _gen(method: str, idx: int, draw_id: int):
-    """Bộ số của vé (method, idx) tại kỳ draw_id — tái lập được."""
+# ── Vé ngẫu nhiên thuần (fair / repeat) ──────────────────────────────────────
+def _gen_random(method: str, idx: int, draw_id: int):
     if method == "fair":
         t = _fair_from_seed(draw_id + idx * TICKET_SEED_STRIDE)
     else:  # repeat (có lặp)
@@ -61,63 +67,148 @@ def _gen(method: str, idx: int, draw_id: int):
     return t["main"], t["special"]
 
 
+# ── Kết hợp 3 dấu hiệu lịch sử ───────────────────────────────────────────────
+def _norm(v):
+    mx, mn = max(v), min(v)
+    if mx == mn:
+        return [1.0] * len(v)
+    return [(x - mn) / (mx - mn) for x in v]
+
+
+def _signal_weights(draws: dict, draw_id: int):
+    """Trọng số mỗi số (1..35) kết hợp 3 dấu hiệu, CHỈ dùng dữ liệu < draw_id."""
+    hist = [draws[d] for d in sorted(draws) if d < draw_id]
+    if len(hist) < 30:
+        return [1.0] * 35, [1.0] * 12  # chưa đủ lịch sử -> đều
+    total = len(hist)
+    freq = Counter()
+    last_seen = {}
+    for pos, dr in enumerate(hist):
+        for n in dr["numbers"]:
+            freq[n] += 1
+            last_seen[n] = pos
+    # 1) SỐ NÓNG: tần suất xuất hiện
+    hot = [freq.get(n, 0) for n in range(MAIN_MIN, MAIN_MAX + 1)]
+    # 2) SỐ QUÁ HẠN: số kỳ kể từ lần cuối xuất hiện (chưa từng ra = quá hạn tối đa)
+    overdue = [(total - 1 - last_seen.get(n, -1)) for n in range(MAIN_MIN, MAIN_MAX + 1)]
+    # 3) SỐ ĐỒNG HÀNH: hay xuất hiện cùng nhóm số của kỳ gần nhất
+    recent_nums = set(hist[-1]["numbers"])
+    comp = [0] * 35
+    for dr in hist:
+        if set(dr["numbers"]) & recent_nums:
+            for n in dr["numbers"]:
+                comp[n - 1] += 1
+    h, o, c = _norm(hot), _norm(overdue), _norm(comp)
+    # +0.1 sàn để mọi số vẫn có thể được chọn (không loại trừ hoàn toàn)
+    w = [0.1 + h[i] + o[i] + c[i] for i in range(35)]
+    # số đặc biệt: theo tần suất
+    sfreq = Counter(dr["special"] for dr in hist if dr["special"] is not None)
+    sw = [0.1 + sfreq.get(s, 0) for s in range(SPECIAL_MIN, SPECIAL_MAX + 1)]
+    return w, sw
+
+
+def _wsample(rng: random.Random, weights, k: int):
+    """Lấy mẫu k số phân biệt (1..len) theo trọng số, không lặp."""
+    idxs = list(range(len(weights)))
+    w = list(weights)
+    chosen = []
+    for _ in range(k):
+        total = sum(w[i] for i in idxs)
+        r = rng.random() * total
+        acc = 0.0
+        pick = idxs[-1]
+        pos = len(idxs) - 1
+        for j, i in enumerate(idxs):
+            acc += w[i]
+            if r <= acc:
+                pick, pos = i, j
+                break
+        chosen.append(pick + 1)
+        idxs.pop(pos)
+    return sorted(chosen)
+
+
+def _wchoice(rng: random.Random, weights):
+    total = sum(weights)
+    r = rng.random() * total
+    acc = 0.0
+    for i, wv in enumerate(weights):
+        acc += wv
+        if r <= acc:
+            return i + 1
+    return len(weights)
+
+
+def _make_signal_gen(draws: dict, needed_draw_ids):
+    """Trả về hàm gen(idx, draw_id) cho vé kết hợp dấu hiệu, có cache trọng số."""
+    cache = {d: _signal_weights(draws, d) for d in needed_draw_ids}
+
+    def gen(idx: int, draw_id: int):
+        w, sw = cache.get(draw_id) or _signal_weights(draws, draw_id)
+        rng = random.Random(draw_id + SIGNAL_SEED_OFFSET + idx * TICKET_SEED_STRIDE)
+        return _wsample(rng, w, MAIN_K), _wchoice(rng, sw)
+
+    return gen
+
+
+# ── Đối chiếu & thống kê ─────────────────────────────────────────────────────
 def _compare(predicted_main, predicted_special, draw_id: int, draws: dict) -> dict | None:
-    """Đối chiếu một bộ số với kết quả thực tại kỳ `draw_id`."""
     if draw_id not in draws:
         return None
     actual = draws[draw_id]
     main_hits = len(set(predicted_main) & set(actual["numbers"]))
     special_hit = (predicted_special == actual["special"]) if actual["special"] is not None else False
     return {
-        "draw_id": draw_id,
-        "draw_date": actual["draw_date"],
-        "actual": actual["numbers"],
-        "actual_special": actual["special"],
-        "predicted": predicted_main,
-        "predicted_special": predicted_special,
-        "main_hits": main_hits,
-        "special_hit": bool(special_hit),
+        "draw_id": draw_id, "draw_date": actual["draw_date"],
+        "actual": actual["numbers"], "actual_special": actual["special"],
+        "predicted": predicted_main, "predicted_special": predicted_special,
+        "main_hits": main_hits, "special_hit": bool(special_hit),
     }
 
 
-def _recent_stats(method: str, idx: int, draws: dict, upto_draw: int, n: int) -> dict:
-    """Thống kê vé (method, idx) qua n kỳ gần nhất <= upto_draw."""
-    ids = sorted((d for d in draws if d <= upto_draw), reverse=True)[:n]
+def _recent_ids(draws: dict, upto_draw: int, n: int):
+    return sorted((d for d in draws if d <= upto_draw), reverse=True)[:n]
+
+
+def _recent_stats(gen_fn, idx: int, draws: dict, recent_ids) -> dict:
     total = sp = cnt = 0
-    for d in ids:
-        main, special = _gen(method, idx, d)
+    for d in recent_ids:
+        main, special = gen_fn(idx, d)
         c = _compare(main, special, d, draws)
         if c:
             total += c["main_hits"]
             sp += 1 if c["special_hit"] else 0
             cnt += 1
-    return {
-        "n": cnt,
-        "avg_main_hits": round(total / cnt, 3) if cnt else 0.0,
-        "special_hits": sp,
-    }
+    return {"n": cnt, "avg_main_hits": round(total / cnt, 3) if cnt else 0.0, "special_hits": sp}
 
 
-def _build_ticket(method: str, idx: int, draw_id: int, prev_draw: int, draws: dict,
-                  tid: str, recent_n: int) -> dict:
-    main, sp = _gen(method, idx, draw_id)
+def _build_ticket(gen_fn, idx: int, next_draw: int, prev_draw: int, draws: dict,
+                  tid: str, recent_ids, seed_val: int) -> dict:
+    main, sp = gen_fn(idx, next_draw)
     return {
-        "id": tid,
-        "seed": draw_id + (REPEAT_SEED_OFFSET if method == "repeat" else 0) + idx * TICKET_SEED_STRIDE,
+        "id": tid, "seed": seed_val,
         "numbers": main, "special": sp,
-        "trace": f"L535-{draw_id}-{tid}",
-        "last_result": _compare(*_gen(method, idx, prev_draw), prev_draw, draws),
-        "recent": _recent_stats(method, idx, draws, prev_draw, recent_n),
+        "trace": f"L535-{next_draw}-{tid}",
+        "last_result": _compare(*gen_fn(idx, prev_draw), prev_draw, draws),
+        "recent": _recent_stats(gen_fn, idx, draws, recent_ids),
     }
+
+
+def _rank(t):
+    r = t.get("recent") or {}
+    lr = t.get("last_result") or {}
+    return (r.get("avg_main_hits", 0), r.get("special_hits", 0),
+            lr.get("main_hits", 0), 1 if lr.get("special_hit") else 0)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default="data/all.csv")
     ap.add_argument("--out", default="docs/random_tickets.json")
-    ap.add_argument("--fair", type=int, default=N_FAIR, help="số vé không lặp")
-    ap.add_argument("--repeat", type=int, default=N_REPEAT, help="số vé có lặp")
-    ap.add_argument("--recent-n", type=int, default=RECENT_N, help="số kỳ tính thống kê")
+    ap.add_argument("--fair", type=int, default=N_FAIR)
+    ap.add_argument("--repeat", type=int, default=N_REPEAT)
+    ap.add_argument("--signal", type=int, default=N_SIGNAL)
+    ap.add_argument("--recent-n", type=int, default=RECENT_N)
     ap.add_argument("--draw", type=int, help="kỳ cần sinh vé (mặc định: kỳ mới nhất + 1)")
     a = ap.parse_args()
 
@@ -126,62 +217,60 @@ def main():
         sys.exit(f"Không đọc được kỳ nào từ {a.csv}")
     next_draw = a.draw or max(draws) + 1
     prev_draw = next_draw - 1
-    rn = a.recent_n
+    recent_ids = _recent_ids(draws, prev_draw, a.recent_n)
 
-    # ── 2 mục ngẫu nhiên (baseline, idx=0) ──
+    def gen_random(method):
+        return lambda idx, d: _gen_random(method, idx, d)
+
+    fair_gen = gen_random("fair")
+    repeat_gen = gen_random("repeat")
+    # vé dấu hiệu cần trọng số ở next_draw + tất cả kỳ dùng cho thống kê
+    signal_gen = _make_signal_gen(draws, set([next_draw]) | set(recent_ids))
+
+    def build_group(gen_fn, count, prefix, offset_base):
+        items = [
+            _build_ticket(gen_fn, i, next_draw, prev_draw, draws, f"{prefix}{i:03d}",
+                          recent_ids, next_draw + offset_base + i * TICKET_SEED_STRIDE)
+            for i in range(1, count + 1)
+        ]
+        items.sort(key=_rank, reverse=True)  # vé trúng nhiều lên đầu
+        return items
+
+    fair_tickets = build_group(fair_gen, a.fair, "F", 0)
+    repeat_tickets = build_group(repeat_gen, a.repeat, "R", REPEAT_SEED_OFFSET)
+    signal_tickets = build_group(signal_gen, a.signal, "S", SIGNAL_SEED_OFFSET)
+
+    # baseline (idx=0)
     baselines = [
-        {**_build_ticket("fair", 0, next_draw, prev_draw, draws, "FAIR", rn),
+        {**_build_ticket(fair_gen, 0, next_draw, prev_draw, draws, "FAIR", recent_ids, next_draw),
          "name": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)", "badge": "RANDOM"},
-        {**_build_ticket("repeat", 0, next_draw, prev_draw, draws, "REPEAT", rn),
+        {**_build_ticket(repeat_gen, 0, next_draw, prev_draw, draws, "REPEAT", recent_ids,
+                         next_draw + REPEAT_SEED_OFFSET),
          "name": "Chọn ngẫu nhiên (có thể lặp lại)", "badge": "RANDOM"},
     ]
 
-    # ── Nhóm không lặp + có lặp ──
-    fair_tickets = [
-        _build_ticket("fair", i, next_draw, prev_draw, draws, f"F{i:03d}", rn)
-        for i in range(1, a.fair + 1)
-    ]
-    repeat_tickets = [
-        _build_ticket("repeat", i, next_draw, prev_draw, draws, f"R{i:03d}", rn)
-        for i in range(1, a.repeat + 1)
-    ]
-
-    # Sắp xếp mỗi nhóm: vé TRÚNG NHIỀU lên đầu (theo thống kê nhiều kỳ, rồi kỳ
-    # vừa quay). Lưu ý: đây chỉ là xếp hạng MÔ TẢ quá khứ — không tăng khả năng
-    # trúng kỳ tới (số quay ngẫu nhiên).
-    def _rank(t):
-        r = t.get("recent") or {}
-        lr = t.get("last_result") or {}
-        return (
-            r.get("avg_main_hits", 0),
-            r.get("special_hits", 0),
-            lr.get("main_hits", 0),
-            1 if lr.get("special_hit") else 0,
-        )
-    fair_tickets.sort(key=_rank, reverse=True)
-    repeat_tickets.sort(key=_rank, reverse=True)
-
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-        "next_draw": next_draw,
-        "prev_draw": prev_draw,
-        "recent_n": rn,
-        "disclaimer": ("Mọi vé đều có xác suất trúng như nhau (1/324.632) — đây là các bộ "
-                       "số ngẫu nhiên có seed để tái lập & đối chiếu trung thực, KHÔNG có "
-                       "khả năng dự đoán. Chơi có trách nhiệm."),
+        "next_draw": next_draw, "prev_draw": prev_draw, "recent_n": a.recent_n,
+        "disclaimer": ("Mọi vé đều có xác suất trúng như nhau (1/324.632). Các 'dấu hiệu lịch "
+                       "sử' KHÔNG tạo lợi thế dự đoán (kỳ quay độc lập) — chỉ là cách chọn số "
+                       "có hệ thống, tái lập & đối chiếu được. Chơi có trách nhiệm."),
         "baselines": baselines,
         "groups": [
             {"label": f"{len(fair_tickets)} vé ngẫu nhiên KHÔNG lặp", "method": "fair",
              "tickets": fair_tickets},
             {"label": f"{len(repeat_tickets)} vé ngẫu nhiên CÓ lặp", "method": "repeat",
              "tickets": repeat_tickets},
+            {"label": f"{len(signal_tickets)} vé kết hợp 3 dấu hiệu lịch sử",
+             "note": "nóng (tần suất) · quá hạn (lâu chưa ra) · đồng hành (hay ra cùng kỳ gần nhất)",
+             "method": "signal", "tickets": signal_tickets},
         ],
     }
 
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"OK: 2 baseline + {len(fair_tickets)} không lặp + {len(repeat_tickets)} có lặp "
-          f"cho kỳ #{next_draw} -> {a.out}")
+    print(f"OK: 2 baseline + {len(fair_tickets)} không lặp + {len(repeat_tickets)} có lặp + "
+          f"{len(signal_tickets)} dấu hiệu cho kỳ #{next_draw} -> {a.out}")
 
 
 if __name__ == "__main__":
