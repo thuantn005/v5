@@ -25,6 +25,7 @@ import json
 import random
 import sys
 from collections import Counter
+from itertools import combinations
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -32,9 +33,10 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
-N_FAIR = 500
-N_REPEAT = 500
-N_SIGNAL = 500
+N_FAIR = 0     # nhóm random không lặp (0 = tắt)
+N_REPEAT = 0   # nhóm random có thể trùng vé (0 = tắt)
+N_SIGNAL = 0   # nhóm kết hợp dấu hiệu (0 = tắt)
+N_COMBOS = 50  # số vé chọn từ TẤT CẢ tổ hợp (trúng ≥3 số nhiều nhất)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
 MAIN_MIN, MAIN_MAX, MAIN_K = 1, 35, 5
@@ -214,6 +216,82 @@ def _rank(t):
     return (r.get("wins", 0), tierscore, r.get("best", 0), r.get("special_hits", 0))
 
 
+def _top_combo_tickets(draws: dict, next_draw: int, prev_draw: int, top_n: int) -> list[dict]:
+    """Quét TẤT CẢ tổ hợp 5/35, đối chiếu với mọi kỳ lịch sử, chọn top_n tổ hợp
+    khớp >=3 số nhiều nhất. LƯU Ý: đây là survivorship (chọn theo quá khứ) —
+    KHÔNG tăng cơ hội kỳ tới; mọi tổ hợp vẫn 1/324.632."""
+    hist_ids = [d for d in sorted(draws) if d <= prev_draw]
+    universe = list(range(MAIN_MIN, MAIN_MAX + 1))
+    tier: dict[tuple, list] = {}          # combo -> [t3, t4, t5]
+    sfreq = Counter()
+    for d in hist_ids:
+        rec = draws[d]
+        D = rec["numbers"]
+        if rec["special"] is not None:
+            sfreq[rec["special"]] += 1
+        Dset = set(D)
+        non = [n for n in universe if n not in Dset]
+        # khớp đúng 5
+        e = tier.get(tuple(D))
+        if e:
+            e[2] += 1
+        else:
+            tier[tuple(D)] = [0, 0, 1]
+        # khớp đúng 4: 4 số của kỳ + 1 số ngoài
+        for s4 in combinations(D, 4):
+            for x in non:
+                k = tuple(sorted(s4 + (x,)))
+                e = tier.get(k)
+                if e:
+                    e[1] += 1
+                else:
+                    tier[k] = [0, 1, 0]
+        # khớp đúng 3: 3 số của kỳ + 2 số ngoài
+        for s3 in combinations(D, 3):
+            for e2 in combinations(non, 2):
+                k = tuple(sorted(s3 + e2))
+                e = tier.get(k)
+                if e:
+                    e[0] += 1
+                else:
+                    tier[k] = [1, 0, 0]
+
+    ranked = sorted(
+        tier.items(),
+        key=lambda it: (sum(it[1]), it[1][2] * 1000 + it[1][1] * 100 + it[1][0] * 10),
+        reverse=True,
+    )[:top_n]
+    top_combos = [c for c, _ in ranked]
+
+    # Chọn số ĐB cho mỗi tổ hợp: số ĐB hay xuất hiện nhất trong các kỳ mà tổ hợp
+    # khớp >=3 (độc lập với số chính).
+    combo_sets = [(c, set(c)) for c in top_combos]
+    spec_tally = {c: Counter() for c in top_combos}
+    for d in hist_ids:
+        Dset = set(draws[d]["numbers"])
+        sp = draws[d]["special"]
+        for c, cs in combo_sets:
+            if len(cs & Dset) >= 3:
+                spec_tally[c][sp] += 1
+
+    hottest_sp = sfreq.most_common(1)[0][0] if sfreq else 1
+    tickets = []
+    for rank, (c, (t3, t4, t5)) in enumerate(ranked, 1):
+        st = spec_tally[c]
+        special = st.most_common(1)[0][0] if st and st.most_common(1)[0][0] is not None else hottest_sp
+        best = 5 if t5 else 4 if t4 else 3 if t3 else 0
+        tickets.append({
+            "id": f"C{rank:02d}",
+            "numbers": list(c), "special": special,
+            "trace": f"L535-{next_draw}-C{rank:02d}",
+            "recent": {"n": len(hist_ids), "wins": t3 + t4 + t5,
+                       "tier3": t3, "tier4": t4, "tier5": t5,
+                       "best": best, "special_hits": sfreq.get(special, 0)},
+            "last_result": _compare(list(c), special, prev_draw, draws),
+        })
+    return tickets
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default="data/all.csv")
@@ -221,6 +299,8 @@ def main():
     ap.add_argument("--fair", type=int, default=N_FAIR)
     ap.add_argument("--repeat", type=int, default=N_REPEAT)
     ap.add_argument("--signal", type=int, default=N_SIGNAL)
+    ap.add_argument("--combos", type=int, default=N_COMBOS,
+                    help="số vé chọn từ tất cả tổ hợp (trúng >=3 số nhiều nhất)")
     ap.add_argument("--recent-n", type=int, default=RECENT_N)
     ap.add_argument("--draw", type=int, help="kỳ cần sinh vé (mặc định: kỳ mới nhất + 1)")
     a = ap.parse_args()
@@ -261,6 +341,7 @@ def main():
     fair_tickets = build_group(fair_gen, a.fair, "F", 0, unique=True)
     repeat_tickets = build_group(repeat_gen, a.repeat, "R", REPEAT_SEED_OFFSET, unique=False)
     signal_tickets = build_group(signal_gen, a.signal, "S", SIGNAL_SEED_OFFSET, unique=False)
+    combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
 
     # baseline (idx=0) — cũng là 5 số khác nhau hợp lệ
     baselines = [
@@ -274,26 +355,29 @@ def main():
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "next_draw": next_draw, "prev_draw": prev_draw, "recent_n": a.recent_n,
-        "disclaimer": ("Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ) — 'lặp lại' nghĩa là có thể "
-                       "trùng VÉ, KHÔNG phải trùng số trong một vé. Mọi vé có xác suất trúng "
-                       "như nhau (1/324.632); các 'dấu hiệu lịch sử' KHÔNG tạo lợi thế dự đoán "
-                       "(kỳ quay độc lập). Chơi có trách nhiệm."),
+        "disclaimer": ("Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' "
+                       "được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG "
+                       "làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm."),
         "baselines": baselines,
-        "groups": [
+        "groups": [g for g in [
+            {"label": f"{len(combo_tickets)} vé chọn từ TẤT CẢ tổ hợp",
+             "note": "quét toàn bộ 324.632 tổ hợp · chọn 50 vé khớp ≥3 số nhiều nhất trong lịch sử "
+                     "(survivorship — KHÔNG tăng cơ hội kỳ tới)",
+             "method": "combos", "tickets": combo_tickets},
             {"label": f"{len(fair_tickets)} vé KHÔNG trùng nhau", "method": "fair",
-             "note": "500 vé khác nhau · mỗi vé 5 số khác nhau", "tickets": fair_tickets},
+             "note": "vé khác nhau · mỗi vé 5 số khác nhau", "tickets": fair_tickets},
             {"label": f"{len(repeat_tickets)} vé ngẫu nhiên (cho phép TRÙNG VÉ)", "method": "repeat",
              "note": "cho phép 2 vé trùng nhau · mỗi vé vẫn 5 số khác nhau", "tickets": repeat_tickets},
             {"label": f"{len(signal_tickets)} vé kết hợp 3 dấu hiệu lịch sử",
              "note": "nóng (tần suất) · quá hạn (lâu chưa ra) · đồng hành (hay ra cùng kỳ gần nhất)",
              "method": "signal", "tickets": signal_tickets},
-        ],
+        ] if g["tickets"]],
     }
 
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"OK: 2 baseline + {len(fair_tickets)} không lặp + {len(repeat_tickets)} có lặp + "
-          f"{len(signal_tickets)} dấu hiệu cho kỳ #{next_draw} -> {a.out}")
+    print(f"OK: 2 baseline + {len(combo_tickets)} tổ hợp + {len(fair_tickets)} không lặp + "
+          f"{len(repeat_tickets)} có lặp + {len(signal_tickets)} dấu hiệu cho kỳ #{next_draw} -> {a.out}")
 
 
 if __name__ == "__main__":
