@@ -371,7 +371,7 @@ function statBlock(rec) {
   if (rec.tier4) parts.push('4 số: ' + rec.tier4);
   if (rec.tier3) parts.push('3 số: ' + rec.tier3);
   var bd = parts.length ? '<div class="score" style="margin-top:4px">' + parts.join(' · ') + '</div>' : '';
-  return '<div class="block-label">Thống kê ' + (rec.n || 0) + ' kỳ · chỉ tính trúng ≥3 số</div>' +
+  return '<div class="block-label">Thống kê toàn bộ ' + (rec.n || 0) + ' kỳ · chỉ tính trúng ≥3 số</div>' +
     '<div class="record">' +
       '<span class="stat"><b>' + wins + '</b> <span>lần trúng (≥3 số)</span></span>' +
       '<span class="stat"><b>' + (rec.special_hits || 0) + '</b> <span>lần trúng ĐB</span></span>' +

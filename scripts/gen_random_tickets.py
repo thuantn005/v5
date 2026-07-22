@@ -35,7 +35,7 @@ SIGNAL_SEED_OFFSET = 3_000_000_000
 N_FAIR = 500
 N_REPEAT = 500
 N_SIGNAL = 500
-RECENT_N = 20  # số kỳ gần nhất để tính thống kê
+RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
 MAIN_MIN, MAIN_MAX, MAIN_K = 1, 35, 5
 SPECIAL_MIN, SPECIAL_MAX = 1, 12
@@ -167,7 +167,8 @@ def _compare(predicted_main, predicted_special, draw_id: int, draws: dict) -> di
 
 
 def _recent_ids(draws: dict, upto_draw: int, n: int):
-    return sorted((d for d in draws if d <= upto_draw), reverse=True)[:n]
+    ids = sorted((d for d in draws if d <= upto_draw), reverse=True)
+    return ids if n <= 0 else ids[:n]  # n<=0 -> tất cả kỳ
 
 
 def _recent_stats(gen_fn, idx: int, draws: dict, recent_ids) -> dict:
