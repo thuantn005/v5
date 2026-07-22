@@ -1,46 +1,46 @@
 {
- "generated_at": "2026-07-22T15:36:25+00:00",
- "next_draw": 778,
- "prev_draw": 777,
+ "generated_at": "2026-07-22T16:49:51+00:00",
+ "next_draw": 779,
+ "prev_draw": 778,
  "recent_n": 0,
  "disclaimer": "Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm.",
  "baselines": [
   {
    "id": "FAIR",
-   "seed": 778,
+   "seed": 779,
    "numbers": [
-    3,
-    9,
-    14,
-    23,
-    24
+    12,
+    13,
+    26,
+    33,
+    35
    ],
-   "special": 7,
-   "trace": "L535-778-FAIR",
+   "special": 4,
+   "trace": "L535-779-FAIR",
    "last_result": {
-    "draw_id": 777,
+    "draw_id": 778,
     "draw_date": "2026-07-22",
     "actual": [
+     3,
      6,
+     22,
+     23,
+     26
+    ],
+    "actual_special": 4,
+    "predicted": [
+     3,
+     9,
      14,
      23,
-     28,
-     30
+     24
     ],
-    "actual_special": 10,
-    "predicted": [
-     15,
-     18,
-     22,
-     24,
-     29
-    ],
-    "predicted_special": 9,
-    "main_hits": 0,
+    "predicted_special": 7,
+    "main_hits": 2,
     "special_hit": false
    },
    "recent": {
-    "n": 777,
+    "n": 778,
     "wins": 7,
     "tier3": 7,
     "tier4": 0,
@@ -53,40 +53,40 @@
   },
   {
    "id": "REPEAT",
-   "seed": 1000778,
+   "seed": 1000779,
    "numbers": [
-    7,
-    15,
-    17,
-    26,
-    28
+    4,
+    13,
+    18,
+    21,
+    33
    ],
-   "special": 3,
-   "trace": "L535-778-REPEAT",
+   "special": 12,
+   "trace": "L535-779-REPEAT",
    "last_result": {
-    "draw_id": 777,
+    "draw_id": 778,
     "draw_date": "2026-07-22",
     "actual": [
+     3,
      6,
-     14,
+     22,
      23,
-     28,
-     30
+     26
     ],
-    "actual_special": 10,
+    "actual_special": 4,
     "predicted": [
-     8,
-     9,
-     11,
-     19,
-     34
+     7,
+     15,
+     17,
+     26,
+     28
     ],
-    "predicted_special": 1,
-    "main_hits": 0,
+    "predicted_special": 3,
+    "main_hits": 1,
     "special_hit": false
    },
    "recent": {
-    "n": 777,
+    "n": 778,
     "wins": 9,
     "tier3": 8,
     "tier4": 1,
@@ -114,9 +114,9 @@
       25
      ],
      "special": 8,
-     "trace": "L535-778-C01",
+     "trace": "L535-779-C01",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 28,
       "tier3": 26,
       "tier4": 2,
@@ -125,16 +125,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        12,
        13,
@@ -143,7 +143,7 @@
        25
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -157,9 +157,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C02",
+     "trace": "L535-779-C02",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 28,
       "tier3": 26,
       "tier4": 2,
@@ -168,16 +168,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -186,8 +186,8 @@
        27
       ],
       "predicted_special": 10,
-      "main_hits": 1,
-      "special_hit": true
+      "main_hits": 0,
+      "special_hit": false
      }
     },
     {
@@ -200,9 +200,9 @@
       27
      ],
      "special": 1,
-     "trace": "L535-778-C03",
+     "trace": "L535-779-C03",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 28,
       "tier3": 27,
       "tier4": 1,
@@ -211,16 +211,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -229,7 +229,7 @@
        27
       ],
       "predicted_special": 1,
-      "main_hits": 2,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -243,9 +243,9 @@
       27
      ],
      "special": 8,
-     "trace": "L535-778-C04",
+     "trace": "L535-779-C04",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 28,
       "tier3": 27,
       "tier4": 1,
@@ -254,16 +254,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -286,9 +286,9 @@
       33
      ],
      "special": 5,
-     "trace": "L535-778-C05",
+     "trace": "L535-779-C05",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 28,
       "tier3": 28,
       "tier4": 0,
@@ -297,16 +297,16 @@
       "special_hits": 60
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        18,
        19,
@@ -329,9 +329,9 @@
       25
      ],
      "special": 2,
-     "trace": "L535-778-C06",
+     "trace": "L535-779-C06",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 24,
       "tier4": 3,
@@ -340,16 +340,16 @@
       "special_hits": 62
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        13,
@@ -372,9 +372,9 @@
       21
      ],
      "special": 10,
-     "trace": "L535-778-C07",
+     "trace": "L535-779-C07",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 24,
       "tier4": 3,
@@ -383,16 +383,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        13,
@@ -402,7 +402,7 @@
       ],
       "predicted_special": 10,
       "main_hits": 1,
-      "special_hit": true
+      "special_hit": false
      }
     },
     {
@@ -415,9 +415,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C08",
+     "trace": "L535-779-C08",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 24,
       "tier4": 3,
@@ -426,16 +426,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -444,8 +444,8 @@
        27
       ],
       "predicted_special": 10,
-      "main_hits": 1,
-      "special_hit": true
+      "main_hits": 0,
+      "special_hit": false
      }
     },
     {
@@ -458,9 +458,9 @@
       27
      ],
      "special": 8,
-     "trace": "L535-778-C09",
+     "trace": "L535-779-C09",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 25,
       "tier4": 2,
@@ -469,16 +469,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        13,
@@ -501,9 +501,9 @@
       25
      ],
      "special": 8,
-     "trace": "L535-778-C10",
+     "trace": "L535-779-C10",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 25,
       "tier4": 2,
@@ -512,16 +512,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -530,7 +530,7 @@
        25
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -544,9 +544,9 @@
       26
      ],
      "special": 7,
-     "trace": "L535-778-C11",
+     "trace": "L535-779-C11",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 25,
       "tier4": 2,
@@ -555,16 +555,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -587,9 +587,9 @@
       27
      ],
      "special": 8,
-     "trace": "L535-778-C12",
+     "trace": "L535-779-C12",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 25,
       "tier4": 2,
@@ -598,16 +598,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        14,
@@ -616,7 +616,7 @@
        27
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -630,9 +630,9 @@
       27
      ],
      "special": 8,
-     "trace": "L535-778-C13",
+     "trace": "L535-779-C13",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 25,
       "tier4": 2,
@@ -641,16 +641,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -659,7 +659,7 @@
        27
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -673,9 +673,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C14",
+     "trace": "L535-779-C14",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 25,
       "tier4": 2,
@@ -684,16 +684,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        11,
        13,
@@ -702,8 +702,8 @@
        27
       ],
       "predicted_special": 10,
-      "main_hits": 1,
-      "special_hit": true
+      "main_hits": 0,
+      "special_hit": false
      }
     },
     {
@@ -716,9 +716,9 @@
       28
      ],
      "special": 12,
-     "trace": "L535-778-C15",
+     "trace": "L535-779-C15",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 26,
       "tier4": 1,
@@ -727,16 +727,16 @@
       "special_hits": 69
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        12,
@@ -745,7 +745,7 @@
        28
       ],
       "predicted_special": 12,
-      "main_hits": 2,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -759,9 +759,9 @@
       25
      ],
      "special": 1,
-     "trace": "L535-778-C16",
+     "trace": "L535-779-C16",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 26,
       "tier4": 1,
@@ -770,16 +770,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -788,7 +788,7 @@
        25
       ],
       "predicted_special": 1,
-      "main_hits": 2,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -802,9 +802,9 @@
       25
      ],
      "special": 8,
-     "trace": "L535-778-C17",
+     "trace": "L535-779-C17",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 27,
       "tier4": 0,
@@ -813,16 +813,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        12,
@@ -845,9 +845,9 @@
       34
      ],
      "special": 12,
-     "trace": "L535-778-C18",
+     "trace": "L535-779-C18",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 27,
       "tier4": 0,
@@ -856,16 +856,16 @@
       "special_hits": 69
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        11,
        18,
@@ -874,7 +874,7 @@
        34
       ],
       "predicted_special": 12,
-      "main_hits": 0,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -888,9 +888,9 @@
       19
      ],
      "special": 9,
-     "trace": "L535-778-C19",
+     "trace": "L535-779-C19",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 27,
       "tier3": 27,
       "tier4": 0,
@@ -899,16 +899,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        7,
@@ -917,7 +917,7 @@
        19
       ],
       "predicted_special": 9,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -931,9 +931,9 @@
       27
      ],
      "special": 8,
-     "trace": "L535-778-C20",
+     "trace": "L535-779-C20",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 24,
       "tier4": 2,
@@ -942,16 +942,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        12,
        13,
@@ -960,7 +960,7 @@
        27
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -974,27 +974,27 @@
       14
      ],
      "special": 4,
-     "trace": "L535-778-C21",
+     "trace": "L535-779-C21",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 24,
       "tier4": 2,
       "tier5": 0,
       "best": 4,
-      "special_hits": 60
+      "special_hits": 61
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        7,
@@ -1003,8 +1003,8 @@
        14
       ],
       "predicted_special": 4,
-      "main_hits": 1,
-      "special_hit": false
+      "main_hits": 0,
+      "special_hit": true
      }
     },
     {
@@ -1017,9 +1017,9 @@
       23
      ],
      "special": 10,
-     "trace": "L535-778-C22",
+     "trace": "L535-779-C22",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 24,
       "tier4": 2,
@@ -1028,16 +1028,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        13,
@@ -1047,7 +1047,7 @@
       ],
       "predicted_special": 10,
       "main_hits": 2,
-      "special_hit": true
+      "special_hit": false
      }
     },
     {
@@ -1060,9 +1060,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C23",
+     "trace": "L535-779-C23",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 24,
       "tier4": 2,
@@ -1071,16 +1071,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -1090,7 +1090,7 @@
       ],
       "predicted_special": 10,
       "main_hits": 1,
-      "special_hit": true
+      "special_hit": false
      }
     },
     {
@@ -1103,9 +1103,9 @@
       26
      ],
      "special": 7,
-     "trace": "L535-778-C24",
+     "trace": "L535-779-C24",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 25,
       "tier4": 1,
@@ -1114,16 +1114,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        12,
        14,
@@ -1146,9 +1146,9 @@
       34
      ],
      "special": 3,
-     "trace": "L535-778-C25",
+     "trace": "L535-779-C25",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 25,
       "tier4": 1,
@@ -1157,16 +1157,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        5,
        15,
@@ -1189,9 +1189,9 @@
       25
      ],
      "special": 6,
-     "trace": "L535-778-C26",
+     "trace": "L535-779-C26",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1200,16 +1200,16 @@
       "special_hits": 62
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        14,
@@ -1232,9 +1232,9 @@
       34
      ],
      "special": 7,
-     "trace": "L535-778-C27",
+     "trace": "L535-779-C27",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1243,16 +1243,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        15,
        18,
@@ -1261,7 +1261,7 @@
        34
       ],
       "predicted_special": 7,
-      "main_hits": 0,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -1275,9 +1275,9 @@
       27
      ],
      "special": 1,
-     "trace": "L535-778-C28",
+     "trace": "L535-779-C28",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1286,16 +1286,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        11,
        13,
@@ -1318,9 +1318,9 @@
       35
      ],
      "special": 8,
-     "trace": "L535-778-C29",
+     "trace": "L535-779-C29",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1329,16 +1329,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        6,
@@ -1347,7 +1347,7 @@
        35
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 2,
       "special_hit": false
      }
     },
@@ -1361,9 +1361,9 @@
       10
      ],
      "special": 9,
-     "trace": "L535-778-C30",
+     "trace": "L535-779-C30",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1372,16 +1372,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        5,
@@ -1404,9 +1404,9 @@
       29
      ],
      "special": 7,
-     "trace": "L535-778-C31",
+     "trace": "L535-779-C31",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1415,16 +1415,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -1433,7 +1433,7 @@
        29
       ],
       "predicted_special": 7,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -1447,9 +1447,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C32",
+     "trace": "L535-779-C32",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 26,
       "tier3": 26,
       "tier4": 0,
@@ -1458,16 +1458,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        7,
        13,
@@ -1476,8 +1476,8 @@
        27
       ],
       "predicted_special": 10,
-      "main_hits": 1,
-      "special_hit": true
+      "main_hits": 0,
+      "special_hit": false
      }
     },
     {
@@ -1490,9 +1490,9 @@
       19
      ],
      "special": 9,
-     "trace": "L535-778-C33",
+     "trace": "L535-779-C33",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 22,
       "tier4": 3,
@@ -1501,16 +1501,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        12,
@@ -1533,9 +1533,9 @@
       28
      ],
      "special": 8,
-     "trace": "L535-778-C34",
+     "trace": "L535-779-C34",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1544,16 +1544,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        12,
        14,
@@ -1562,7 +1562,7 @@
        28
       ],
       "predicted_special": 8,
-      "main_hits": 2,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -1576,9 +1576,9 @@
       27
      ],
      "special": 8,
-     "trace": "L535-778-C35",
+     "trace": "L535-779-C35",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1587,16 +1587,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        13,
@@ -1605,7 +1605,7 @@
        27
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -1619,9 +1619,9 @@
       15
      ],
      "special": 9,
-     "trace": "L535-778-C36",
+     "trace": "L535-779-C36",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1630,16 +1630,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        7,
@@ -1648,7 +1648,7 @@
        15
       ],
       "predicted_special": 9,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -1662,9 +1662,9 @@
       22
      ],
      "special": 7,
-     "trace": "L535-778-C37",
+     "trace": "L535-779-C37",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1673,16 +1673,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        3,
        13,
@@ -1691,7 +1691,7 @@
        22
       ],
       "predicted_special": 7,
-      "main_hits": 1,
+      "main_hits": 2,
       "special_hit": false
      }
     },
@@ -1705,9 +1705,9 @@
       19
      ],
      "special": 7,
-     "trace": "L535-778-C38",
+     "trace": "L535-779-C38",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1716,16 +1716,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        4,
@@ -1734,7 +1734,7 @@
        19
       ],
       "predicted_special": 7,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -1748,9 +1748,9 @@
       27
      ],
      "special": 5,
-     "trace": "L535-778-C39",
+     "trace": "L535-779-C39",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1759,16 +1759,16 @@
       "special_hits": 60
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        11,
        14,
@@ -1777,7 +1777,7 @@
        27
       ],
       "predicted_special": 5,
-      "main_hits": 2,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -1791,9 +1791,9 @@
       23
      ],
      "special": 10,
-     "trace": "L535-778-C40",
+     "trace": "L535-779-C40",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1802,16 +1802,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        13,
        14,
@@ -1820,8 +1820,8 @@
        23
       ],
       "predicted_special": 10,
-      "main_hits": 2,
-      "special_hit": true
+      "main_hits": 1,
+      "special_hit": false
      }
     },
     {
@@ -1834,9 +1834,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C41",
+     "trace": "L535-779-C41",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1845,16 +1845,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        14,
        15,
@@ -1864,7 +1864,7 @@
       ],
       "predicted_special": 10,
       "main_hits": 1,
-      "special_hit": true
+      "special_hit": false
      }
     },
     {
@@ -1877,9 +1877,9 @@
       27
      ],
      "special": 10,
-     "trace": "L535-778-C42",
+     "trace": "L535-779-C42",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1888,16 +1888,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        11,
        14,
@@ -1906,8 +1906,8 @@
        27
       ],
       "predicted_special": 10,
-      "main_hits": 1,
-      "special_hit": true
+      "main_hits": 0,
+      "special_hit": false
      }
     },
     {
@@ -1920,9 +1920,9 @@
       35
      ],
      "special": 5,
-     "trace": "L535-778-C43",
+     "trace": "L535-779-C43",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 23,
       "tier4": 2,
@@ -1931,16 +1931,16 @@
       "special_hits": 60
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        6,
        8,
@@ -1949,7 +1949,7 @@
        35
       ],
       "predicted_special": 5,
-      "main_hits": 2,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -1963,9 +1963,9 @@
       33
      ],
      "special": 8,
-     "trace": "L535-778-C44",
+     "trace": "L535-779-C44",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
@@ -1974,16 +1974,16 @@
       "special_hits": 65
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        12,
        14,
@@ -1992,7 +1992,7 @@
        33
       ],
       "predicted_special": 8,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     },
@@ -2006,9 +2006,9 @@
       30
      ],
      "special": 10,
-     "trace": "L535-778-C45",
+     "trace": "L535-779-C45",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
@@ -2017,16 +2017,16 @@
       "special_hits": 67
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        5,
        15,
@@ -2035,8 +2035,8 @@
        30
       ],
       "predicted_special": 10,
-      "main_hits": 1,
-      "special_hit": true
+      "main_hits": 0,
+      "special_hit": false
      }
     },
     {
@@ -2049,9 +2049,9 @@
       34
      ],
      "special": 7,
-     "trace": "L535-778-C46",
+     "trace": "L535-779-C46",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
@@ -2060,16 +2060,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        18,
        20,
@@ -2078,7 +2078,7 @@
        34
       ],
       "predicted_special": 7,
-      "main_hits": 0,
+      "main_hits": 1,
       "special_hit": false
      }
     },
@@ -2092,9 +2092,9 @@
       35
      ],
      "special": 3,
-     "trace": "L535-778-C47",
+     "trace": "L535-779-C47",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
@@ -2103,16 +2103,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        7,
        22,
@@ -2135,27 +2135,27 @@
       14
      ],
      "special": 4,
-     "trace": "L535-778-C48",
+     "trace": "L535-779-C48",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
       "tier5": 0,
       "best": 4,
-      "special_hits": 60
+      "special_hits": 61
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        3,
@@ -2165,7 +2165,7 @@
       ],
       "predicted_special": 4,
       "main_hits": 1,
-      "special_hit": false
+      "special_hit": true
      }
     },
     {
@@ -2178,9 +2178,9 @@
       34
      ],
      "special": 11,
-     "trace": "L535-778-C49",
+     "trace": "L535-779-C49",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
@@ -2189,16 +2189,16 @@
       "special_hits": 63
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        7,
@@ -2221,9 +2221,9 @@
       27
      ],
      "special": 7,
-     "trace": "L535-778-C50",
+     "trace": "L535-779-C50",
      "recent": {
-      "n": 777,
+      "n": 778,
       "wins": 25,
       "tier3": 24,
       "tier4": 1,
@@ -2232,16 +2232,16 @@
       "special_hits": 68
      },
      "last_result": {
-      "draw_id": 777,
+      "draw_id": 778,
       "draw_date": "2026-07-22",
       "actual": [
+       3,
        6,
-       14,
+       22,
        23,
-       28,
-       30
+       26
       ],
-      "actual_special": 10,
+      "actual_special": 4,
       "predicted": [
        1,
        4,
@@ -2250,7 +2250,7 @@
        27
       ],
       "predicted_special": 7,
-      "main_hits": 1,
+      "main_hits": 0,
       "special_hit": false
      }
     }
