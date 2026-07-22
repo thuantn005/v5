@@ -146,6 +146,21 @@ def main():
         for i in range(1, a.repeat + 1)
     ]
 
+    # Sắp xếp mỗi nhóm: vé TRÚNG NHIỀU lên đầu (theo thống kê nhiều kỳ, rồi kỳ
+    # vừa quay). Lưu ý: đây chỉ là xếp hạng MÔ TẢ quá khứ — không tăng khả năng
+    # trúng kỳ tới (số quay ngẫu nhiên).
+    def _rank(t):
+        r = t.get("recent") or {}
+        lr = t.get("last_result") or {}
+        return (
+            r.get("avg_main_hits", 0),
+            r.get("special_hits", 0),
+            lr.get("main_hits", 0),
+            1 if lr.get("special_hit") else 0,
+        )
+    fair_tickets.sort(key=_rank, reverse=True)
+    repeat_tickets.sort(key=_rank, reverse=True)
+
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "next_draw": next_draw,
