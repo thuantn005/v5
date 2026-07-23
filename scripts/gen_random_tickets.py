@@ -33,9 +33,9 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
-N_FAIR = 500   # nhóm random không lặp
-N_REPEAT = 500 # nhóm random có thể trùng vé
-N_SIGNAL = 500 # nhóm kết hợp dấu hiệu
+N_FAIR = 0     # nhóm random không lặp (0 = tắt)
+N_REPEAT = 50  # nhóm random có thể trùng vé
+N_SIGNAL = 50  # nhóm kết hợp dấu hiệu
 N_COMBOS = 0   # số vé chọn từ TẤT CẢ tổ hợp (0 = tắt; bật bằng --combos)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
@@ -468,16 +468,16 @@ def main():
         "baselines": baselines,
         "groups": [g for g in [
             {"label": f"{len(combo_tickets)} vé chọn từ TẤT CẢ tổ hợp",
-             "note": "quét toàn bộ 324.632 tổ hợp · chọn 50 vé khớp ≥3 số nhiều nhất trong lịch sử "
+             "note": "quét toàn bộ 324.632 tổ hợp · chọn khớp ≥3 số nhiều nhất trong lịch sử "
                      "(survivorship — KHÔNG tăng cơ hội kỳ tới)",
              "method": "combos", "tickets": combo_tickets},
-            {"label": f"{len(fair_tickets)} vé KHÔNG trùng nhau", "method": "fair",
-             "note": "vé khác nhau · mỗi vé 5 số khác nhau", "tickets": fair_tickets},
-            {"label": f"{len(repeat_tickets)} vé ngẫu nhiên (cho phép TRÙNG VÉ)", "method": "repeat",
-             "note": "cho phép 2 vé trùng nhau · mỗi vé vẫn 5 số khác nhau", "tickets": repeat_tickets},
             {"label": f"{len(signal_tickets)} vé kết hợp 3 dấu hiệu lịch sử",
              "note": "nóng (tần suất) · quá hạn (lâu chưa ra) · đồng hành (hay ra cùng kỳ gần nhất)",
              "method": "signal", "tickets": signal_tickets},
+            {"label": f"{len(repeat_tickets)} vé ngẫu nhiên (cho phép TRÙNG VÉ)", "method": "repeat",
+             "note": "cho phép 2 vé trùng nhau · mỗi vé vẫn 5 số khác nhau", "tickets": repeat_tickets},
+            {"label": f"{len(fair_tickets)} vé KHÔNG trùng nhau", "method": "fair",
+             "note": "vé khác nhau · mỗi vé 5 số khác nhau", "tickets": fair_tickets},
         ] if g["tickets"]],
     }
 
