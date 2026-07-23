@@ -424,7 +424,25 @@ function renderSpecialAdvice(rt) {
       '<span class="stat"><b>' + String(a.balanced).padStart(2, '0') + '</b> <span>cân bằng</span></span>' +
     '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">' + balls + '</div>' +
+    btHtml(a.backtest) +
     '<div style="font-size:.72rem;color:var(--muted);margin-top:10px">⚠️ Mọi số ĐB đều có xác suất 1/12 như nhau — bảng chỉ mô tả quá khứ, KHÔNG tăng cơ hội trúng.</div>';
+}
+
+function btHtml(bt) {
+  if (!bt || !bt.pct) return '';
+  var order = ['nóng', 'quá hạn', 'cân bằng', 'lạnh'];
+  var parts = order.filter(function(k){ return bt.pct[k] != null; }).map(function(k) {
+    var v = bt.pct[k];
+    var col = v >= bt.expected_pct ? 'var(--green)' : 'var(--red)';
+    return '<span style="color:var(--muted)">' + k + '</span> <b style="color:' + col + '">' + v + '%</b>';
+  });
+  return '<div class="cmp" style="margin-top:12px">' +
+    '<div class="block-label" style="margin-top:0">Backtest ' + bt.tested + ' kỳ · chọn từ dữ liệu TRƯỚC mỗi kỳ (walk-forward)</div>' +
+    '<div style="font-size:.78rem;display:flex;gap:14px;flex-wrap:wrap">' + parts.join('') +
+      '<span style="color:var(--muted)">ngẫu nhiên</span> <b>' + bt.expected_pct + '%</b>' +
+    '</div>' +
+    '<div style="font-size:.7rem;color:var(--muted);margin-top:6px">→ Không chiến lược nào vượt trội có ý nghĩa thống kê; "nóng" thậm chí trúng thấp hơn ngẫu nhiên. Chọn ĐB kiểu nào cũng ~8.3%.</div>' +
+  '</div>';
 }
 
 function renderRandomTickets(rt) {

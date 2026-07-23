@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-23T12:50:14+00:00",
+ "generated_at": "2026-07-23T12:57:49+00:00",
  "next_draw": 780,
  "prev_draw": 779,
  "recent_n": 0,
@@ -83,7 +83,17 @@
   ],
   "hot": 12,
   "overdue": 2,
-  "balanced": 3
+  "balanced": 3,
+  "backtest": {
+   "tested": 729,
+   "expected_pct": 8.33,
+   "pct": {
+    "nóng": 6.45,
+    "quá hạn": 8.23,
+    "cân bằng": 8.5,
+    "lạnh": 9.47
+   }
+  }
  },
  "baselines": [
   {

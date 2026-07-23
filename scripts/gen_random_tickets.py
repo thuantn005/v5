@@ -292,6 +292,40 @@ def _top_combo_tickets(draws: dict, next_draw: int, prev_draw: int, top_n: int) 
     return tickets
 
 
+def _special_backtest(specials: list, warmup: int = 50) -> dict:
+    """Backtest walk-forward các chiến lược chọn ĐB: mỗi kỳ chỉ dùng dữ liệu
+    TRƯỚC kỳ đó để chọn, rồi xem có trúng ĐB kỳ đó không. So với mức 1/12."""
+    n = len(specials)
+    if n <= warmup + 5:
+        return {}
+    freq = Counter()
+    last = {}
+    hit = {"nóng": 0, "quá hạn": 0, "cân bằng": 0, "lạnh": 0}
+    tested = 0
+    for i, actual in enumerate(specials):
+        if i >= warmup:
+            counts = [freq.get(k, 0) for k in range(SPECIAL_MIN, SPECIAL_MAX + 1)]
+            gaps = [(i - 1 - last[k]) if k in last else i
+                    for k in range(SPECIAL_MIN, SPECIAL_MAX + 1)]
+            hot = SPECIAL_MIN + max(range(len(counts)), key=lambda k: (counts[k], -k))
+            cold = SPECIAL_MIN + min(range(len(counts)), key=lambda k: (counts[k], k))
+            overdue = SPECIAL_MIN + max(range(len(gaps)), key=lambda k: (gaps[k], -k))
+            nc, ng = _norm(counts), _norm(gaps)
+            bal = SPECIAL_MIN + max(range(len(counts)), key=lambda k: nc[k] + ng[k])
+            if hot == actual: hit["nóng"] += 1
+            if overdue == actual: hit["quá hạn"] += 1
+            if bal == actual: hit["cân bằng"] += 1
+            if cold == actual: hit["lạnh"] += 1
+            tested += 1
+        freq[actual] += 1
+        last[actual] = i
+    return {
+        "tested": tested,
+        "expected_pct": round(100 / (SPECIAL_MAX - SPECIAL_MIN + 1), 2),
+        "pct": {k: round(100 * v / tested, 2) for k, v in hit.items()},
+    }
+
+
 def _special_advice(draws: dict, prev_draw: int) -> dict:
     """Tham mưu chọn số đặc biệt (1..12): tần suất, số kỳ chưa ra (quá hạn), và
     gợi ý theo 2 hướng (nóng nhất / quá hạn nhất). LƯU Ý: mọi số ĐB đều 1/12 —
@@ -321,6 +355,7 @@ def _special_advice(draws: dict, prev_draw: int) -> dict:
     gs = [t["gap"] for t in table]
     ncs, ngs = _norm(cs), _norm(gs)
     balanced = max(range(len(table)), key=lambda i: ncs[i] + ngs[i])
+    specials = [dr["special"] for dr in hist if dr.get("special") is not None]
     return {
         "total": total,
         "expected_pct": round(100 / (SPECIAL_MAX - SPECIAL_MIN + 1), 1),  # 8.3%
@@ -328,6 +363,7 @@ def _special_advice(draws: dict, prev_draw: int) -> dict:
         "hot": hot,           # ra nhiều nhất
         "overdue": overdue,   # lâu chưa ra nhất
         "balanced": table[balanced]["n"],  # cân bằng nóng + quá hạn
+        "backtest": _special_backtest(specials),
     }
 
 
