@@ -218,6 +218,7 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
   </span>
 </div>
 
+<div id="my-pick"></div>
 <div id="model-predictions"></div>
 <div id="special-advice"></div>
 <div id="random-tickets"></div>
@@ -395,6 +396,33 @@ function ticketCard(t) {
     traceHtml + '</div>';
 }
 
+function renderMyPick(rt) {
+  var host = document.getElementById('my-pick');
+  if (!host) return;
+  var t = rt && rt.my_pick;
+  if (!t) { host.innerHTML = ''; return; }
+  var r = t.recent || {};
+  var big = t.numbers.map(function(n) {
+    return '<div class="ball" style="width:46px;height:46px;font-size:1.05rem">' + String(n).padStart(2, '0') + '</div>';
+  }).join('') + '<span class="plus">+</span>' +
+    '<div class="ball sp" style="width:46px;height:46px;font-size:1.05rem">' + String(t.special).padStart(2, '0') + '</div>';
+  host.innerHTML =
+    '<div style="background:linear-gradient(135deg,#16233a,#1a2f22);border:2px solid var(--blue);border-radius:14px;padding:16px 18px;margin-bottom:22px">' +
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px">' +
+        '<div style="font-size:1.1rem;font-weight:800">⭐ SỐ CỦA TÔI — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
+        '<div style="font-size:.72rem;color:var(--muted)">bộ số cố định mỗi kỳ</div>' +
+      '</div>' +
+      '<div class="balls" style="margin:12px 0">' + big + '</div>' +
+      '<div class="record">' +
+        '<span class="stat"><b>' + (r.wins || 0) + '</b> <span>lần trúng ≥3 số / ' + (r.n || 0) + ' kỳ</span></span>' +
+        '<span class="stat"><b>' + (r.special_hits || 0) + '</b> <span>lần trúng ĐB</span></span>' +
+        '<span class="stat"><b>' + (r.best || 0) + '</b> <span>số khớp cao nhất</span></span>' +
+      '</div>' +
+      compareBlock(t.last_result, true, 'Số của tôi') +
+      '<div style="font-size:.7rem;color:var(--muted);margin-top:8px">⚠️ Xác suất trúng 1/324.632 như mọi bộ số khác. Chơi có trách nhiệm.</div>' +
+    '</div>';
+}
+
 function renderSpecialAdvice(rt) {
   var host = document.getElementById('special-advice');
   if (!host) return;
@@ -494,6 +522,7 @@ async function main() {
       fetch('random_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     renderPin(wins);
+    renderMyPick(rtData);
     renderRandomTickets(rtData);
     renderSpecialAdvice(rtData);
     renderArchive(wins);

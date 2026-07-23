@@ -42,6 +42,10 @@ RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nh
 MAIN_MIN, MAIN_MAX, MAIN_K = 1, 35, 5
 SPECIAL_MIN, SPECIAL_MAX = 1, 12
 
+# Bộ số cố định "Số của tôi" — ghim đầu dashboard (5 số chính + 1 ĐB).
+MY_PICK_MAIN = [12, 13, 14, 21, 30]
+MY_PICK_SPECIAL = 7
+
 
 def _load_draws(csv_path: str) -> dict[int, dict]:
     draws = {}
@@ -292,6 +296,32 @@ def _top_combo_tickets(draws: dict, next_draw: int, prev_draw: int, top_n: int) 
     return tickets
 
 
+def _fixed_ticket(main: list, special: int, draws: dict, next_draw: int, prev_draw: int) -> dict:
+    """Vé cố định (số không đổi mỗi kỳ) — thống kê qua toàn bộ lịch sử."""
+    mset = set(main)
+    hist_ids = [d for d in sorted(draws) if d <= prev_draw]
+    tier = {3: 0, 4: 0, 5: 0}
+    sp_hits = jackpot1 = best = 0
+    for d in hist_ids:
+        act = draws[d]
+        mh = len(mset & set(act["numbers"]))
+        best = max(best, mh)
+        if mh >= 3:
+            tier[mh] = tier.get(mh, 0) + 1
+        if act["special"] == special:
+            sp_hits += 1
+            if mh == 5:
+                jackpot1 += 1
+    return {
+        "id": "MY", "numbers": list(main), "special": special,
+        "trace": f"L535-{next_draw}-MY",
+        "recent": {"n": len(hist_ids), "wins": tier[3] + tier[4] + tier[5],
+                   "tier3": tier[3], "tier4": tier[4], "tier5": tier[5],
+                   "best": best, "special_hits": sp_hits, "jackpot1": jackpot1},
+        "last_result": _compare(list(main), special, prev_draw, draws),
+    }
+
+
 def _special_backtest(specials: list, warmup: int = 50) -> dict:
     """Backtest walk-forward các chiến lược chọn ĐB: mỗi kỳ chỉ dùng dữ liệu
     TRƯỚC kỳ đó để chọn, rồi xem có trúng ĐB kỳ đó không. So với mức 1/12."""
@@ -433,6 +463,7 @@ def main():
         "disclaimer": ("Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' "
                        "được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG "
                        "làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm."),
+        "my_pick": _fixed_ticket(MY_PICK_MAIN, MY_PICK_SPECIAL, draws, next_draw, prev_draw),
         "special_advice": _special_advice(draws, prev_draw),
         "baselines": baselines,
         "groups": [g for g in [

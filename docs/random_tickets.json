@@ -1,9 +1,53 @@
 {
- "generated_at": "2026-07-23T13:15:01+00:00",
+ "generated_at": "2026-07-23T13:31:45+00:00",
  "next_draw": 780,
  "prev_draw": 779,
  "recent_n": 0,
  "disclaimer": "Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm.",
+ "my_pick": {
+  "id": "MY",
+  "numbers": [
+   12,
+   13,
+   14,
+   21,
+   30
+  ],
+  "special": 7,
+  "trace": "L535-780-MY",
+  "recent": {
+   "n": 779,
+   "wins": 12,
+   "tier3": 12,
+   "tier4": 0,
+   "tier5": 0,
+   "best": 3,
+   "special_hits": 68,
+   "jackpot1": 0
+  },
+  "last_result": {
+   "draw_id": 779,
+   "draw_date": "2026-07-23",
+   "actual": [
+    9,
+    12,
+    17,
+    25,
+    28
+   ],
+   "actual_special": 6,
+   "predicted": [
+    12,
+    13,
+    14,
+    21,
+    30
+   ],
+   "predicted_special": 7,
+   "main_hits": 1,
+   "special_hit": false
+  }
+ },
  "special_advice": {
   "total": 779,
   "expected_pct": 8.3,
