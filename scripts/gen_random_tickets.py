@@ -33,10 +33,10 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
-N_FAIR = 0     # nhóm random không lặp (0 = tắt)
-N_REPEAT = 0   # nhóm random có thể trùng vé (0 = tắt)
-N_SIGNAL = 0   # nhóm kết hợp dấu hiệu (0 = tắt)
-N_COMBOS = 50  # số vé chọn từ TẤT CẢ tổ hợp (trúng ≥3 số nhiều nhất)
+N_FAIR = 500   # nhóm random không lặp
+N_REPEAT = 500 # nhóm random có thể trùng vé
+N_SIGNAL = 500 # nhóm kết hợp dấu hiệu
+N_COMBOS = 0   # số vé chọn từ TẤT CẢ tổ hợp (0 = tắt; bật bằng --combos)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
 MAIN_MIN, MAIN_MAX, MAIN_K = 1, 35, 5
