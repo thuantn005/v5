@@ -219,6 +219,7 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 </div>
 
 <div id="model-predictions"></div>
+<div id="special-advice"></div>
 <div id="random-tickets"></div>
 <div id="jackpot-pin"></div>
 <div id="app"><div class="loading">Đang tải dữ liệu…</div></div>
@@ -394,6 +395,38 @@ function ticketCard(t) {
     traceHtml + '</div>';
 }
 
+function renderSpecialAdvice(rt) {
+  var host = document.getElementById('special-advice');
+  if (!host) return;
+  var a = rt && rt.special_advice;
+  if (!a) { host.innerHTML = ''; return; }
+  var balls = (a.table || []).map(function(t) {
+    var tags = [];
+    if (t.n === a.hot) tags.push('nóng');
+    if (t.n === a.overdue) tags.push('quá hạn');
+    if (t.n === a.balanced) tags.push('cân bằng');
+    var hl = tags.length ? ' style="outline:2px solid var(--gold);outline-offset:1px"' : '';
+    return '<div style="text-align:center;min-width:52px">' +
+      '<div class="ball sp"' + hl + '>' + String(t.n).padStart(2, '0') + '</div>' +
+      '<div style="font-size:.66rem;color:var(--muted);margin-top:3px">' + t.pct + '%</div>' +
+      '<div style="font-size:.62rem;color:var(--muted)">' + t.gap + ' kỳ</div>' +
+      (tags.length ? '<div style="font-size:.6rem;color:var(--gold);margin-top:2px">' + tags.join('·') + '</div>' : '') +
+      '</div>';
+  }).join('');
+  host.innerHTML =
+    '<div class="mp-head" style="margin-top:24px">' +
+      '<div class="mp-title">🎯 Tham mưu số đặc biệt (ĐB)</div>' +
+      '<div class="mp-meta">' + a.total + ' kỳ · kỳ vọng mỗi số ~' + a.expected_pct + '%</div>' +
+    '</div>' +
+    '<div class="record" style="margin-bottom:12px">' +
+      '<span class="stat"><b>' + String(a.hot).padStart(2, '0') + '</b> <span>nóng nhất</span></span>' +
+      '<span class="stat"><b>' + String(a.overdue).padStart(2, '0') + '</b> <span>quá hạn nhất</span></span>' +
+      '<span class="stat"><b>' + String(a.balanced).padStart(2, '0') + '</b> <span>cân bằng</span></span>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">' + balls + '</div>' +
+    '<div style="font-size:.72rem;color:var(--muted);margin-top:10px">⚠️ Mọi số ĐB đều có xác suất 1/12 như nhau — bảng chỉ mô tả quá khứ, KHÔNG tăng cơ hội trúng.</div>';
+}
+
 function renderRandomTickets(rt) {
   var baseHost = document.getElementById('model-predictions');
   var host = document.getElementById('random-tickets');
@@ -444,6 +477,7 @@ async function main() {
     ]);
     renderPin(wins);
     renderRandomTickets(rtData);
+    renderSpecialAdvice(rtData);
     renderArchive(wins);
     const gen = (j2 && j2.generated_at) || (j1 && j1.generated_at);
     document.getElementById('gen-time').textContent =

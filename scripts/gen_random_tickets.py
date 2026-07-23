@@ -292,6 +292,45 @@ def _top_combo_tickets(draws: dict, next_draw: int, prev_draw: int, top_n: int) 
     return tickets
 
 
+def _special_advice(draws: dict, prev_draw: int) -> dict:
+    """Tham mưu chọn số đặc biệt (1..12): tần suất, số kỳ chưa ra (quá hạn), và
+    gợi ý theo 2 hướng (nóng nhất / quá hạn nhất). LƯU Ý: mọi số ĐB đều 1/12 —
+    đây chỉ là phân tích mô tả quá khứ, KHÔNG tăng cơ hội trúng."""
+    hist = [draws[d] for d in sorted(draws) if d <= prev_draw]
+    total = len(hist)
+    freq = Counter()
+    last_pos = {}
+    for pos, dr in enumerate(hist):
+        s = dr.get("special")
+        if s is not None:
+            freq[s] += 1
+            last_pos[s] = pos
+    table = []
+    for n in range(SPECIAL_MIN, SPECIAL_MAX + 1):
+        cnt = freq.get(n, 0)
+        gap = (total - 1 - last_pos[n]) if n in last_pos else total  # số kỳ chưa ra
+        table.append({
+            "n": n, "count": cnt,
+            "pct": round(100 * cnt / total, 1) if total else 0.0,
+            "gap": gap,
+        })
+    hot = max(table, key=lambda x: (x["count"], -x["n"]))["n"]
+    overdue = max(table, key=lambda x: (x["gap"], -x["n"]))["n"]
+    # điểm cân bằng: chuẩn hoá tần suất + quá hạn rồi cộng
+    cs = [t["count"] for t in table]
+    gs = [t["gap"] for t in table]
+    ncs, ngs = _norm(cs), _norm(gs)
+    balanced = max(range(len(table)), key=lambda i: ncs[i] + ngs[i])
+    return {
+        "total": total,
+        "expected_pct": round(100 / (SPECIAL_MAX - SPECIAL_MIN + 1), 1),  # 8.3%
+        "table": table,
+        "hot": hot,           # ra nhiều nhất
+        "overdue": overdue,   # lâu chưa ra nhất
+        "balanced": table[balanced]["n"],  # cân bằng nóng + quá hạn
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default="data/all.csv")
@@ -358,6 +397,7 @@ def main():
         "disclaimer": ("Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' "
                        "được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG "
                        "làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm."),
+        "special_advice": _special_advice(draws, prev_draw),
         "baselines": baselines,
         "groups": [g for g in [
             {"label": f"{len(combo_tickets)} vé chọn từ TẤT CẢ tổ hợp",

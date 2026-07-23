@@ -1,9 +1,90 @@
 {
- "generated_at": "2026-07-23T08:49:31+00:00",
+ "generated_at": "2026-07-23T12:50:14+00:00",
  "next_draw": 780,
  "prev_draw": 779,
  "recent_n": 0,
  "disclaimer": "Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm.",
+ "special_advice": {
+  "total": 779,
+  "expected_pct": 8.3,
+  "table": [
+   {
+    "n": 1,
+    "count": 65,
+    "pct": 8.3,
+    "gap": 9
+   },
+   {
+    "n": 2,
+    "count": 62,
+    "pct": 8.0,
+    "gap": 33
+   },
+   {
+    "n": 3,
+    "count": 68,
+    "pct": 8.7,
+    "gap": 13
+   },
+   {
+    "n": 4,
+    "count": 61,
+    "pct": 7.8,
+    "gap": 1
+   },
+   {
+    "n": 5,
+    "count": 60,
+    "pct": 7.7,
+    "gap": 15
+   },
+   {
+    "n": 6,
+    "count": 63,
+    "pct": 8.1,
+    "gap": 0
+   },
+   {
+    "n": 7,
+    "count": 68,
+    "pct": 8.7,
+    "gap": 5
+   },
+   {
+    "n": 8,
+    "count": 65,
+    "pct": 8.3,
+    "gap": 6
+   },
+   {
+    "n": 9,
+    "count": 68,
+    "pct": 8.7,
+    "gap": 3
+   },
+   {
+    "n": 10,
+    "count": 67,
+    "pct": 8.6,
+    "gap": 2
+   },
+   {
+    "n": 11,
+    "count": 63,
+    "pct": 8.1,
+    "gap": 23
+   },
+   {
+    "n": 12,
+    "count": 69,
+    "pct": 8.9,
+    "gap": 4
+   }
+  ],
+  "hot": 12,
+  "overdue": 2,
+  "balanced": 3
+ },
  "baselines": [
   {
    "id": "FAIR",
