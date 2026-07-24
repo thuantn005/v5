@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-07-24T06:17:27+00:00",
- "next_draw": 781,
- "prev_draw": 780,
+ "generated_at": "2026-07-24T08:49:45+00:00",
+ "next_draw": 782,
+ "prev_draw": 781,
  "recent_n": 0,
  "disclaimer": "Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm.",
  "my_pick": {
@@ -14,9 +14,9 @@
    30
   ],
   "special": 7,
-  "trace": "L535-781-MY",
+  "trace": "L535-782-MY",
   "recent": {
-   "n": 780,
+   "n": 781,
    "wins": 12,
    "tier3": 12,
    "tier4": 0,
@@ -26,16 +26,16 @@
    "jackpot1": 0
   },
   "last_result": {
-   "draw_id": 780,
-   "draw_date": "2026-07-23",
+   "draw_id": 781,
+   "draw_date": "2026-07-24",
    "actual": [
-    4,
-    5,
+    11,
     13,
-    26,
-    29
+    20,
+    34,
+    35
    ],
-   "actual_special": 7,
+   "actual_special": 8,
    "predicted": [
     12,
     13,
@@ -45,7 +45,7 @@
    ],
    "predicted_special": 7,
    "main_hits": 1,
-   "special_hit": true
+   "special_hit": false
   }
  },
  "models": [
@@ -53,30 +53,65 @@
    "id": "Mạng nơ-ron (Perceptron)",
    "label": "Mạng nơ-ron (Perceptron)",
    "numbers": [
-    3,
-    8,
-    17,
+    7,
+    20,
+    22,
     24,
-    35
+    30
    ],
-   "special": 4,
-   "trace": "lotto535|neural-perceptron|target=00781|data=e1c49a32a753",
+   "special": 2,
+   "trace": "lotto535|neural-perceptron|target=00782|data=a111b05eae84",
    "last_result": {
-    "draw_id": 780,
-    "draw_date": "2026-07-23",
+    "draw_id": 781,
+    "draw_date": "2026-07-24",
     "actual": [
-     4,
-     5,
+     11,
      13,
-     26,
-     29
+     20,
+     34,
+     35
     ],
-    "actual_special": 7,
+    "actual_special": 8,
     "predicted": [
-     2,
-     7,
+     3,
+     8,
+     17,
+     24,
+     35
+    ],
+    "predicted_special": 4,
+    "main_hits": 1,
+    "special_hit": false
+   }
+  },
+  {
+   "id": "LSTM NumPy",
+   "label": "LSTM NumPy",
+   "numbers": [
+    10,
+    14,
+    22,
+    33,
+    34
+   ],
+   "special": 12,
+   "trace": "lotto535|lstm-numpy|target=00782|data=a111b05eae84",
+   "last_result": {
+    "draw_id": 781,
+    "draw_date": "2026-07-24",
+    "actual": [
+     11,
      13,
-     26,
+     20,
+     34,
+     35
+    ],
+    "actual_special": 8,
+    "predicted": [
+     14,
+     20,
+     22,
+     23,
      34
     ],
     "predicted_special": 12,
@@ -85,63 +120,28 @@
    }
   },
   {
-   "id": "LSTM NumPy",
-   "label": "LSTM NumPy",
-   "numbers": [
-    14,
-    20,
-    22,
-    23,
-    34
-   ],
-   "special": 12,
-   "trace": "lotto535|lstm-numpy|target=00781|data=e1c49a32a753",
-   "last_result": {
-    "draw_id": 780,
-    "draw_date": "2026-07-23",
-    "actual": [
-     4,
-     5,
-     13,
-     26,
-     29
-    ],
-    "actual_special": 7,
-    "predicted": [
-     10,
-     14,
-     28,
-     33,
-     34
-    ],
-    "predicted_special": 12,
-    "main_hits": 0,
-    "special_hit": false
-   }
-  },
-  {
    "id": "LSTM TensorFlow",
    "label": "LSTM TensorFlow",
    "numbers": [
-    11,
+    10,
     14,
     20,
-    28,
+    27,
     34
    ],
-   "special": 11,
-   "trace": "lotto535|lstm-tf|target=00781|data=e1c49a32a753",
+   "special": 3,
+   "trace": "lotto535|lstm-tf|target=00782|data=a111b05eae84",
    "last_result": {
-    "draw_id": 780,
-    "draw_date": "2026-07-23",
+    "draw_id": 781,
+    "draw_date": "2026-07-24",
     "actual": [
-     4,
-     5,
+     11,
      13,
-     26,
-     29
+     20,
+     34,
+     35
     ],
-    "actual_special": 7,
+    "actual_special": 8,
     "predicted": [
      11,
      14,
@@ -149,100 +149,100 @@
      28,
      34
     ],
-    "predicted_special": 5,
-    "main_hits": 0,
+    "predicted_special": 11,
+    "main_hits": 3,
     "special_hit": false
    }
   }
  ],
  "special_advice": {
-  "total": 780,
+  "total": 781,
   "expected_pct": 8.3,
   "table": [
    {
     "n": 1,
     "count": 65,
     "pct": 8.3,
-    "gap": 10
+    "gap": 11
    },
    {
     "n": 2,
     "count": 62,
     "pct": 7.9,
-    "gap": 34
+    "gap": 35
    },
    {
     "n": 3,
     "count": 68,
     "pct": 8.7,
-    "gap": 14
+    "gap": 15
    },
    {
     "n": 4,
     "count": 61,
     "pct": 7.8,
-    "gap": 2
+    "gap": 3
    },
    {
     "n": 5,
     "count": 60,
     "pct": 7.7,
-    "gap": 16
+    "gap": 17
    },
    {
     "n": 6,
     "count": 63,
     "pct": 8.1,
-    "gap": 1
+    "gap": 2
    },
    {
     "n": 7,
     "count": 69,
     "pct": 8.8,
-    "gap": 0
+    "gap": 1
    },
    {
     "n": 8,
-    "count": 65,
-    "pct": 8.3,
-    "gap": 7
+    "count": 66,
+    "pct": 8.5,
+    "gap": 0
    },
    {
     "n": 9,
     "count": 68,
     "pct": 8.7,
-    "gap": 4
+    "gap": 5
    },
    {
     "n": 10,
     "count": 67,
     "pct": 8.6,
-    "gap": 3
+    "gap": 4
    },
    {
     "n": 11,
     "count": 63,
     "pct": 8.1,
-    "gap": 24
+    "gap": 25
    },
    {
     "n": 12,
     "count": 69,
     "pct": 8.8,
-    "gap": 5
+    "gap": 6
    }
   ],
   "hot": 7,
   "overdue": 2,
   "balanced": 3,
   "backtest": {
-   "tested": 730,
+   "tested": 731,
    "expected_pct": 8.33,
    "pct": {
-    "nóng": 6.44,
-    "quá hạn": 8.22,
-    "cân bằng": 8.49,
-    "lạnh": 9.45
+    "nóng": 6.43,
+    "quá hạn": 8.21,
+    "cân bằng": 8.48,
+    "lạnh": 9.44
    }
   }
  },
@@ -255,40 +255,40 @@
    "tickets": [
     {
      "id": "S001",
-     "seed": 3010000781,
+     "seed": 3010000782,
      "numbers": [
-      5,
-      15,
-      21,
-      25,
-      31
+      2,
+      11,
+      19,
+      28,
+      34
      ],
-     "special": 1,
-     "trace": "L535-781-S001",
+     "special": 7,
+     "trace": "L535-782-S001",
      "last_result": {
-      "draw_id": 780,
-      "draw_date": "2026-07-23",
+      "draw_id": 781,
+      "draw_date": "2026-07-24",
       "actual": [
-       4,
-       5,
-       13,
-       26,
-       29
-      ],
-      "actual_special": 7,
-      "predicted": [
-       9,
        11,
        13,
-       26,
-       34
+       20,
+       34,
+       35
       ],
-      "predicted_special": 4,
-      "main_hits": 2,
+      "actual_special": 8,
+      "predicted": [
+       5,
+       15,
+       21,
+       25,
+       31
+      ],
+      "predicted_special": 1,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
-      "n": 780,
+      "n": 781,
       "wins": 13,
       "tier3": 12,
       "tier4": 0,
@@ -306,40 +306,40 @@
    "tickets": [
     {
      "id": "R001",
-     "seed": 11000781,
+     "seed": 11000782,
      "numbers": [
-      7,
-      14,
-      20,
-      25,
-      33
+      2,
+      4,
+      30,
+      33,
+      34
      ],
-     "special": 4,
-     "trace": "L535-781-R001",
+     "special": 12,
+     "trace": "L535-782-R001",
      "last_result": {
-      "draw_id": 780,
-      "draw_date": "2026-07-23",
+      "draw_id": 781,
+      "draw_date": "2026-07-24",
       "actual": [
-       4,
-       5,
+       11,
        13,
-       26,
-       29
+       20,
+       34,
+       35
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
        7,
-       18,
+       14,
        20,
-       28,
-       34
+       25,
+       33
       ],
-      "predicted_special": 5,
-      "main_hits": 0,
+      "predicted_special": 4,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 780,
+      "n": 781,
       "wins": 12,
       "tier3": 12,
       "tier4": 0,

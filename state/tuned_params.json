@@ -7,5 +7,7 @@
   "ramanujan_sigma": {},
   "aryabhata_cycle": {},
   "neural_perceptron": {},
-  "indian_per_slot": {}
+  "indian_per_slot": {},
+  "lstm_numpy": {},
+  "lstm_tf": {}
 }
