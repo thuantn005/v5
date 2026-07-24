@@ -33,18 +33,17 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
-N_FAIR = 0     # nhóm random không lặp (0 = tắt)
-N_REPEAT = 1   # 1 vé seed gốc "có lặp"
-N_SIGNAL = 50  # 50 vé "kết hợp 3 dấu hiệu" — đều lấy mẫu ngẫu nhiên có seed
+N_METHOD = 10  # số vé mỗi phương pháp lấy mẫu ngẫu nhiên
 N_COMBOS = 0   # số vé chọn từ TẤT CẢ tổ hợp (0 = tắt; bật bằng --combos)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
 MAIN_MIN, MAIN_MAX, MAIN_K = 1, 35, 5
 SPECIAL_MIN, SPECIAL_MAX = 1, 12
 
-# Bộ số cố định "Số của tôi" — ghim đầu dashboard (5 số chính + 1 ĐB).
-MY_PICK_MAIN = [12, 13, 14, 21, 30]
-MY_PICK_SPECIAL = 7
+# Bộ số cố định "Số của tôi" — vé THẬT đã mua (BIDV SP535, kỳ #00783,
+# MT 25/07/2026 13:00). 5 số chính + 1 ĐB.
+MY_PICK_MAIN = [11, 16, 20, 23, 27]
+MY_PICK_SPECIAL = 5
 
 
 def _load_draws(csv_path: str) -> dict[int, dict]:
@@ -143,6 +142,67 @@ def _wchoice(rng: random.Random, weights):
         if r <= acc:
             return i + 1
     return len(weights)
+
+
+def _components(draws: dict, draw_id: int) -> dict:
+    """Các thành phần thống kê (chỉ dùng dữ liệu < draw_id) để dựng trọng số."""
+    hist = [draws[d] for d in sorted(draws) if d < draw_id]
+    total = len(hist)
+    freq = Counter()
+    last_seen = {}
+    for pos, dr in enumerate(hist):
+        for n in dr["numbers"]:
+            freq[n] += 1
+            last_seen[n] = pos
+    hot = [freq.get(n, 0) for n in range(MAIN_MIN, MAIN_MAX + 1)]
+    overdue = [(total - 1 - last_seen.get(n, -1)) if n in last_seen else total
+               for n in range(MAIN_MIN, MAIN_MAX + 1)]
+    recent_nums = set(hist[-1]["numbers"]) if hist else set()
+    comp = [0] * 35
+    for dr in hist:
+        if set(dr["numbers"]) & recent_nums:
+            for n in dr["numbers"]:
+                comp[n - 1] += 1
+    rc = Counter()
+    for dr in hist[-30:]:
+        rc.update(dr["numbers"])
+    recent = [rc.get(n, 0) for n in range(MAIN_MIN, MAIN_MAX + 1)]
+    sf = Counter(dr["special"] for dr in hist if dr["special"] is not None)
+    sfreq = [sf.get(s, 0) for s in range(SPECIAL_MIN, SPECIAL_MAX + 1)]
+    return {"hot": hot, "overdue": overdue, "companion": comp, "recent": recent, "sfreq": sfreq}
+
+
+def _method_weight(c: dict, kind: str):
+    """Trọng số mỗi số theo từng phương pháp (đều >0 để mọi số còn cơ hội)."""
+    if kind == "uniform":
+        return [1.0] * 35, [1.0] * 12
+    if kind == "hot":
+        base = _norm(c["hot"])
+    elif kind == "cold":
+        mx = max(c["hot"])
+        base = _norm([mx - x for x in c["hot"]])
+    elif kind == "overdue":
+        base = _norm(c["overdue"])
+    elif kind == "companion":
+        base = _norm(c["companion"])
+    elif kind == "recent":
+        base = _norm(c["recent"])
+    else:  # signal3 = nóng + quá hạn + đồng hành
+        h, o, cc = _norm(c["hot"]), _norm(c["overdue"]), _norm(c["companion"])
+        base = [h[i] + o[i] + cc[i] for i in range(35)]
+    w = [0.1 + base[i] for i in range(35)]
+    sw = [0.1 + c["sfreq"][i] for i in range(12)]
+    return w, sw
+
+
+def _make_method_gen(comps: dict, kind: str, offset: int):
+    """gen(idx, draw_id) -> vé lấy mẫu ngẫu nhiên có seed, theo phương pháp kind."""
+    def gen(idx: int, draw_id: int):
+        c = comps[draw_id]
+        w, sw = _method_weight(c, kind)
+        rng = random.Random(draw_id + offset + idx * TICKET_SEED_STRIDE)
+        return _wsample(rng, w, MAIN_K), _wchoice(rng, sw)
+    return gen
 
 
 def _make_signal_gen(draws: dict, needed_draw_ids):
@@ -443,9 +503,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", default="data/all.csv")
     ap.add_argument("--out", default="docs/random_tickets.json")
-    ap.add_argument("--fair", type=int, default=N_FAIR)
-    ap.add_argument("--repeat", type=int, default=N_REPEAT)
-    ap.add_argument("--signal", type=int, default=N_SIGNAL)
+    ap.add_argument("--per-method", type=int, default=N_METHOD,
+                    help="số vé mỗi phương pháp lấy mẫu")
     ap.add_argument("--combos", type=int, default=N_COMBOS,
                     help="số vé chọn từ tất cả tổ hợp (trúng >=3 số nhiều nhất)")
     ap.add_argument("--recent-n", type=int, default=RECENT_N)
@@ -459,35 +518,39 @@ def main():
     prev_draw = next_draw - 1
     recent_ids = _recent_ids(draws, prev_draw, a.recent_n)
 
-    def distinct_gen(offset):
-        return lambda idx, d: _gen_distinct(offset, idx, d)
-
-    fair_gen = distinct_gen(0)                     # nhóm KHÔNG trùng vé
-    repeat_gen = distinct_gen(REPEAT_SEED_OFFSET)  # nhóm CHO PHÉP trùng vé
-    # vé dấu hiệu cần trọng số ở next_draw + tất cả kỳ dùng cho thống kê
-    signal_gen = _make_signal_gen(draws, set([next_draw]) | set(recent_ids))
-
-    def build_group(gen_fn, count, prefix, offset_base, *, unique):
-        """unique=True: bỏ các vé TRÙNG NHAU (theo bộ số kỳ tới) -> 500 vé khác
-        nhau. unique=False: giữ nguyên, cho phép trùng vé."""
-        items, seen, i = [], set(), 0
-        while len(items) < count and i < count * 20:
+    def build_group(gen_fn, count, prefix, offset_base):
+        items, i = [], 0
+        while len(items) < count and i < count * 5:
             i += 1
-            main, sp = gen_fn(i, next_draw)
-            if unique:
-                key = (tuple(main), sp)
-                if key in seen:
-                    continue
-                seen.add(key)
             tid = f"{prefix}{len(items) + 1:03d}"
             items.append(_build_ticket(gen_fn, i, next_draw, prev_draw, draws, tid,
                                        recent_ids, next_draw + offset_base + i * TICKET_SEED_STRIDE))
         items.sort(key=_rank, reverse=True)  # vé trúng nhiều lên đầu
         return items
 
-    fair_tickets = build_group(fair_gen, a.fair, "F", 0, unique=True)
-    repeat_tickets = build_group(repeat_gen, a.repeat, "R", REPEAT_SEED_OFFSET, unique=False)
-    signal_tickets = build_group(signal_gen, a.signal, "S", SIGNAL_SEED_OFFSET, unique=False)
+    # Tính trước các thành phần (dùng chung cho mọi phương pháp lấy mẫu)
+    comps = {d: _components(draws, d) for d in (set(recent_ids) | {next_draw})}
+
+    # NHIỀU PHƯƠNG PHÁP — tất cả đều LẤY MẪU NGẪU NHIÊN CÓ SEED
+    METHODS = [
+        ("Kết hợp 3 dấu hiệu (nóng+quá hạn+đồng hành)", "signal3",   SIGNAL_SEED_OFFSET, "S"),
+        ("Nóng (tần suất)",                              "hot",       4_000_000_000, "H"),
+        ("Lạnh (ít ra nhất)",                            "cold",      5_000_000_000, "L"),
+        ("Quá hạn (lâu chưa ra)",                        "overdue",   6_000_000_000, "O"),
+        ("Đồng hành (hay ra cùng kỳ trước)",             "companion", 7_000_000_000, "D"),
+        ("Nóng gần đây (30 kỳ)",                         "recent",    8_000_000_000, "N"),
+        ("Đều (thuần ngẫu nhiên)",                       "uniform",   9_000_000_000, "U"),
+    ]
+    per = a.per_method
+    method_groups = []
+    for label, kind, offset, prefix in METHODS:
+        gen = _make_method_gen(comps, kind, offset)
+        tickets = build_group(gen, per, prefix, offset)
+        method_groups.append({
+            "label": f"{len(tickets)} vé · {label}",
+            "note": "lấy mẫu ngẫu nhiên có seed, trọng số theo phương pháp này",
+            "method": kind, "tickets": tickets,
+        })
     combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
 
     # Chỉ giữ seed gốc (1 vé/nhóm ở trên) + các model AI; bỏ 2 mốc baseline.
@@ -504,25 +567,18 @@ def main():
         "models": models,
         "special_advice": _special_advice(draws, prev_draw),
         "baselines": baselines,
-        "groups": [g for g in [
-            {"label": f"{len(combo_tickets)} vé chọn từ TẤT CẢ tổ hợp",
-             "note": "quét toàn bộ 324.632 tổ hợp · chọn khớp ≥3 số nhiều nhất trong lịch sử "
-                     "(survivorship — KHÔNG tăng cơ hội kỳ tới)",
-             "method": "combos", "tickets": combo_tickets},
-            {"label": f"{len(signal_tickets)} vé kết hợp 3 dấu hiệu lịch sử",
-             "note": "nóng (tần suất) · quá hạn (lâu chưa ra) · đồng hành (hay ra cùng kỳ gần nhất)",
-             "method": "signal", "tickets": signal_tickets},
-            {"label": f"{len(repeat_tickets)} vé ngẫu nhiên (cho phép TRÙNG VÉ)", "method": "repeat",
-             "note": "cho phép 2 vé trùng nhau · mỗi vé vẫn 5 số khác nhau", "tickets": repeat_tickets},
-            {"label": f"{len(fair_tickets)} vé KHÔNG trùng nhau", "method": "fair",
-             "note": "vé khác nhau · mỗi vé 5 số khác nhau", "tickets": fair_tickets},
-        ] if g["tickets"]],
+        "groups": [g for g in (
+            ([{"label": f"{len(combo_tickets)} vé chọn từ TẤT CẢ tổ hợp",
+               "note": "quét toàn bộ 324.632 tổ hợp (survivorship — KHÔNG tăng cơ hội kỳ tới)",
+               "method": "combos", "tickets": combo_tickets}] if combo_tickets else [])
+            + method_groups
+        ) if g["tickets"]],
     }
 
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"OK: {len(models)} model AI + {len(signal_tickets)} dấu hiệu + {len(repeat_tickets)} có lặp "
-          f"(seed gốc) cho kỳ #{next_draw} -> {a.out}")
+    print(f"OK: {len(models)} model AI + {len(method_groups)} phương pháp × {per} vé "
+          f"cho kỳ #{next_draw} -> {a.out}")
 
 
 if __name__ == "__main__":
