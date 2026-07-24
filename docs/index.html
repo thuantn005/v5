@@ -473,26 +473,37 @@ function btHtml(bt) {
   '</div>';
 }
 
+function renderModels(rt) {
+  var host = document.getElementById('model-predictions');
+  if (!host) return;
+  var models = (rt && rt.models) || [];
+  if (!models.length) { host.innerHTML = ''; return; }
+  var cards = models.map(function(m) {
+    var balls = m.numbers.map(function(n) { return b(n); }).join('') +
+      '<span class="plus">+</span>' + b(m.special, 'sp');
+    var traceHtml = m.trace ? '<div class="mp-trace">🔑 ' + esc(m.trace) + '</div>' : '';
+    return '<div class="card">' +
+      '<div class="mp-name">' + esc(m.label) + '<span class="badge badge-random">MODEL</span></div>' +
+      '<div class="block-label" style="margin-top:8px">Dự đoán kỳ tới</div>' +
+      '<div class="balls">' + balls + '</div>' +
+      compareBlock(m.last_result, true, 'Model') +
+      traceHtml + '</div>';
+  }).join('');
+  host.innerHTML =
+    '<div class="mp-head" style="margin-top:24px">' +
+      '<div class="mp-title">🤖 Model AI — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
+      '<div class="mp-meta">backtest 679 kỳ: đều 0 Jackpot</div>' +
+    '</div>' +
+    '<div style="font-size:.73rem;color:var(--muted);margin-bottom:10px">⚠️ Neural &amp; LSTM đã backtest = ngang ngẫu nhiên, KHÔNG dự đoán được. Hiển thị để tham khảo/minh bạch.</div>' +
+    '<div class="grid">' + cards + '</div>';
+}
+
 function renderRandomTickets(rt) {
-  var baseHost = document.getElementById('model-predictions');
   var host = document.getElementById('random-tickets');
   if (!rt) {
-    if (baseHost) baseHost.innerHTML = '';
     if (host) host.innerHTML = '';
     return;
   }
-  var gen = rt.generated_at ? new Date(rt.generated_at).toLocaleString('vi-VN') : '—';
-
-  if (baseHost) {
-    var baseCards = (rt.baselines || []).map(ticketCard).join('');
-    baseHost.innerHTML =
-      '<div class="mp-head">' +
-        '<div class="mp-title">🎲 Mục ngẫu nhiên — kỳ #' + esc(String(rt.next_draw)) + '</div>' +
-        '<div class="mp-meta">Cập nhật: ' + gen + '</div>' +
-      '</div>' +
-      '<div class="grid">' + (baseCards || '<div class="mp-no-data">Chưa có dữ liệu.</div>') + '</div>';
-  }
-
   if (host) {
     // Hỗ trợ cả định dạng cũ (rt.tickets) lẫn mới (rt.groups).
     var groups = rt.groups || (rt.tickets ? [{ label: 'Vé ngẫu nhiên', tickets: rt.tickets }] : []);
@@ -523,6 +534,7 @@ async function main() {
     ]);
     renderPin(wins);
     renderMyPick(rtData);
+    renderModels(rtData);
     renderRandomTickets(rtData);
     renderSpecialAdvice(rtData);
     renderArchive(wins);

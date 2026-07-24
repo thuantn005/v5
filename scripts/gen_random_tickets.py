@@ -34,8 +34,8 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
 N_FAIR = 0     # nhóm random không lặp (0 = tắt)
-N_REPEAT = 30  # nhóm random có thể trùng vé
-N_SIGNAL = 30  # nhóm kết hợp dấu hiệu
+N_REPEAT = 1   # 1 vé seed gốc "có lặp"
+N_SIGNAL = 1   # 1 vé seed gốc "dấu hiệu"
 N_COMBOS = 0   # số vé chọn từ TẤT CẢ tổ hợp (0 = tắt; bật bằng --combos)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
@@ -296,6 +296,48 @@ def _top_combo_tickets(draws: dict, next_draw: int, prev_draw: int, top_n: int) 
     return tickets
 
 
+def _ai_models(next_draw: int) -> list[dict]:
+    """Đọc dự đoán model AI (Neural, LSTM NumPy, LSTM TF) cho kỳ tới từ
+    state/ensemble_log.jsonl (do run_pipeline ghi sẵn — out-of-sample thật), kèm
+    đối chiếu kỳ resolved gần nhất. Lưu ý: backtest cho thấy đều ~ ngẫu nhiên."""
+    try:
+        from multi_log import load_log
+        entries = load_log()
+    except Exception:
+        entries = []
+    if not entries:
+        return []
+    latest = next((e for e in reversed(entries)
+                   if str(e.get("target_draw_id")).isdigit()
+                   and int(e["target_draw_id"]) == next_draw), None) or entries[-1]
+    resolved = [e for e in entries if e.get("resolved") and e.get("actual")]
+    prev = resolved[-1] if resolved else None
+    labels = {"ticket_neural": "Mạng nơ-ron (Perceptron)",
+              "lstm_numpy": "LSTM NumPy", "lstm_tf": "LSTM TensorFlow"}
+    out = []
+    ps = latest.get("per_strategy") or {}
+    for key, label in labels.items():
+        pk = ps.get(key)
+        if not pk or not pk.get("main"):
+            continue
+        lr = None
+        if prev:
+            pp = (prev.get("per_strategy") or {}).get(key)
+            act = prev.get("actual") or {}
+            h = (prev.get("hits") or {}).get(key) or {}
+            if pp and pp.get("main") and act:
+                lr = {
+                    "draw_id": int(prev["target_draw_id"]), "draw_date": act.get("draw_date"),
+                    "actual": act["main"], "actual_special": act["special"],
+                    "predicted": pp["main"], "predicted_special": pp["special"],
+                    "main_hits": h.get("main_hits", len(set(pp["main"]) & set(act["main"]))),
+                    "special_hit": bool(h.get("special_hit", pp["special"] == act["special"])),
+                }
+        out.append({"id": label, "label": label, "numbers": pk["main"],
+                    "special": pk["special"], "trace": pk.get("trace"), "last_result": lr})
+    return out
+
+
 def _fixed_ticket(main: list, special: int, draws: dict, next_draw: int, prev_draw: int) -> dict:
     """Vé cố định (số không đổi mỗi kỳ) — thống kê qua toàn bộ lịch sử."""
     mset = set(main)
@@ -448,14 +490,9 @@ def main():
     signal_tickets = build_group(signal_gen, a.signal, "S", SIGNAL_SEED_OFFSET, unique=False)
     combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
 
-    # baseline (idx=0) — cũng là 5 số khác nhau hợp lệ
-    baselines = [
-        {**_build_ticket(fair_gen, 0, next_draw, prev_draw, draws, "FAIR", recent_ids, next_draw),
-         "name": "Mốc so sánh công bằng (5 số khác nhau)", "badge": "RANDOM"},
-        {**_build_ticket(repeat_gen, 0, next_draw, prev_draw, draws, "REPEAT", recent_ids,
-                         next_draw + REPEAT_SEED_OFFSET),
-         "name": "Chọn ngẫu nhiên (có thể trùng vé)", "badge": "RANDOM"},
-    ]
+    # Chỉ giữ seed gốc (1 vé/nhóm ở trên) + các model AI; bỏ 2 mốc baseline.
+    baselines = []
+    models = _ai_models(next_draw)
 
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
@@ -464,6 +501,7 @@ def main():
                        "được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG "
                        "làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm."),
         "my_pick": _fixed_ticket(MY_PICK_MAIN, MY_PICK_SPECIAL, draws, next_draw, prev_draw),
+        "models": models,
         "special_advice": _special_advice(draws, prev_draw),
         "baselines": baselines,
         "groups": [g for g in [
@@ -483,8 +521,8 @@ def main():
 
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"OK: 2 baseline + {len(combo_tickets)} tổ hợp + {len(fair_tickets)} không lặp + "
-          f"{len(repeat_tickets)} có lặp + {len(signal_tickets)} dấu hiệu cho kỳ #{next_draw} -> {a.out}")
+    print(f"OK: {len(models)} model AI + {len(signal_tickets)} dấu hiệu + {len(repeat_tickets)} có lặp "
+          f"(seed gốc) cho kỳ #{next_draw} -> {a.out}")
 
 
 if __name__ == "__main__":
