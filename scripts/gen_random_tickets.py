@@ -35,7 +35,7 @@ TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
 N_FAIR = 0     # nhóm random không lặp (0 = tắt)
 N_REPEAT = 1   # 1 vé seed gốc "có lặp"
-N_SIGNAL = 1   # 1 vé seed gốc "dấu hiệu"
+N_SIGNAL = 50  # 50 vé "kết hợp 3 dấu hiệu" — đều lấy mẫu ngẫu nhiên có seed
 N_COMBOS = 0   # số vé chọn từ TẤT CẢ tổ hợp (0 = tắt; bật bằng --combos)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
