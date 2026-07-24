@@ -164,7 +164,7 @@ def _components(draws: dict, draw_id: int) -> dict:
             for n in dr["numbers"]:
                 comp[n - 1] += 1
     rc = Counter()
-    for dr in hist[-30:]:
+    for dr in hist[-200:]:   # "gần đây" = 200 kỳ (theo nhanaz)
         rc.update(dr["numbers"])
     recent = [rc.get(n, 0) for n in range(MAIN_MIN, MAIN_MAX + 1)]
     sf = Counter(dr["special"] for dr in hist if dr["special"] is not None)
@@ -187,9 +187,9 @@ def _method_weight(c: dict, kind: str):
         base = _norm(c["companion"])
     elif kind == "recent":
         base = _norm(c["recent"])
-    else:  # signal3 = nóng + quá hạn + đồng hành
-        h, o, cc = _norm(c["hot"]), _norm(c["overdue"]), _norm(c["companion"])
-        base = [h[i] + o[i] + cc[i] for i in range(35)]
+    else:  # signal3 = "balanced signal" (nhanaz): tần suất gần đây + toàn lịch sử + số kỳ vắng mặt
+        r, h, o = _norm(c["recent"]), _norm(c["hot"]), _norm(c["overdue"])
+        base = [r[i] + h[i] + o[i] for i in range(35)]
     w = [0.1 + base[i] for i in range(35)]
     sw = [0.1 + c["sfreq"][i] for i in range(12)]
     return w, sw
@@ -532,23 +532,26 @@ def main():
     comps = {d: _components(draws, d) for d in (set(recent_ids) | {next_draw})}
 
     # NHIỀU PHƯƠNG PHÁP — tất cả đều LẤY MẪU NGẪU NHIÊN CÓ SEED
+    # (label, kind, seed offset, mã, ghi chú)
     METHODS = [
-        ("Kết hợp 3 dấu hiệu (nóng+quá hạn+đồng hành)", "signal3",   SIGNAL_SEED_OFFSET, "S"),
-        ("Nóng (tần suất)",                              "hot",       4_000_000_000, "H"),
-        ("Lạnh (ít ra nhất)",                            "cold",      5_000_000_000, "L"),
-        ("Quá hạn (lâu chưa ra)",                        "overdue",   6_000_000_000, "O"),
-        ("Đồng hành (hay ra cùng kỳ trước)",             "companion", 7_000_000_000, "D"),
-        ("Nóng gần đây (30 kỳ)",                         "recent",    8_000_000_000, "N"),
-        ("Đều (thuần ngẫu nhiên)",                       "uniform",   9_000_000_000, "U"),
+        ("Kết hợp 3 dấu hiệu lịch sử", "signal3", SIGNAL_SEED_OFFSET, "S",
+         "tần suất gần đây (200 kỳ) + tần suất toàn lịch sử + số kỳ vắng mặt (theo nhanaz)"),
+        ("Ưu tiên số nổi bật gần đây", "recent", 8_000_000_000, "N",
+         "tần suất 200 kỳ gần nhất"),
+        ("Chọn ngẫu nhiên (mốc so sánh)", "uniform", 9_000_000_000, "U",
+         "thuần ngẫu nhiên có seed — mốc công bằng"),
+        ("Nóng (toàn lịch sử)", "hot", 4_000_000_000, "H", "tần suất toàn lịch sử"),
+        ("Lạnh (ít ra nhất)", "cold", 5_000_000_000, "L", "ít xuất hiện nhất"),
+        ("Quá hạn (lâu chưa ra)", "overdue", 6_000_000_000, "O", "số kỳ vắng mặt"),
     ]
     per = a.per_method
     method_groups = []
-    for label, kind, offset, prefix in METHODS:
+    for label, kind, offset, prefix, note in METHODS:
         gen = _make_method_gen(comps, kind, offset)
         tickets = build_group(gen, per, prefix, offset)
         method_groups.append({
             "label": f"{len(tickets)} vé · {label}",
-            "note": "lấy mẫu ngẫu nhiên có seed, trọng số theo phương pháp này",
+            "note": note + " · lấy mẫu ngẫu nhiên có seed",
             "method": kind, "tickets": tickets,
         })
     combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
