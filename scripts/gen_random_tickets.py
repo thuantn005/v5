@@ -33,7 +33,7 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
-N_METHOD = 10  # số vé mỗi phương pháp lấy mẫu ngẫu nhiên
+N_METHOD = 1   # số vé mỗi phương pháp lấy mẫu ngẫu nhiên
 N_COMBOS = 0   # số vé chọn từ TẤT CẢ tổ hợp (0 = tắt; bật bằng --combos)
 RECENT_N = 0  # 0 = thống kê TẤT CẢ kỳ quay (>0 = chỉ N kỳ gần nhất)
 
