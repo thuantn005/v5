@@ -22,6 +22,7 @@ import argparse
 import csv
 import datetime
 import json
+import math
 import random
 import sys
 from collections import Counter
@@ -145,16 +146,28 @@ def _wchoice(rng: random.Random, weights):
     return len(weights)
 
 
+DYNAMIC_HALF_LIFE = 50  # kỳ -- tốc độ suy giảm CỐ ĐỊNH TRƯỚC (không tùy theo
+                        # từng kỳ cụ thể), nên không phải kiểu "thích nghi sau
+                        # khi biết đáp án" mà là dấu hiệu hợp lệ như các dấu
+                        # hiệu khác -- backtest cho thấy nó cũng không vượt
+                        # được mức ngẫu nhiên.
+
+
 def _components(draws: dict, draw_id: int) -> dict:
     """Các thành phần thống kê (chỉ dùng dữ liệu < draw_id) để dựng trọng số."""
     hist = [draws[d] for d in sorted(draws) if d < draw_id]
     total = len(hist)
     freq = Counter()
     last_seen = {}
+    lam = math.log(2) / DYNAMIC_HALF_LIFE
+    dynamic = [0.0] * 35
     for pos, dr in enumerate(hist):
+        age = total - 1 - pos  # 0 = kỳ ngay trước draw_id
+        decay = math.exp(-lam * age)
         for n in dr["numbers"]:
             freq[n] += 1
             last_seen[n] = pos
+            dynamic[n - 1] += decay
     hot = [freq.get(n, 0) for n in range(MAIN_MIN, MAIN_MAX + 1)]
     overdue = [(total - 1 - last_seen.get(n, -1)) if n in last_seen else total
                for n in range(MAIN_MIN, MAIN_MAX + 1)]
@@ -170,7 +183,8 @@ def _components(draws: dict, draw_id: int) -> dict:
     recent = [rc.get(n, 0) for n in range(MAIN_MIN, MAIN_MAX + 1)]
     sf = Counter(dr["special"] for dr in hist if dr["special"] is not None)
     sfreq = [sf.get(s, 0) for s in range(SPECIAL_MIN, SPECIAL_MAX + 1)]
-    return {"hot": hot, "overdue": overdue, "companion": comp, "recent": recent, "sfreq": sfreq}
+    return {"hot": hot, "overdue": overdue, "companion": comp, "recent": recent,
+            "dynamic": dynamic, "sfreq": sfreq}
 
 
 def _method_weight(c: dict, kind: str):
@@ -188,6 +202,8 @@ def _method_weight(c: dict, kind: str):
         base = _norm(c["companion"])
     elif kind == "recent":
         base = _norm(c["recent"])
+    elif kind == "dynamic":  # cửa sổ động: trọng số suy giảm mượt theo half-life
+        base = _norm(c["dynamic"])
     else:  # signal3 = kết hợp 3 dấu hiệu: tần suất gần đây + toàn lịch sử + số kỳ vắng mặt
         r, h, o = _norm(c["recent"]), _norm(c["hot"]), _norm(c["overdue"])
         base = [r[i] + h[i] + o[i] for i in range(35)]
@@ -636,6 +652,9 @@ def main():
          "ưu tiên số kỳ vắng mặt lâu nhất · mỗi vé 1 seed, bốc số có trọng số"),
         ("companion", "D", 7_000_000_000, "Số đồng hành (đi cùng kỳ trước)",
          "ưu tiên số hay xuất hiện cùng nhóm số của kỳ ngay trước · mỗi vé 1 seed, bốc số có trọng số"),
+        ("dynamic", "W", 8_800_000_000, f"Cửa sổ động (suy giảm mượt, half-life={DYNAMIC_HALF_LIFE} kỳ)",
+         "trọng số suy giảm mượt theo thời gian (không cắt cứng như 200 kỳ) · tốc độ suy giảm CỐ ĐỊNH TRƯỚC "
+         "· mỗi vé 1 seed, bốc số có trọng số"),
     ]
     for kind, prefix, offset, label, note in EXTRA_METHODS:
         gen = _make_method_gen(comps, kind, offset)
