@@ -195,6 +195,47 @@ def _method_weight(c: dict, kind: str):
     return w, sw
 
 
+# Nhiều CÔNG THỨC kết hợp 3 dấu hiệu (recent=gần đây, hot=toàn lịch sử, overdue=vắng mặt)
+# (nhãn, (hệ số recent, hot, overdue), chế độ)
+SIGNAL_FORMULAS = [
+    ("Cân bằng (1·1·1)",              (1, 1, 1), "sum"),
+    ("Ưu tiên gần đây (2·1·1)",       (2, 1, 1), "sum"),
+    ("Ưu tiên lịch sử (1·2·1)",       (1, 2, 1), "sum"),
+    ("Ưu tiên vắng mặt (1·1·2)",      (1, 1, 2), "sum"),
+    ("Gần đây + vắng mặt (1·0·1)",    (1, 0, 1), "sum"),
+    ("Lịch sử + vắng mặt (0·1·1)",    (0, 1, 1), "sum"),
+    ("Gần đây + lịch sử (1·1·0)",     (1, 1, 0), "sum"),
+    ("Chỉ gần đây (1·0·0)",           (1, 0, 0), "sum"),
+    ("Chỉ vắng mặt (0·0·1)",          (0, 0, 1), "sum"),
+    ("Nhân 3 dấu hiệu",               (1, 1, 1), "prod"),
+    ("Nghịch vắng mặt (gần+lịch−vắng)", (1, 1, 1), "diff"),
+    ("Gần đây rất mạnh (3·1·1)",      (3, 1, 1), "sum"),
+]
+
+
+def _formula_weight(c: dict, coeffs, mode: str):
+    r, h, o = _norm(c["recent"]), _norm(c["hot"]), _norm(c["overdue"])
+    a, b, k = coeffs
+    if mode == "prod":
+        base = [(0.05 + r[i]) ** a * (0.05 + h[i]) ** b * (0.05 + o[i]) ** k for i in range(35)]
+    elif mode == "diff":
+        base = [a * r[i] + b * h[i] - k * o[i] for i in range(35)]
+    else:  # sum
+        base = [a * r[i] + b * h[i] + k * o[i] for i in range(35)]
+    mn = min(base)
+    return [0.1 + (base[i] - mn) for i in range(35)]
+
+
+def _make_formula_gen(comps: dict, coeffs, mode: str, offset: int):
+    def gen(idx: int, draw_id: int):
+        c = comps[draw_id]
+        w = _formula_weight(c, coeffs, mode)
+        sw = [0.1 + c["sfreq"][i] for i in range(12)]
+        rng = random.Random(draw_id + offset)
+        return _wsample(rng, w, MAIN_K), _wchoice(rng, sw)
+    return gen
+
+
 def _make_method_gen(comps: dict, kind: str, offset: int):
     """gen(idx, draw_id) -> vé lấy mẫu ngẫu nhiên có seed, theo phương pháp kind."""
     def gen(idx: int, draw_id: int):
@@ -532,20 +573,34 @@ def main():
     comps = {d: _components(draws, d) for d in (set(recent_ids) | {next_draw})}
 
     # NHIỀU PHƯƠNG PHÁP — tất cả đều LẤY MẪU NGẪU NHIÊN CÓ SEED
-    # (label, kind, seed offset, mã, ghi chú)
+    method_groups = []
+
+    # NHÓM CHÍNH: "Kết hợp 3 dấu hiệu" — mỗi CÔNG THỨC 1 vé (nhiều công thức)
+    sf_tickets = []
+    for i, (flabel, coeffs, mode) in enumerate(SIGNAL_FORMULAS):
+        off = 3_000_000_000 + (i + 1) * 7_000_000
+        gen = _make_formula_gen(comps, coeffs, mode, off)
+        t = _build_ticket(gen, 1, next_draw, prev_draw, draws, f"SF{i + 1:02d}",
+                          recent_ids, next_draw + off)
+        t["name"] = flabel
+        sf_tickets.append(t)
+    sf_tickets.sort(key=_rank, reverse=True)
+    method_groups.append({
+        "label": f"Kết hợp 3 dấu hiệu — {len(sf_tickets)} công thức (mỗi công thức 1 vé)",
+        "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt, phối trọng số khác nhau · "
+                "lấy mẫu ngẫu nhiên có seed",
+        "method": "signal_formulas", "tickets": sf_tickets,
+    })
+
+    # Các phương pháp khác (1 vé mỗi loại)
     METHODS = [
-        ("Kết hợp 3 dấu hiệu lịch sử", "signal3", SIGNAL_SEED_OFFSET, "S",
-         "tần suất gần đây (200 kỳ) + tần suất toàn lịch sử + số kỳ vắng mặt (theo nhanaz)"),
-        ("Ưu tiên số nổi bật gần đây", "recent", 8_000_000_000, "N",
-         "tần suất 200 kỳ gần nhất"),
-        ("Chọn ngẫu nhiên (mốc so sánh)", "uniform", 9_000_000_000, "U",
-         "thuần ngẫu nhiên có seed — mốc công bằng"),
+        ("Ưu tiên số nổi bật gần đây", "recent", 8_000_000_000, "N", "tần suất 200 kỳ gần nhất"),
+        ("Chọn ngẫu nhiên (mốc so sánh)", "uniform", 9_000_000_000, "U", "thuần ngẫu nhiên có seed"),
         ("Nóng (toàn lịch sử)", "hot", 4_000_000_000, "H", "tần suất toàn lịch sử"),
         ("Lạnh (ít ra nhất)", "cold", 5_000_000_000, "L", "ít xuất hiện nhất"),
         ("Quá hạn (lâu chưa ra)", "overdue", 6_000_000_000, "O", "số kỳ vắng mặt"),
     ]
     per = a.per_method
-    method_groups = []
     for label, kind, offset, prefix, note in METHODS:
         gen = _make_method_gen(comps, kind, offset)
         tickets = build_group(gen, per, prefix, offset)
