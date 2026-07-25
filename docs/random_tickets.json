@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-07-25T06:07:40+00:00",
- "next_draw": 783,
- "prev_draw": 782,
+ "generated_at": "2026-07-25T08:49:36+00:00",
+ "next_draw": 784,
+ "prev_draw": 783,
  "recent_n": 0,
  "disclaimer": "Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm.",
  "my_pick": {
@@ -14,7 +14,7 @@
    27
   ],
   "special": 5,
-  "trace": "L535-783-MY",
+  "trace": "L535-784-MY",
   "recent": {
    "n": 782,
    "wins": 15,
@@ -26,16 +26,16 @@
    "jackpot1": 0
   },
   "last_result": {
-   "draw_id": 782,
-   "draw_date": "2026-07-24",
+   "draw_id": 783,
+   "draw_date": "2026-07-25",
    "actual": [
-    7,
-    20,
-    29,
-    31,
-    32
+    2,
+    8,
+    12,
+    14,
+    19
    ],
-   "actual_special": 2,
+   "actual_special": 12,
    "predicted": [
     11,
     16,
@@ -44,7 +44,7 @@
     27
    ],
    "predicted_special": 5,
-   "main_hits": 1,
+   "main_hits": 0,
    "special_hit": false
   }
  },
@@ -53,35 +53,35 @@
    "id": "Mạng nơ-ron (Perceptron)",
    "label": "Mạng nơ-ron (Perceptron)",
    "numbers": [
-    8,
-    11,
-    16,
-    30,
-    33
+    7,
+    15,
+    21,
+    22,
+    27
    ],
-   "special": 11,
-   "trace": "lotto535|neural-perceptron|target=00783|data=1c6828bf35e3",
+   "special": 9,
+   "trace": "lotto535|neural-perceptron|target=00784|data=95a87bb543ab",
    "last_result": {
-    "draw_id": 782,
-    "draw_date": "2026-07-24",
+    "draw_id": 783,
+    "draw_date": "2026-07-25",
     "actual": [
-     7,
-     20,
-     29,
-     31,
-     32
+     2,
+     8,
+     12,
+     14,
+     19
     ],
-    "actual_special": 2,
+    "actual_special": 12,
     "predicted": [
-     7,
-     20,
-     22,
-     24,
-     30
+     8,
+     11,
+     16,
+     30,
+     33
     ],
-    "predicted_special": 2,
-    "main_hits": 2,
-    "special_hit": true
+    "predicted_special": 11,
+    "main_hits": 1,
+    "special_hit": false
    }
   },
   {
@@ -89,33 +89,33 @@
    "label": "LSTM NumPy",
    "numbers": [
     14,
+    15,
+    19,
     20,
-    23,
-    27,
     34
    ],
-   "special": 3,
-   "trace": "lotto535|lstm-numpy|target=00783|data=1c6828bf35e3",
+   "special": 10,
+   "trace": "lotto535|lstm-numpy|target=00784|data=95a87bb543ab",
    "last_result": {
-    "draw_id": 782,
-    "draw_date": "2026-07-24",
+    "draw_id": 783,
+    "draw_date": "2026-07-25",
     "actual": [
-     7,
-     20,
-     29,
-     31,
-     32
-    ],
-    "actual_special": 2,
-    "predicted": [
-     10,
+     2,
+     8,
+     12,
      14,
-     22,
-     33,
+     19
+    ],
+    "actual_special": 12,
+    "predicted": [
+     14,
+     20,
+     23,
+     27,
      34
     ],
-    "predicted_special": 12,
-    "main_hits": 0,
+    "predicted_special": 3,
+    "main_hits": 1,
     "special_hit": false
    }
   },
@@ -123,33 +123,33 @@
    "id": "LSTM TensorFlow",
    "label": "LSTM TensorFlow",
    "numbers": [
+    3,
     10,
     14,
-    15,
     20,
     34
    ],
-   "special": 10,
-   "trace": "lotto535|lstm-tf|target=00783|data=1c6828bf35e3",
+   "special": 7,
+   "trace": "lotto535|lstm-tf|target=00784|data=95a87bb543ab",
    "last_result": {
-    "draw_id": 782,
-    "draw_date": "2026-07-24",
+    "draw_id": 783,
+    "draw_date": "2026-07-25",
     "actual": [
-     7,
-     20,
-     29,
-     31,
-     32
+     2,
+     8,
+     12,
+     14,
+     19
     ],
-    "actual_special": 2,
+    "actual_special": 12,
     "predicted": [
      10,
      14,
+     15,
      20,
-     27,
      34
     ],
-    "predicted_special": 3,
+    "predicted_special": 10,
     "main_hits": 1,
     "special_hit": false
    }
@@ -169,7 +169,7 @@
     "n": 2,
     "count": 63,
     "pct": 8.1,
-    "gap": 0
+    "gap": 1
    },
    {
     "n": 3,
@@ -191,21 +191,21 @@
    },
    {
     "n": 6,
-    "count": 63,
-    "pct": 8.1,
-    "gap": 3
+    "count": 62,
+    "pct": 7.9,
+    "gap": 15
    },
    {
     "n": 7,
     "count": 69,
     "pct": 8.8,
-    "gap": 2
+    "gap": 3
    },
    {
     "n": 8,
     "count": 66,
     "pct": 8.4,
-    "gap": 1
+    "gap": 2
    },
    {
     "n": 9,
@@ -227,12 +227,12 @@
    },
    {
     "n": 12,
-    "count": 69,
-    "pct": 8.8,
-    "gap": 7
+    "count": 70,
+    "pct": 9.0,
+    "gap": 0
    }
   ],
-  "hot": 7,
+  "hot": 12,
   "overdue": 11,
   "balanced": 3,
   "backtest": {
@@ -255,36 +255,36 @@
    "tickets": [
     {
      "id": "SF01",
-     "seed": 3007000783,
+     "seed": 3007000784,
      "numbers": [
-      21,
-      22,
+      9,
+      13,
+      20,
       28,
-      33,
       34
      ],
-     "special": 10,
-     "trace": "L535-783-SF01",
+     "special": 4,
+     "trace": "L535-784-SF01",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
-       4,
-       9,
+       2,
+       8,
+       12,
        14,
-       16,
-       31
+       19
       ],
-      "predicted_special": 9,
-      "main_hits": 1,
+      "actual_special": 12,
+      "predicted": [
+       21,
+       22,
+       28,
+       33,
+       34
+      ],
+      "predicted_special": 10,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -300,36 +300,36 @@
     },
     {
      "id": "SF03",
-     "seed": 3021000783,
+     "seed": 3021000784,
      "numbers": [
+      5,
       7,
-      13,
-      16,
-      21,
-      23
+      15,
+      26,
+      34
      ],
-     "special": 11,
-     "trace": "L535-783-SF03",
+     "special": 4,
+     "trace": "L535-784-SF03",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
+       2,
+       8,
+       12,
+       14,
+       19
       ],
-      "actual_special": 2,
+      "actual_special": 12,
       "predicted": [
-       1,
-       9,
-       17,
-       23,
-       31
+       7,
+       13,
+       16,
+       21,
+       23
       ],
-      "predicted_special": 9,
-      "main_hits": 1,
+      "predicted_special": 11,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -345,36 +345,36 @@
     },
     {
      "id": "SF11",
-     "seed": 3077000783,
+     "seed": 3077000784,
      "numbers": [
-      8,
-      10,
+      14,
       18,
-      27,
-      31
+      19,
+      32,
+      34
      ],
-     "special": 4,
-     "trace": "L535-783-SF11",
+     "special": 2,
+     "trace": "L535-784-SF11",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
+       2,
+       8,
+       12,
+       14,
+       19
+      ],
+      "actual_special": 12,
+      "predicted": [
        7,
-       20,
-       29,
-       31,
+       10,
+       18,
+       27,
        32
       ],
-      "actual_special": 2,
-      "predicted": [
-       5,
-       18,
-       23,
-       31,
-       33
-      ],
-      "predicted_special": 1,
-      "main_hits": 1,
+      "predicted_special": 4,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -390,36 +390,36 @@
     },
     {
      "id": "SF05",
-     "seed": 3035000783,
+     "seed": 3035000784,
      "numbers": [
-      8,
-      17,
-      26,
-      33,
-      35
+      11,
+      23,
+      28,
+      31,
+      33
      ],
-     "special": 10,
-     "trace": "L535-783-SF05",
+     "special": 2,
+     "trace": "L535-784-SF05",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
+       2,
+       8,
+       12,
+       14,
+       19
       ],
-      "actual_special": 2,
+      "actual_special": 12,
       "predicted": [
-       20,
-       21,
-       24,
-       27,
-       29
+       9,
+       17,
+       26,
+       33,
+       35
       ],
       "predicted_special": 10,
-      "main_hits": 2,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -435,33 +435,33 @@
     },
     {
      "id": "SF08",
-     "seed": 3056000783,
+     "seed": 3056000784,
      "numbers": [
-      4,
-      17,
-      27,
-      31,
+      6,
+      14,
+      24,
+      26,
       34
      ],
-     "special": 3,
-     "trace": "L535-783-SF08",
+     "special": 9,
+     "trace": "L535-784-SF08",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
+       2,
+       8,
+       12,
+       14,
+       19
       ],
-      "actual_special": 2,
+      "actual_special": 12,
       "predicted": [
-       10,
-       16,
-       19,
+       4,
+       17,
        27,
-       35
+       31,
+       34
       ],
       "predicted_special": 3,
       "main_hits": 0,
@@ -480,36 +480,36 @@
     },
     {
      "id": "SF12",
-     "seed": 3084000783,
+     "seed": 3084000784,
      "numbers": [
-      8,
-      9,
-      10,
-      22,
-      33
+      4,
+      16,
+      24,
+      28,
+      34
      ],
-     "special": 8,
-     "trace": "L535-783-SF12",
+     "special": 10,
+     "trace": "L535-784-SF12",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
-       5,
+       2,
+       8,
+       12,
        14,
-       16,
-       27,
+       19
+      ],
+      "actual_special": 12,
+      "predicted": [
+       8,
+       9,
+       10,
+       22,
        33
       ],
-      "predicted_special": 11,
-      "main_hits": 0,
+      "predicted_special": 8,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
@@ -525,35 +525,35 @@
     },
     {
      "id": "SF09",
-     "seed": 3063000783,
+     "seed": 3063000784,
      "numbers": [
-      4,
-      14,
-      22,
-      24,
-      26
+      5,
+      10,
+      21,
+      26,
+      33
      ],
-     "special": 11,
-     "trace": "L535-783-SF09",
+     "special": 3,
+     "trace": "L535-784-SF09",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
-       3,
+       2,
+       8,
+       12,
        14,
-       16,
-       21,
-       31
+       19
       ],
-      "predicted_special": 9,
+      "actual_special": 12,
+      "predicted": [
+       5,
+       12,
+       22,
+       24,
+       25
+      ],
+      "predicted_special": 11,
       "main_hits": 1,
       "special_hit": false
      },
@@ -570,36 +570,36 @@
     },
     {
      "id": "SF10",
-     "seed": 3070000783,
+     "seed": 3070000784,
      "numbers": [
-      11,
+      6,
       15,
-      18,
-      34,
-      35
+      23,
+      32,
+      33
      ],
-     "special": 6,
-     "trace": "L535-783-SF10",
+     "special": 1,
+     "trace": "L535-784-SF10",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
+       2,
        8,
-       10,
-       19,
-       27,
-       29
+       12,
+       14,
+       19
       ],
-      "predicted_special": 11,
-      "main_hits": 1,
+      "actual_special": 12,
+      "predicted": [
+       11,
+       15,
+       18,
+       34,
+       35
+      ],
+      "predicted_special": 6,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -615,35 +615,35 @@
     },
     {
      "id": "SF04",
-     "seed": 3028000783,
+     "seed": 3028000784,
      "numbers": [
-      11,
-      20,
-      26,
+      5,
+      10,
+      25,
       27,
-      35
+      34
      ],
-     "special": 1,
-     "trace": "L535-783-SF04",
+     "special": 6,
+     "trace": "L535-784-SF04",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
+       2,
+       8,
+       12,
        14,
-       19,
-       22,
-       24,
-       28
+       19
       ],
-      "predicted_special": 4,
+      "actual_special": 12,
+      "predicted": [
+       10,
+       20,
+       25,
+       27,
+       34
+      ],
+      "predicted_special": 1,
       "main_hits": 0,
       "special_hit": false
      },
@@ -654,41 +654,41 @@
       "tier4": 0,
       "tier5": 0,
       "best": 3,
-      "special_hits": 61
+      "special_hits": 60
      },
      "name": "Ưu tiên vắng mặt (1·1·2)"
     },
     {
      "id": "SF02",
-     "seed": 3014000783,
+     "seed": 3014000784,
      "numbers": [
-      6,
-      8,
-      15,
-      21,
-      29
+      5,
+      10,
+      14,
+      17,
+      18
      ],
      "special": 9,
-     "trace": "L535-783-SF02",
+     "trace": "L535-784-SF02",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
+       2,
+       8,
+       12,
+       14,
+       19
       ],
-      "actual_special": 2,
+      "actual_special": 12,
       "predicted": [
-       4,
-       10,
-       30,
-       31,
-       33
+       6,
+       8,
+       15,
+       21,
+       29
       ],
-      "predicted_special": 10,
+      "predicted_special": 9,
       "main_hits": 1,
       "special_hit": false
      },
@@ -705,36 +705,36 @@
     },
     {
      "id": "SF06",
-     "seed": 3042000783,
+     "seed": 3042000784,
      "numbers": [
-      17,
-      18,
+      5,
+      9,
       20,
-      29,
-      30
+      28,
+      34
      ],
-     "special": 4,
-     "trace": "L535-783-SF06",
+     "special": 9,
+     "trace": "L535-784-SF06",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
+       2,
+       8,
+       12,
+       14,
+       19
+      ],
+      "actual_special": 12,
+      "predicted": [
+       17,
+       18,
        20,
        29,
-       31,
-       32
+       30
       ],
-      "actual_special": 2,
-      "predicted": [
-       7,
-       15,
-       18,
-       30,
-       33
-      ],
-      "predicted_special": 5,
-      "main_hits": 1,
+      "predicted_special": 4,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -750,36 +750,36 @@
     },
     {
      "id": "SF07",
-     "seed": 3049000783,
+     "seed": 3049000784,
      "numbers": [
-      1,
-      9,
-      14,
-      20,
+      10,
+      11,
+      15,
+      27,
       35
      ],
-     "special": 3,
-     "trace": "L535-783-SF07",
+     "special": 5,
+     "trace": "L535-784-SF07",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
+       2,
        8,
-       22,
-       28,
-       31,
-       34
+       12,
+       14,
+       19
       ],
-      "predicted_special": 7,
-      "main_hits": 1,
+      "actual_special": 12,
+      "predicted": [
+       1,
+       9,
+       14,
+       19,
+       35
+      ],
+      "predicted_special": 3,
+      "main_hits": 2,
       "special_hit": false
      },
      "recent": {
@@ -802,36 +802,36 @@
    "tickets": [
     {
      "id": "N001",
-     "seed": 8010000783,
+     "seed": 8010000784,
      "numbers": [
-      8,
-      17,
-      23,
-      28,
-      35
+      2,
+      4,
+      5,
+      9,
+      27
      ],
-     "special": 6,
-     "trace": "L535-783-N001",
+     "special": 8,
+     "trace": "L535-784-N001",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
-       3,
-       5,
-       6,
+       2,
        8,
-       14
+       12,
+       14,
+       19
       ],
-      "predicted_special": 1,
-      "main_hits": 0,
+      "actual_special": 12,
+      "predicted": [
+       8,
+       17,
+       23,
+       28,
+       35
+      ],
+      "predicted_special": 6,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
@@ -853,36 +853,36 @@
    "tickets": [
     {
      "id": "U001",
-     "seed": 9010000783,
+     "seed": 9010000784,
      "numbers": [
-      1,
       6,
       13,
-      18,
-      19
+      15,
+      30,
+      35
      ],
-     "special": 8,
-     "trace": "L535-783-U001",
+     "special": 3,
+     "trace": "L535-784-U001",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
        2,
+       8,
        12,
-       15,
-       19,
-       33
+       14,
+       19
       ],
-      "predicted_special": 5,
-      "main_hits": 0,
+      "actual_special": 12,
+      "predicted": [
+       1,
+       6,
+       13,
+       18,
+       19
+      ],
+      "predicted_special": 8,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
@@ -892,7 +892,7 @@
       "tier4": 1,
       "tier5": 0,
       "best": 4,
-      "special_hits": 61
+      "special_hits": 60
      }
     }
    ]
@@ -904,35 +904,35 @@
    "tickets": [
     {
      "id": "H001",
-     "seed": 4010000783,
+     "seed": 4010000784,
      "numbers": [
-      9,
       11,
       14,
-      20,
+      18,
+      19,
       34
      ],
-     "special": 9,
-     "trace": "L535-783-H001",
+     "special": 5,
+     "trace": "L535-784-H001",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
-       3,
-       7,
+       2,
+       8,
+       12,
        14,
-       16,
-       25
+       19
       ],
-      "predicted_special": 5,
+      "actual_special": 12,
+      "predicted": [
+       9,
+       11,
+       14,
+       20,
+       34
+      ],
+      "predicted_special": 9,
       "main_hits": 1,
       "special_hit": false
      },
@@ -955,36 +955,36 @@
    "tickets": [
     {
      "id": "L001",
-     "seed": 5010000783,
+     "seed": 5010000784,
      "numbers": [
-      18,
-      20,
+      2,
+      10,
+      12,
       21,
-      31,
-      33
+      31
      ],
-     "special": 3,
-     "trace": "L535-783-L001",
+     "special": 6,
+     "trace": "L535-784-L001",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
-      ],
-      "actual_special": 2,
-      "predicted": [
-       3,
-       7,
+       2,
        8,
-       26,
+       12,
+       14,
+       19
+      ],
+      "actual_special": 12,
+      "predicted": [
+       18,
+       20,
+       21,
+       31,
        33
       ],
-      "predicted_special": 5,
-      "main_hits": 1,
+      "predicted_special": 3,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
@@ -1006,35 +1006,35 @@
    "tickets": [
     {
      "id": "O001",
-     "seed": 6010000783,
+     "seed": 6010000784,
      "numbers": [
-      2,
       12,
       16,
-      18,
-      21
+      21,
+      24,
+      29
      ],
-     "special": 3,
-     "trace": "L535-783-O001",
+     "special": 7,
+     "trace": "L535-784-O001",
      "last_result": {
-      "draw_id": 782,
-      "draw_date": "2026-07-24",
+      "draw_id": 783,
+      "draw_date": "2026-07-25",
       "actual": [
-       7,
-       20,
-       29,
-       31,
-       32
+       2,
+       8,
+       12,
+       14,
+       19
       ],
-      "actual_special": 2,
+      "actual_special": 12,
       "predicted": [
-       6,
-       7,
-       15,
-       21,
-       22
+       2,
+       11,
+       16,
+       18,
+       21
       ],
-      "predicted_special": 10,
+      "predicted_special": 3,
       "main_hits": 1,
       "special_hit": false
      },
