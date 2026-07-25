@@ -624,6 +624,27 @@ def main():
         "note": "tần suất 200 kỳ gần nhất · mỗi vé 1 seed, lấy mẫu ngẫu nhiên",
         "method": "recent", "tickets": rec_tickets,
     })
+
+    # Thêm 4 công thức nữa — CÙNG cơ chế bốc số có trọng số (roulette wheel,
+    # random.Random(seed)) như đã tạo ra S001 và cú trúng Jackpot 1 kỳ #374.
+    EXTRA_METHODS = [
+        ("hot", "H", 4_000_000_000, "Số nóng (tần suất toàn lịch sử)",
+         "ưu tiên số ra nhiều nhất toàn lịch sử · mỗi vé 1 seed, bốc số có trọng số"),
+        ("cold", "L", 5_000_000_000, "Số lạnh (ít ra nhất)",
+         "ưu tiên số ra ít nhất toàn lịch sử · mỗi vé 1 seed, bốc số có trọng số"),
+        ("overdue", "O", 6_000_000_000, "Số quá hạn (lâu chưa ra)",
+         "ưu tiên số kỳ vắng mặt lâu nhất · mỗi vé 1 seed, bốc số có trọng số"),
+        ("companion", "D", 7_000_000_000, "Số đồng hành (đi cùng kỳ trước)",
+         "ưu tiên số hay xuất hiện cùng nhóm số của kỳ ngay trước · mỗi vé 1 seed, bốc số có trọng số"),
+    ]
+    for kind, prefix, offset, label, note in EXTRA_METHODS:
+        gen = _make_method_gen(comps, kind, offset)
+        tickets = build_group(gen, a.signal, prefix, offset)
+        method_groups.append({
+            "label": f"{label} — {len(tickets)} vé gốc ({prefix}001…)",
+            "note": note, "method": kind, "tickets": tickets,
+        })
+
     combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
 
     # Chỉ giữ seed gốc (1 vé/nhóm ở trên) + các model AI; bỏ 2 mốc baseline.
