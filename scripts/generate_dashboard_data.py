@@ -16,11 +16,9 @@ from multi_log import load_log
 
 OUTPUT_PATH = "docs/data.json"
 
-TICKET_KEYS = ["ticket_neural", "lstm_numpy", "lstm_tf", "random_fair"]
+TICKET_KEYS = ["ticket_neural", "random_fair"]
 TICKET_LABELS = {
     "ticket_neural": "Mạng nơ-ron (Perceptron)",
-    "lstm_numpy":    "LSTM NumPy",
-    "lstm_tf":       "LSTM TensorFlow",
     "random_fair":   "Mốc so sánh công bằng",
 }
 

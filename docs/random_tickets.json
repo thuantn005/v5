@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-07-25T16:53:39+00:00",
+ "generated_at": "2026-07-25T18:23:14+00:00",
  "next_draw": 785,
  "prev_draw": 784,
  "recent_n": 0,
@@ -81,76 +81,6 @@
     ],
     "predicted_special": 9,
     "main_hits": 0,
-    "special_hit": false
-   }
-  },
-  {
-   "id": "LSTM NumPy",
-   "label": "LSTM NumPy",
-   "numbers": [
-    4,
-    17,
-    20,
-    26,
-    34
-   ],
-   "special": 9,
-   "trace": "lotto535|lstm-numpy|target=00785|data=f88a81ae5d0e",
-   "last_result": {
-    "draw_id": 784,
-    "draw_date": "2026-07-25",
-    "actual": [
-     1,
-     5,
-     12,
-     14,
-     23
-    ],
-    "actual_special": 1,
-    "predicted": [
-     14,
-     15,
-     19,
-     20,
-     34
-    ],
-    "predicted_special": 10,
-    "main_hits": 1,
-    "special_hit": false
-   }
-  },
-  {
-   "id": "LSTM TensorFlow",
-   "label": "LSTM TensorFlow",
-   "numbers": [
-    1,
-    8,
-    14,
-    27,
-    34
-   ],
-   "special": 1,
-   "trace": "lotto535|lstm-tf|target=00785|data=f88a81ae5d0e",
-   "last_result": {
-    "draw_id": 784,
-    "draw_date": "2026-07-25",
-    "actual": [
-     1,
-     5,
-     12,
-     14,
-     23
-    ],
-    "actual_special": 1,
-    "predicted": [
-     3,
-     10,
-     14,
-     20,
-     34
-    ],
-    "predicted_special": 7,
-    "main_hits": 1,
     "special_hit": false
    }
   }

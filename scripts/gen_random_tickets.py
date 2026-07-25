@@ -422,8 +422,7 @@ def _ai_models(next_draw: int) -> list[dict]:
                    and int(e["target_draw_id"]) == next_draw), None) or entries[-1]
     resolved = [e for e in entries if e.get("resolved") and e.get("actual")]
     prev = resolved[-1] if resolved else None
-    labels = {"ticket_neural": "Mạng nơ-ron (Perceptron)",
-              "lstm_numpy": "LSTM NumPy", "lstm_tf": "LSTM TensorFlow"}
+    labels = {"ticket_neural": "Mạng nơ-ron (Perceptron)"}
     out = []
     ps = latest.get("per_strategy") or {}
     for key, label in labels.items():
