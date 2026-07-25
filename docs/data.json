@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-25T16:53:35.644996+00:00",
+  "generated_at": "2026-07-25T20:14:24.217106+00:00",
   "latest_prediction": {
     "generated_at": "2026-07-25T16:53:30.141122+00:00",
     "based_on_draw_id": "00784",
@@ -206,8 +206,6 @@
   },
   "ticket_keys": [
     "ticket_neural",
-    "lstm_numpy",
-    "lstm_tf",
     "random_fair"
   ],
   "performance_over_time": {
@@ -278,72 +276,6 @@
         0.931,
         0.9
       ],
-      "lstm_numpy": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        0.0,
-        0.0,
-        0.0,
-        0.25,
-        0.4,
-        0.5,
-        0.4286,
-        0.375,
-        0.5556,
-        0.5,
-        0.5455,
-        0.5833
-      ],
-      "lstm_tf": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        0.0,
-        0.0,
-        0.0,
-        0.25,
-        0.6,
-        0.8333,
-        0.8571,
-        0.75,
-        1.0,
-        1.0,
-        1.0,
-        1.0
-      ],
       "random_fair": [
         1.0,
         1.0,
@@ -380,8 +312,6 @@
     },
     "labels_by_key": {
       "ticket_neural": "Mạng nơ-ron (Perceptron)",
-      "lstm_numpy": "LSTM NumPy",
-      "lstm_tf": "LSTM TensorFlow",
       "random_fair": "Mốc so sánh công bằng"
     }
   },
@@ -391,20 +321,6 @@
       "n": 30,
       "avg_main_hits": 0.9,
       "special_hit_rate": 0.2333,
-      "expected_random_main_hits": 0.7143
-    },
-    "lstm_numpy": {
-      "label": "LSTM NumPy",
-      "n": 12,
-      "avg_main_hits": 0.5833,
-      "special_hit_rate": 0.0833,
-      "expected_random_main_hits": 0.7143
-    },
-    "lstm_tf": {
-      "label": "LSTM TensorFlow",
-      "n": 12,
-      "avg_main_hits": 1,
-      "special_hit_rate": 0.0833,
       "expected_random_main_hits": 0.7143
     },
     "random_fair": {
@@ -494,7 +410,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             14,
             15,
@@ -507,7 +423,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             3,
             10,
@@ -612,7 +528,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             14,
             20,
@@ -625,7 +541,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
@@ -730,7 +646,7 @@
           "special_hit": true
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             10,
             14,
@@ -743,7 +659,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
@@ -848,7 +764,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             14,
             20,
@@ -861,7 +777,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             11,
             14,
@@ -966,7 +882,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             10,
             14,
@@ -979,7 +895,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             11,
             14,
@@ -1084,7 +1000,7 @@
           "special_hit": true
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             10,
             14,
@@ -1097,7 +1013,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
@@ -1202,7 +1118,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             14,
             15,
@@ -1215,7 +1131,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             11,
             14,
@@ -1320,7 +1236,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             10,
             26,
@@ -1333,7 +1249,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
@@ -1438,7 +1354,7 @@
           "special_hit": true
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             14,
             20,
@@ -1451,7 +1367,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             11,
             14,
@@ -1556,7 +1472,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             10,
             14,
@@ -1569,7 +1485,7 @@
           "special_hit": true
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
@@ -1674,7 +1590,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             10,
             14,
@@ -1687,7 +1603,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
@@ -1792,7 +1708,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM NumPy",
+          "label": "lstm_numpy",
           "main": [
             14,
             20,
@@ -1805,7 +1721,7 @@
           "special_hit": false
         },
         {
-          "label": "LSTM TensorFlow",
+          "label": "lstm_tf",
           "main": [
             10,
             14,
