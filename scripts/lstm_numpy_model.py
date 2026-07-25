@@ -26,7 +26,69 @@ _CACHE_MAIN = {"P": None, "trained_on": -1}
 _CACHE_SPEC = {"P": None, "trained_on": -1}
 
 
-# ── Encoding ──────────────────────────────────────────────────────────────────
+# ── Encoding: one-hot + KẾT HỢP 3 DẤU HIỆU LỊCH SỬ ───────────────────────────
+# Mỗi bước thời gian = onehot(kỳ đó) ++ nóng(toàn lịch sử) ++ gần đây(200 kỳ)
+# ++ vắng mặt(số kỳ chưa ra), tất cả chuẩn hoá [0,1] và tính CHỈ từ dữ liệu tới
+# thời điểm đó (không nhìn tương lai). Input_dim = 4× (35 cho main, 12 cho ĐB).
+RECENT_WINDOW = 200
+
+
+def _norm01(a: np.ndarray) -> np.ndarray:
+    mn, mx = float(a.min()), float(a.max())
+    if mx == mn:
+        return np.full_like(a, 0.5)
+    return (a - mn) / (mx - mn)
+
+
+def _precompute_signals(history, pool_size: int, values_of):
+    """Với mỗi vị trí i, trả về (hot, recent, overdue, companion) đã chuẩn hoá —
+    trạng thái 4 dấu hiệu TÍNH ĐẾN VÀ BAO GỒM history[i] (không rò rỉ tương lai).
+
+    companion[n] = số lần n đã xuất hiện CÙNG kỳ với bất kỳ số nào của kỳ NGAY
+    TRƯỚC đó (ví dụ: nếu 23 và 27 hay đi cùng nhau trong lịch sử, và 27 vừa ra ở
+    kỳ i-1, thì companion[23] tại vị trí i sẽ cao -> LSTM học được cặp này)."""
+    hot_counts = np.zeros(pool_size, dtype=np.float64)
+    last_seen = np.full(pool_size, -1, dtype=np.int64)
+    recent_counts = np.zeros(pool_size, dtype=np.float64)
+    window: list = []
+    all_draws_vals: list = []  # lưu values_of() của mọi kỳ đã qua, để tính companion
+    out = []
+    for i, dr in enumerate(history):
+        vals = values_of(dr)
+        for v in vals:
+            if 1 <= v <= pool_size:
+                hot_counts[v - 1] += 1
+                last_seen[v - 1] = i
+                recent_counts[v - 1] += 1
+        window.append(vals)
+        if len(window) > RECENT_WINDOW:
+            for v in window.pop(0):
+                if 1 <= v <= pool_size:
+                    recent_counts[v - 1] -= 1
+        overdue = np.where(last_seen >= 0, i - last_seen, i + 1).astype(np.float64)
+
+        # companion: đồng hành với kỳ NGAY TRƯỚC vị trí i (history[i-1])
+        companion = np.zeros(pool_size, dtype=np.float64)
+        ref = set(v for v in vals if 1 <= v <= pool_size)  # kỳ hiện tại làm "mốc" cho vị trí i+1
+        if i > 0:
+            prev_ref = set(v for v in all_draws_vals[-1] if 1 <= v <= pool_size)
+            if prev_ref:
+                for past_vals in all_draws_vals:
+                    pset = set(v for v in past_vals if 1 <= v <= pool_size)
+                    if pset & prev_ref:
+                        for v in pset:
+                            companion[v - 1] += 1
+        all_draws_vals.append(vals)
+
+        out.append((
+            _norm01(hot_counts.copy()).astype(np.float32),
+            _norm01(recent_counts.copy()).astype(np.float32),
+            _norm01(overdue).astype(np.float32),
+            _norm01(companion).astype(np.float32),
+        ))
+    return out
+
+
 def _enc_main(draw) -> np.ndarray:
     v = np.zeros(35, dtype=np.float32)
     for x in draw.numbers:
@@ -40,11 +102,16 @@ def _enc_spec(draw) -> np.ndarray:
         v[draw.special - 1] = 1.0
     return v
 
-def _make_seqs(history, T: int, enc_fn, out_fn):
-    """Tạo (X: N×T×D, Y: N×C) từ lịch sử Draw."""
+def _make_seqs(history, T: int, enc_fn, out_fn, signals, pool_size: int):
+    """Tạo (X: N×T×5D, Y: N×C) từ lịch sử Draw, mỗi bước = onehot ++ 4 dấu hiệu
+    (nóng, gần đây, vắng mặt, đồng hành với kỳ trước)."""
     X, Y = [], []
     for t in range(T, len(history)):
-        X.append([enc_fn(history[t - T + i]) for i in range(T)])
+        seq = []
+        for i in range(T):
+            pos = t - T + i
+            seq.append(np.concatenate([enc_fn(history[pos]), *signals[pos]]))
+        X.append(seq)
         Y.append(out_fn(history[t]))
     return np.array(X, dtype=np.float32), np.array(Y, dtype=np.float32)
 
@@ -53,12 +120,13 @@ def _make_seqs(history, T: int, enc_fn, out_fn):
 def _sig(x):
     return 1.0 / (1.0 + np.exp(-np.clip(x, -30, 30)))
 
-def _init(xd: int, h: int, seed: int = 42):
+def _init(xd: int, h: int, seed: int = 42, out_dim: int | None = None):
+    od = xd if out_dim is None else out_dim
     r = np.random.default_rng(seed)
     s = lambda *sh: (r.standard_normal(sh) * 0.15).astype(np.float32)
     return {
         "W": s(4*h, xd), "U": s(4*h, h), "b": np.zeros(4*h, np.float32),
-        "Vm": s(xd, h),  "bm": np.zeros(xd, np.float32),
+        "Vm": s(od, h),  "bm": np.zeros(od, np.float32),
     }
 
 def _forward(P, X):
@@ -111,17 +179,23 @@ def _train(P, X, Y, epochs: int, lr: float):
 
 # ── Hàm dự đoán chung ────────────────────────────────────────────────────────
 def _predict_pool(history, T, H, epochs, lr, refit,
-                  enc_fn, out_fn, out_dim, cache, seed=42):
+                  enc_fn, out_fn, out_dim, cache, values_of, seed=42):
     if len(history) < T + 1:
         return None, cache
-    X, Y = _make_seqs(history, T, enc_fn, lambda d: out_fn(d, out_dim))
+    signals = _precompute_signals(history, out_dim, values_of)
+    input_dim = out_dim * 5  # onehot + nóng + gần đây + vắng mặt + đồng hành
+    X, Y = _make_seqs(history, T, enc_fn, lambda d: out_fn(d, out_dim), signals, out_dim)
     need = cache["P"] is None or (len(history) - cache["trained_on"]) >= refit
     if need:
-        logger.info("lstm_numpy: refit (history=%d, epochs=%d)", len(history), epochs)
-        P = _init(out_dim, H, seed)
+        logger.info("lstm_numpy: refit (history=%d, epochs=%d, input_dim=%d)",
+                    len(history), epochs, input_dim)
+        P = _init(input_dim, H, seed, out_dim=out_dim)
         cache["P"] = _train(P, X, Y, epochs, lr)
         cache["trained_on"] = len(history)
-    Xq = np.array([[enc_fn(history[-T+i]) for i in range(T)]], np.float32)
+    last_positions = range(len(history) - T, len(history))
+    Xq = np.array([[
+        np.concatenate([enc_fn(history[pos]), *signals[pos]]) for pos in last_positions
+    ]], np.float32)
     pm, _ = _forward(cache["P"], Xq)
     return pm[0], cache
 
@@ -153,9 +227,10 @@ def predict(history, pool_min=1, pool_max=35, k=5, use_special=False, params=Non
             if 1 <= draw.special <= d:
                 v[draw.special-1] = 1.0
             return v
+        values_of = lambda dr: [dr.special] if dr.special else []
         out_dim = 12
         pm, _ = _predict_pool(history, T, H, epochs, lr, refit,
-                               enc, out, out_dim, _CACHE_SPEC, seed=43)
+                               enc, out, out_dim, _CACHE_SPEC, values_of, seed=43)
     else:
         def enc(draw):
             v = np.zeros(35, np.float32)
@@ -167,9 +242,10 @@ def predict(history, pool_min=1, pool_max=35, k=5, use_special=False, params=Non
             for x in draw.numbers:
                 if 1 <= x <= d: v[x-1] = 1.0
             return v
+        values_of = lambda dr: list(dr.numbers)
         out_dim = 35
         pm, _ = _predict_pool(history, T, H, epochs, lr, refit,
-                               enc, out, out_dim, _CACHE_MAIN, seed=42)
+                               enc, out, out_dim, _CACHE_MAIN, values_of, seed=42)
 
     if pm is None:
         return {n: 0.0 for n in pool}

@@ -16,6 +16,11 @@ import os
 import time
 import numpy as np
 
+try:
+    from lstm_numpy_model import _precompute_signals
+except ImportError:
+    from scripts.lstm_numpy_model import _precompute_signals
+
 logger = logging.getLogger(__name__)
 
 # Hạn mức thời gian huấn luyện (giây) cho MỖI mô hình (main / special). Đây là
@@ -66,14 +71,14 @@ except ImportError:
 # đã merge DEFAULT_PARAMS trước khi gọi.
 _DEF = {
     "T": 20, "H1": 64, "H2": 32, "dropout": 0.2,
-    "epochs": 200, "batch": 30, "patience": 30, "refit": 34,
+    "epochs": 96, "batch": 30, "patience": 14, "refit": 34,
 }
 
 _CACHE_MAIN = {"model": None, "trained_on": -1}
 _CACHE_SPEC = {"model": None, "trained_on": -1}
 
 
-# ── Encoding (cùng logic với lstm_numpy_model) ────────────────────────────────
+# ── Encoding: one-hot + KẾT HỢP 3 DẤU HIỆU LỊCH SỬ (cùng logic lstm_numpy_model) ─
 def _enc_main(draw) -> np.ndarray:
     v = np.zeros(35, np.float32)
     for x in draw.numbers:
@@ -85,10 +90,14 @@ def _enc_spec(draw) -> np.ndarray:
     if 1 <= draw.special <= 12: v[draw.special-1] = 1.0
     return v
 
-def _make_seqs_tf(history, T, enc_fn, out_fn):
+def _make_seqs_tf(history, T, enc_fn, out_fn, signals):
     X, Y = [], []
     for t in range(T, len(history)):
-        X.append([enc_fn(history[t-T+i]) for i in range(T)])
+        seq = []
+        for i in range(T):
+            pos = t - T + i
+            seq.append(np.concatenate([enc_fn(history[pos]), *signals[pos]]))
+        X.append(seq)
         Y.append(out_fn(history[t]))
     return np.array(X, np.float32), np.array(Y, np.float32)
 
@@ -103,14 +112,16 @@ def _build(T, xd, out_dim, H1, H2, drop):
     m.compile("adam", loss="binary_crossentropy")
     return m
 
-def _fit_tf(history, T, xd, out_dim, H1, H2, drop,
-             epochs, batch, patience, refit, enc_fn, out_fn, cache, seed_offset=0):
+def _fit_tf(history, T, out_dim, H1, H2, drop,
+             epochs, batch, patience, refit, enc_fn, out_fn, cache, values_of, seed_offset=0):
     if len(history) < T + 1:
         return None
-    X, Y = _make_seqs_tf(history, T, enc_fn, out_fn)
+    signals = _precompute_signals(history, out_dim, values_of)
+    xd = out_dim * 5  # onehot + nóng + gần đây + vắng mặt + đồng hành
+    X, Y = _make_seqs_tf(history, T, enc_fn, out_fn, signals)
     need = cache["model"] is None or (len(history) - cache["trained_on"]) >= refit
     if need:
-        logger.info("lstm_tf: refit Keras (history=%d)", len(history))
+        logger.info("lstm_tf: refit Keras (history=%d, input_dim=%d)", len(history), xd)
         tf.random.set_seed(42 + seed_offset)
         mdl = _build(T, xd, out_dim, H1, H2, drop)
         t0 = time.time()
@@ -124,7 +135,10 @@ def _fit_tf(history, T, xd, out_dim, H1, H2, drop,
                     time.time() - t0, _BUDGET_SEC)
         cache["model"] = mdl; cache["trained_on"] = len(history)
     T_ = cache["model"].input_shape[1]
-    Xq = np.array([[enc_fn(history[-T_+i]) for i in range(T_)]], np.float32)
+    last_positions = range(len(history) - T_, len(history))
+    Xq = np.array([[
+        np.concatenate([enc_fn(history[pos]), *signals[pos]]) for pos in last_positions
+    ]], np.float32)
     return cache["model"].predict(Xq, verbose=0)[0]
 
 
@@ -153,11 +167,13 @@ def predict(history, pool_min=1, pool_max=35, k=5, use_special=False, params=Non
     # pipeline: rơi về LSTM numpy để vẫn có dự đoán.
     try:
         if use_special:
-            pm = _fit_tf(history, T, 12, 12, H1, H2, drop, epochs, batch, patience, refit,
-                         _enc_spec, lambda d: _enc_spec(d), _CACHE_SPEC, seed_offset=1)
+            values_of = lambda dr: [dr.special] if dr.special else []
+            pm = _fit_tf(history, T, 12, H1, H2, drop, epochs, batch, patience, refit,
+                         _enc_spec, lambda d: _enc_spec(d), _CACHE_SPEC, values_of, seed_offset=1)
         else:
-            pm = _fit_tf(history, T, 35, 35, H1, H2, drop, epochs, batch, patience, refit,
-                         _enc_main, lambda d: _enc_main(d), _CACHE_MAIN, seed_offset=0)
+            values_of = lambda dr: list(dr.numbers)
+            pm = _fit_tf(history, T, 35, H1, H2, drop, epochs, batch, patience, refit,
+                         _enc_main, lambda d: _enc_main(d), _CACHE_MAIN, values_of, seed_offset=0)
     except Exception as e:  # noqa: BLE001 -- TF phải best-effort
         logger.warning("lstm_tf: lỗi khi huấn luyện/dự đoán (%s) — fallback numpy", e)
         return _fallback(history, pool_min, pool_max, k, use_special, params)

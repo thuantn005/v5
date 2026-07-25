@@ -436,9 +436,12 @@ STRATEGIES["lstm_numpy"] = lstm_numpy
 STRATEGIES["lstm_tf"]    = lstm_tf
 
 DEFAULT_PARAMS["lstm_numpy"] = {
-    "T": 20, "H": 24, "epochs": 80, "lr": 3e-3, "refit": 34,
+    # epochs giảm còn 60% rồi giảm thêm 20% (80->48->38): loss đã plateau sớm
+    # (xem lstm_experiment.py), huấn luyện thêm không giúp tìm ra tín hiệu thật.
+    "T": 20, "H": 24, "epochs": 38, "lr": 3e-3, "refit": 34,
 }
 DEFAULT_PARAMS["lstm_tf"] = {
+    # epochs/patience giảm còn 60% rồi giảm thêm 20% (200->120->96, 30->18->14).
     "T": 20, "H1": 64, "H2": 32, "dropout": 0.2,
-    "epochs": 200, "batch": 30, "patience": 30, "refit": 34,
+    "epochs": 96, "batch": 30, "patience": 14, "refit": 34,
 }
