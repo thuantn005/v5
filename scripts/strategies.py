@@ -373,7 +373,63 @@ def indian_per_slot(history, pool_min, pool_max, k, use_special, params=None):
     return result
 
 
+def special_fortune(history, pool_min, pool_max, k, use_special, params=None):
+    """Công thức trúng số đặc biệt — a deterministic formula tuned for the
+    special-number pool (1-12), fusing three history-derived signals:
+
+      1. Overdue gap ("số lâu chưa về"): the longer a number has gone without
+         appearing, the higher its base score (normalised by the pool's max
+         gap). Draws are independent so an "overdue" number is NOT more likely
+         — this only reproduces the classic gambler's-fallacy heuristic in a
+         verifiable, deterministic form.
+      2. Digital-root resonance: numbers whose digit root matches the last
+         draw's special digit root get a bonus (Ankashastra-style "vibration").
+      3. Golden-ratio spacing: a φ-based harmonic phase over the pool adds a
+         smooth deterministic ripple so ties break the same way every run.
+
+    Works on any pool, but designed around use_special=True. Fully
+    deterministic from draw history — no seed needed. Reproducible and
+    auditable, and — like every model here — with no real edge over the true
+    1-in-12 (special) / 1-in-324,632 (jackpot) odds.
+    """
+    from math import sin, pi
+
+    PHI = (1 + 5 ** 0.5) / 2
+    pool = list(range(pool_min, pool_max + 1))
+
+    # --- Signal 1: overdue gap (draws since each number last appeared) ---
+    last_seen = {n: None for n in pool}
+    for idx, draw in enumerate(history):
+        vals = [draw.special] if use_special else draw.numbers
+        for n in vals:
+            if pool_min <= n <= pool_max:
+                last_seen[n] = idx
+    total = len(history)
+    gap = {n: (total - last_seen[n] if last_seen[n] is not None else total + 1)
+           for n in pool}
+    max_gap = max(gap.values()) or 1
+    overdue = {n: gap[n] / max_gap for n in pool}
+
+    # --- Signal 2: digital-root resonance with the most recent special ---
+    resonance = {n: 0.0 for n in pool}
+    if history:
+        anchor = history[-1].special if use_special else sum(history[-1].numbers)
+        anchor_root = _digit_root(int(anchor)) or 9
+        for n in pool:
+            if (_digit_root(n) or 9) == anchor_root:
+                resonance[n] = 1.0
+
+    # --- Signal 3: golden-ratio harmonic phase ---
+    span = (pool_max - pool_min) or 1
+    harmonic = {n: (sin(2 * pi * PHI * (n - pool_min) / span) + 1) / 2 for n in pool}
+
+    # 50% overdue + 30% resonance + 20% harmonic ripple
+    return {n: 0.5 * overdue[n] + 0.3 * resonance[n] + 0.2 * harmonic[n]
+            for n in pool}
+
+
 STRATEGIES = {
+    "special_fortune": special_fortune,
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
     "momentum_pure": momentum_pure,
@@ -386,6 +442,7 @@ STRATEGIES = {
 }
 
 DEFAULT_PARAMS = {
+    "special_fortune": {},
     "uniform_seeded": {"seed": None},
     "momentum_seeded": {"seed": None},
     "momentum_pure": {},
