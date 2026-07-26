@@ -3,3 +3,6 @@ __pycache__/
 
 # File số sạch do lstm_experiment.py --export-clean tạo ra (tái tạo được)
 lotto_data.csv
+
+# Kết quả dò tìm do special_search.py tạo ra (tái tạo được)
+state/special_search.json
