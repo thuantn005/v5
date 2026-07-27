@@ -363,14 +363,59 @@ def _fetch_xosominhngoc() -> list[dict]:
 
 # ── Bước 4: Append kỳ mới vào CSV ───────────────────────────────────────────
 
+def _rewrite_csv(rows: list[dict], fieldnames: list[str]) -> None:
+    """Ghi lại toàn bộ file theo thứ tự draw_id tăng dần (giữ file luôn sắp xếp,
+    kể cả khi vừa lấp một kỳ bị thiếu ở giữa)."""
+    rows = sorted(rows, key=lambda r: int(r["draw_id"]) if r.get("draw_id", "").isdigit() else 0)
+    with open(DATA_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({k: row.get(k, "") for k in fieldnames})
+
+
+def _find_gaps(rows: list[dict]) -> list[int]:
+    """Danh sách các draw_id còn thiếu trong khoảng [min, max]."""
+    ids = sorted(int(r["draw_id"]) for r in rows if r.get("draw_id", "").isdigit())
+    if not ids:
+        return []
+    return [i for i in range(ids[0], ids[-1] + 1) if i not in set(ids)]
+
+
+def _scraped_row(did: int, d: dict, id_width: int, now_iso: str) -> dict:
+    return {
+        "product":       "lotto535",
+        "draw_id":       str(did).zfill(id_width),
+        "draw_date":     d["draw_date"],
+        "draw_status":   "confirmed",
+        "result_json":   json.dumps({
+            "numbers": sorted(d["numbers"]),
+            "special_numbers": [d["special"]],
+        }),
+        "attributes_json": json.dumps({
+            "data_source": d.get("data_source", "scraper"),
+            "draw_time":   d.get("draw_time") or ("13:00" if did % 2 == 1 else "21:00"),
+        }),
+        "official_pdf_urls_json": "[]",
+        "source_url":            d.get("source_url", ""),
+        "prize_status":          "unknown",
+        "validation_status":     "scraped",
+        "validation_warnings_json": json.dumps([
+            f"scraped from {d.get('data_source', 'scraper')}"]),
+        "fetched_at": now_iso,
+    }
+
+
 def _append_scraped(scraped: list[dict]) -> int:
     rows, fieldnames = _load_csv()
     if not fieldnames:
         print("ERROR: data/all.csv không có fieldnames", file=sys.stderr)
         return 0
 
-    current_max = _max_draw_id(rows)
-    id_width    = len(rows[0]["draw_id"]) if rows else 5
+    id_width = len(rows[0]["draw_id"]) if rows else 5
+    # Tập các kỳ ĐÃ CÓ (theo id). Dùng để bỏ qua — thay vì chỉ so với max —
+    # nhờ vậy một kỳ bị THIẾU ở giữa (nhỏ hơn max) vẫn được lấp khi nguồn trả về.
+    present = {int(r["draw_id"]) for r in rows if r.get("draw_id", "").isdigit()}
 
     candidates = []
     for d in scraped:
@@ -378,7 +423,7 @@ def _append_scraped(scraped: list[dict]) -> int:
             did = int(d["draw_id"])
         except (ValueError, KeyError):
             continue
-        if did <= current_max:
+        if did in present:
             continue
         numbers = d.get("numbers", [])
         special = d.get("special", 0)
@@ -386,45 +431,25 @@ def _append_scraped(scraped: list[dict]) -> int:
                 or special < 1 or special > 12):
             continue
         candidates.append((did, d))
+        present.add(did)
 
     if not candidates:
-        print(f"Fallback: không có kỳ mới hơn #{current_max} — NhanAZ đã đủ.")
+        gaps = _find_gaps(rows)
+        note = f" (vẫn còn thiếu {gaps})" if gaps else ""
+        print(f"Fallback: không có kỳ THIẾU/mới nào để bổ sung — max #{_max_draw_id(rows)}{note}.")
         return 0
 
-    candidates.sort(key=lambda x: x[0])
     now_iso  = datetime.now(timezone.utc).isoformat()
-    new_rows = []
-    for did, d in candidates:
-        row = {
-            "product":       "lotto535",
-            "draw_id":       str(did).zfill(id_width),
-            "draw_date":     d["draw_date"],
-            "draw_status":   "confirmed",
-            "result_json":   json.dumps({
-                "numbers": sorted(d["numbers"]),
-                "special_numbers": [d["special"]],
-            }),
-            "attributes_json": json.dumps({
-                "data_source": d.get("data_source", "scraper"),
-                "draw_time":   d.get("draw_time") or ("13:00" if did % 2 == 1 else "21:00"),
-            }),
-            "official_pdf_urls_json": "[]",
-            "source_url":            d.get("source_url", ""),
-            "prize_status":          "unknown",
-            "validation_status":     "scraped",
-            "validation_warnings_json": json.dumps([
-                f"scraped from {d.get('data_source', 'scraper')}"]),
-            "fetched_at": now_iso,
-        }
-        new_rows.append({k: row.get(k, "") for k in fieldnames})
+    new_rows = [_scraped_row(did, d, id_width, now_iso) for did, d in candidates]
 
-    with open(DATA_PATH, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        for row in new_rows:
-            writer.writerow(row)
+    # Gộp + sắp xếp + ghi lại: lấp đúng vị trí kỳ thiếu và giữ file theo thứ tự.
+    _rewrite_csv(rows + new_rows, fieldnames)
 
-    ids_added = [str(did).zfill(id_width) for did, _ in candidates]
-    print(f"Fallback: append {len(new_rows)} kỳ mới: {ids_added}")
+    ids_added = sorted(str(did).zfill(id_width) for did, _ in candidates)
+    remaining = _find_gaps(rows + new_rows)
+    if remaining:
+        print(f"⚠️  Vẫn còn {len(remaining)} kỳ thiếu chưa lấp được: {remaining}", file=sys.stderr)
+    print(f"Fallback: bổ sung {len(new_rows)} kỳ: {ids_added}")
     return len(new_rows)
 
 
@@ -442,9 +467,24 @@ def main():
             print("ERROR: NhanAZ thất bại và không có data/all.csv.", file=sys.stderr)
             sys.exit(1)
     else:
+        # Đọc dữ liệu local TRƯỚC khi ghi đè để giữ lại các kỳ NhanAZ chưa có.
+        old_rows, _ = _load_csv()
         with open(DATA_PATH, "w", encoding="utf-8", newline="") as f:
             f.write(csv_text)
         print(f"data/all.csv cập nhật: {_count_data_rows(csv_text)} kỳ")
+
+        # NhanAZ (nguồn chính) hay bị trễ vài kỳ. Ghi đè toàn bộ file sẽ XOÁ mất
+        # các kỳ mới đã scrape trước đó → dữ liệu tụt hậu. Giữ lại kỳ local nào
+        # NhanAZ chưa có rồi gộp lại (giữ đúng thứ tự).
+        fresh_rows, fresh_fields = _load_csv()
+        if fresh_fields:
+            have = {int(r["draw_id"]) for r in fresh_rows if r.get("draw_id", "").isdigit()}
+            preserved = [r for r in old_rows
+                         if r.get("draw_id", "").isdigit() and int(r["draw_id"]) not in have]
+            if preserved:
+                _rewrite_csv(fresh_rows + preserved, fresh_fields)
+                kept = sorted(str(int(r["draw_id"])) for r in preserved)
+                print(f"Giữ lại {len(preserved)} kỳ local NhanAZ chưa có: {kept}")
 
     # 2. Kiểm tra cần fallback không
     rows, _ = _load_csv()
