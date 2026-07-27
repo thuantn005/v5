@@ -57,6 +57,46 @@ def _save(state: dict) -> None:
     with open(STATE_PATH, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
 
+# ── Cross-check jackpot từ ensemble_log ─────────────────────────────────────
+
+def _load_jackpot_history(n: int = 4) -> list[int | None]:
+    """Đọc n giá trị jackpot_vnd gần nhất từ ensemble_log.jsonl (cũ→mới).
+    Dùng để phát hiện reset ngay cả khi web trả số cũ trong kỳ đầu tiên."""
+    log_path = "state/ensemble_log.jsonl"
+    if not os.path.exists(log_path):
+        return []
+    try:
+        with open(log_path, encoding="utf-8") as f:
+            lines = [l for l in f.read().strip().split("\n") if l.strip()]
+        result = []
+        for line in lines[-n:]:
+            try:
+                e = json.loads(line)
+                result.append(e.get("jackpot_vnd"))
+            except Exception:
+                result.append(None)
+        return result
+    except Exception:
+        return []
+
+
+def _detect_reset_from_log(jackpot_vnd: int) -> bool:
+    """True nếu jackpot hiện tại thấp hơn đáng kể so với 2-3 kỳ gần nhất.
+    Phát hiện người trúng ngay kỳ tiếp theo dù web cập nhật trễ."""
+    history = _load_jackpot_history(4)
+    valid = [v for v in history if v and v > 1_000_000_000]
+    if len(valid) < 2:
+        return False
+    # Lấy max trong 3 kỳ gần nhất (không kể kỳ hiện tại)
+    recent_peak = max(valid[-3:]) if len(valid) >= 3 else max(valid)
+    # Nếu jackpot kỳ này giảm >8% so với max gần nhất → có người trúng
+    dropped = jackpot_vnd < recent_peak * 0.92
+    if dropped:
+        print(f"[jackpot_watch] Cross-check log: {jackpot_vnd/1e9:.2f}t < {recent_peak/1e9:.2f}t×0.92 → detect reset")
+    return dropped
+
+
+
 
 # ── Compat helpers (dùng bởi run_pipeline.py) ───────────────────────────────
 
@@ -186,12 +226,15 @@ def check_share_draw(jackpot_vnd: int | None,
         #  - jackpot giảm > 10% so với peak (người trúng hoặc kỳ chia giải xong)
         #  - KHÔNG yêu cầu phải dưới 12 tỷ — vì ngay sau khi có người trúng
         #    trang web có thể vẫn hiển thị số cũ vài kỳ, chỉ cần thấy giảm rõ
-        # Reset nếu jackpot giảm so với kỳ trước (someone trúng)
-        # hoặc giảm >10% so với peak (phòng web cache trễ 1 kỳ)
+        # Reset nếu jackpot giảm rõ ràng — 3 cách phát hiện:
+        # 1. So với peak tích luỹ (>10% giảm)
+        # 2. So với max 3 kỳ gần nhất trong log (>8% giảm) — bắt được ngay kỳ sau người trúng
+        # 3. prev_jackpot lưu từ kỳ trước (>5% giảm)
         prev = state.get("prev_jackpot") or 0
         dropped_vs_prev = prev > 0 and jackpot_vnd < prev * 0.95
         dropped_vs_peak = jackpot_vnd < peak * 0.90
-        if dropped_vs_prev or dropped_vs_peak:
+        dropped_vs_log  = _detect_reset_from_log(jackpot_vnd)
+        if dropped_vs_prev or dropped_vs_peak or dropped_vs_log:
             # Pot đã reset → có người trúng Độc Đắc hoặc kỳ chia giải đã diễn ra
             if today <= share_date:
                 _emit(events, _event(
