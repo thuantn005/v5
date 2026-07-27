@@ -190,6 +190,42 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
   margin-top:8px; word-break:break-all; opacity:.7; }
 .mp-no-data { color:var(--muted); font-size:.82rem; padding:16px 0; }
 
+
+/* ── Pinned champion tickets ── */
+#pinned-champions { margin-bottom: 22px; }
+.pin-head {
+  display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap;
+  gap:4px 12px; margin-bottom:12px;
+  border-bottom:1px solid var(--border); padding-bottom:8px;
+}
+.pin-title { font-size:1.05rem; font-weight:700; }
+.pin-grid  { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:10px; }
+.pin-card  {
+  background:var(--card); border-radius:14px; padding:16px 18px;
+  position:relative; overflow:hidden;
+}
+.pin-card.sp-champ { border:2px solid #e0a400; }
+.pin-card.mn-champ { border:2px solid #12a150; }
+.pin-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.pin-card.sp-champ::before { background: linear-gradient(90deg,#e0a400,#ffd54a,#e0a400); }
+.pin-card.mn-champ::before { background: linear-gradient(90deg,#12a150,#34d399,#12a150); }
+.pin-crown { font-size:1.5rem; margin-bottom:4px; }
+.pin-label {
+  font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
+  padding:2px 8px; border-radius:999px; display:inline-block; margin-bottom:6px;
+}
+.pin-label.sp { background:#3a2c00; color:#ffd54a; }
+.pin-label.mn { background:#0a2a18; color:#34d399; }
+.pin-name  { font-size:1rem; font-weight:800; margin-bottom:8px; }
+.pin-balls { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+.pin-stat  { display:flex; gap:14px; flex-wrap:wrap; font-size:.78rem; }
+.pin-stat b { font-size:.95rem; }
+.pin-stat .sp { color:#ffd54a; }
+.pin-stat .mn { color:#34d399; }
+.pin-trace { font-size:.63rem; color:var(--muted); font-family:monospace; margin-top:8px; opacity:.7; }
+
 </style>
 </head>
 <body>
@@ -218,6 +254,7 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
   </span>
 </div>
 
+<div id="pinned-champions"></div>
 <div id="my-pick"></div>
 <div id="model-predictions"></div>
 <div id="special-advice"></div>
@@ -529,6 +566,71 @@ function renderRandomTickets(rt) {
   }
 }
 
+
+// ── Ghim 2 vé vô địch lên đầu trang ─────────────────────────────────────────
+function renderPinnedChampions(rt) {
+  var host = document.getElementById('pinned-champions');
+  if (!host) return;
+  if (!rt) { host.innerHTML = ''; return; }
+
+  // Gom tất cả vé từ groups + my_pick
+  var all = [];
+  (rt.groups || []).forEach(function(g) {
+    (g.tickets || []).forEach(function(t) { all.push(t); });
+  });
+  if (rt.my_pick) all.push(rt.my_pick);
+
+  if (!all.length) { host.innerHTML = ''; return; }
+
+  // Vé trúng ĐB nhiều nhất
+  var bestSp = all.slice().sort(function(a, b) {
+    return (b.recent&&b.recent.special_hits||0) - (a.recent&&a.recent.special_hits||0);
+  })[0];
+
+  // Vé trúng số chính cao nhất (tier5 > tier4 > wins)
+  var bestMn = all.slice().sort(function(a, b) {
+    var ra = a.recent||{}, rb = b.recent||{};
+    if ((rb.tier5||0) !== (ra.tier5||0)) return (rb.tier5||0) - (ra.tier5||0);
+    if ((rb.tier4||0) !== (ra.tier4||0)) return (rb.tier4||0) - (ra.tier4||0);
+    return (rb.wins||0) - (ra.wins||0);
+  })[0];
+
+  function pinCard(t, type) {
+    var r = t.recent || {};
+    var isSp = type === 'sp';
+    var balls = (t.numbers||[]).map(function(n){ return b(n); }).join('') +
+      '<span class="plus">+</span>' + b(t.special, 'sp');
+    var labelTxt = isSp ? '🌟 Vô địch số đặc biệt' : '💚 Vô địch số chính';
+    var labelCls = isSp ? 'sp' : 'mn';
+    var statSp = '<span class="pin-stat"><b class="sp">' + (r.special_hits||0) + '</b> <span style="color:var(--muted)"> lần trúng ĐB</span></span>';
+    var statMn5 = '<span class="pin-stat"><b class="mn">' + (r.tier5||0) + '</b> <span style="color:var(--muted)"> lần 5/5 số</span></span>';
+    var statMn4 = '<span class="pin-stat"><b class="mn">' + (r.tier4||0) + '</b> <span style="color:var(--muted)"> lần 4/5 số</span></span>';
+    var statWin = '<span class="pin-stat"><b>' + (r.wins||0) + '</b> <span style="color:var(--muted)"> lần trúng ≥3</span></span>';
+    var statsHtml = isSp ? (statSp + statWin) : (statMn5 + statMn4 + statSp);
+    var trace = t.trace ? '<div class="pin-trace">🔑 ' + esc(t.trace) + '</div>' : '';
+    var name = t.name || t.id || '?';
+    return '<div class="pin-card ' + (isSp?'sp-champ':'mn-champ') + '">' +
+      '<span class="pin-label ' + labelCls + '">' + labelTxt + '</span>' +
+      '<div class="pin-name">' + esc(name) + '</div>' +
+      '<div class="pin-balls">' + balls + '</div>' +
+      '<div class="pin-stat" style="display:flex;gap:14px;flex-wrap:wrap">' + statsHtml + '</div>' +
+      compareBlock(t.last_result, true, 'Vé') +
+      trace +
+      '</div>';
+  }
+
+  var cards = '';
+  if (bestSp) cards += pinCard(bestSp, 'sp');
+  if (bestMn && bestMn !== bestSp) cards += pinCard(bestMn, 'mn');
+
+  host.innerHTML =
+    '<div class="pin-head">' +
+      '<div class="pin-title">📌 Ghim — Vé dẫn đầu thống kê</div>' +
+      '<div style="font-size:.72rem;color:var(--muted)">' + (rt.next_draw ? 'kỳ #' + esc(String(rt.next_draw)) : '') + ' · ' + (rt.recent_n||0) + ' kỳ lịch sử</div>' +
+    '</div>' +
+    '<div class="pin-grid">' + cards + '</div>' +
+    '<div style="font-size:.7rem;color:var(--muted);margin-top:8px">⚠️ Thống kê quá khứ — xác suất mỗi bộ số vẫn 1/324.632 như nhau. Chỉ để giải trí.</div>';
+}
 async function main() {
   try {
     const [j1, j2, wins, rtData] = await Promise.all([
@@ -538,6 +640,7 @@ async function main() {
       fetch('random_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     renderPin(wins);
+    renderPinnedChampions(rtData);
     renderMyPick(rtData);
     renderModels(rtData);
     renderRandomTickets(rtData);
@@ -561,3 +664,4 @@ main();
 </script>
 </body>
 </html>
+
