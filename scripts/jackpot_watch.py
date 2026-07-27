@@ -186,7 +186,12 @@ def check_share_draw(jackpot_vnd: int | None,
         #  - jackpot giảm > 10% so với peak (người trúng hoặc kỳ chia giải xong)
         #  - KHÔNG yêu cầu phải dưới 12 tỷ — vì ngay sau khi có người trúng
         #    trang web có thể vẫn hiển thị số cũ vài kỳ, chỉ cần thấy giảm rõ
-        if jackpot_vnd < peak * 0.90:
+        # Reset nếu jackpot giảm so với kỳ trước (someone trúng)
+        # hoặc giảm >10% so với peak (phòng web cache trễ 1 kỳ)
+        prev = state.get("prev_jackpot") or 0
+        dropped_vs_prev = prev > 0 and jackpot_vnd < prev * 0.95
+        dropped_vs_peak = jackpot_vnd < peak * 0.90
+        if dropped_vs_prev or dropped_vs_peak:
             # Pot đã reset → có người trúng Độc Đắc hoặc kỳ chia giải đã diễn ra
             if today <= share_date:
                 _emit(events, _event(
@@ -253,6 +258,9 @@ def check_share_draw(jackpot_vnd: int | None,
                 tags="rotating_light,moneybag",
             ))
 
+    # Lưu jackpot kỳ này để kỳ sau so sánh phát hiện reset ngay lập tức
+    if jackpot_vnd is not None:
+        state["prev_jackpot"] = jackpot_vnd
     _save(state)
     return events
 
