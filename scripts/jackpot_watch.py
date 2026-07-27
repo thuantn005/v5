@@ -270,7 +270,13 @@ def check_share_draw(jackpot_vnd: int | None,
 
     # ── Chưa có kỳ chia giải đang chờ ─────────────────────────────────────
     else:
-        state["peak_jackpot"] = max(state.get("peak_jackpot") or 0, jackpot_vnd)
+        # Nếu jackpot giảm so với lịch sử log → ai đó trúng Độc Đắc
+        # → reset peak về mốc hiện tại (chu kỳ mới), không cộng dồn sai
+        if _detect_reset_from_log(jackpot_vnd):
+            print(f"[jackpot_watch] Reset peak: {(state.get('peak_jackpot') or 0)/1e9:.2f}t → {jackpot_vnd/1e9:.2f}t (người trúng kỳ trước)")
+            state["peak_jackpot"] = jackpot_vnd
+        else:
+            state["peak_jackpot"] = max(state.get("peak_jackpot") or 0, jackpot_vnd)
 
         if jackpot_vnd > JACKPOT_THRESHOLD:
             # Xác định ngày trigger: ưu tiên last_draw_date, fallback today
