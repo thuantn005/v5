@@ -1,0 +1,15 @@
+{
+  "chosen_seed": "seed-971",
+  "mechanism": "uniform_seeded/trace: seed = sha256(salt|draw_id|special)[:16], chọn số điểm ngẫu nhiên cao nhất trên pool 1-12",
+  "backtest": {
+    "n_kỳ": 722,
+    "trúng": 88,
+    "tỉ_lệ": 0.1219,
+    "mốc_ngẫu_nhiên_1_trên_12": 0.0833
+  },
+  "du_doan_ky_toi": {
+    "target_draw_id": "00787",
+    "so_dac_biet": 12
+  },
+  "canh_bao": "Đây là seed thắng theo dò tìm hồi cố (overfitting). Xổ số độc lập từng kỳ — seed này KHÔNG có lợi thế thật ở kỳ tới, xác suất vẫn 1/12. Ghi lại chỉ để tái lập/kiểm chứng."
+}
