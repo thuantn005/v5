@@ -182,7 +182,11 @@ def check_share_draw(jackpot_vnd: int | None,
             return events
         peak = max(state.get("peak_jackpot") or 0, 0)
 
-        if jackpot_vnd < JACKPOT_THRESHOLD and jackpot_vnd < peak * 0.8:
+        # Reset nếu:
+        #  - jackpot giảm > 10% so với peak (người trúng hoặc kỳ chia giải xong)
+        #  - KHÔNG yêu cầu phải dưới 12 tỷ — vì ngay sau khi có người trúng
+        #    trang web có thể vẫn hiển thị số cũ vài kỳ, chỉ cần thấy giảm rõ
+        if jackpot_vnd < peak * 0.90:
             # Pot đã reset → có người trúng Độc Đắc hoặc kỳ chia giải đã diễn ra
             if today <= share_date:
                 _emit(events, _event(
