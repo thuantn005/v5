@@ -53,6 +53,13 @@ VIETLOTT_AJAX_PATH = (
     "/ajaxpro/Vietlott.PlugIn.WebParts.Game535CompareWebPart,"
     "Vietlott.PlugIn.WebParts.ashx"
 )
+# VƯỢT CHẶN cho nguồn chính Vietlott (dùng ở production khi vietlott.vn chặn IP):
+#  - VIETLOTT_PROXY: proxy do người dùng cấu hình (GitHub secret) — cách chắc
+#    chắn nhất, chạy được cả AJAX POST.
+#  - VIETLOTT_READER: reader-proxy công khai render JS (mặc định r.jina.ai) —
+#    dự phòng tự động, lấy trang list đã render rồi trích kết quả, không cần key.
+#    Đặt rỗng để tắt.
+VIETLOTT_READER_DEFAULT = "https://r.jina.ai/"
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -62,11 +69,15 @@ USER_AGENT = (
 
 # ── Session ──────────────────────────────────────────────────────────────────
 
-def _session() -> requests.Session:
+def _session(proxy: str | None = None) -> requests.Session:
     s = requests.Session()
     retries = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
     s.mount("https://", HTTPAdapter(max_retries=retries))
     s.headers.update({"User-Agent": USER_AGENT, "Accept-Language": "vi-VN,vi;q=0.9"})
+    if proxy:
+        # Định tuyến request qua proxy do người dùng chỉ định (GitHub secret
+        # VIETLOTT_PROXY) để VƯỢT chặn IP/vùng — dùng cho cả GET lẫn POST AJAX.
+        s.proxies.update({"http": proxy, "https": proxy})
     return s
 
 
@@ -250,22 +261,86 @@ def _parse_vietlott_ajax_html(html_content: str) -> list[dict]:
     return draws
 
 
+# Bản ghi Vietlott sau khi reader-proxy render: mã kỳ 5 chữ số, ngày dd/mm/yyyy,
+# rồi 6 số hai chữ số (5 chính + 1 đặc biệt) phân tách bởi khoảng trắng/dấu phẩy.
+_VIETLOTT_READER_REC = re.compile(
+    r"(?<!\d)(\d{5})(?!\d)"
+    r"[\s\S]*?(\d{1,2}/\d{1,2}/\d{4})"
+    r"[\s\S]*?((?:\b\d{1,2}\b[\s,|]+){5}\b\d{1,2}\b)"
+)
+
+
+def _parse_vietlott_reader_text(text: str) -> list[dict]:
+    """Trích kết quả từ trang Vietlott đã được reader-proxy render (best-effort).
+    Mọi bản ghi đều qua kiểm tra hợp lệ (5 số 1-35 + ĐB 1-12) nên dữ liệu sai bị
+    loại — không thể làm hỏng file."""
+    draws = []
+    for m in _VIETLOTT_READER_REC.finditer(text):
+        did, date_s, nums_s = m.groups()
+        nums = [int(x) for x in re.findall(r"\d{1,2}", nums_s)]
+        if len(nums) < 6:
+            continue
+        numbers, special = sorted(nums[:5]), nums[5]
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if not (1 <= special <= 12):
+            continue
+        try:
+            draw_date = datetime.strptime(date_s, "%d/%m/%Y").strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+        draws.append({
+            "draw_id":    did.zfill(5),
+            "draw_date":  draw_date,
+            "numbers":    numbers,
+            "special":    special,
+            "data_source":"vietlott_vn_reader",
+            "source_url": VIETLOTT_BASE + VIETLOTT_LIST_PATH,
+        })
+    return draws
+
+
+def _fetch_vietlott_via_reader() -> list[dict]:
+    """VƯỢT CHẶN: lấy trang list Vietlott qua reader-proxy render-JS (r.jina.ai),
+    không cần AJAX key. Dùng khi request trực tiếp tới vietlott.vn bị chặn."""
+    reader = os.environ.get("VIETLOTT_READER", VIETLOTT_READER_DEFAULT).strip()
+    if not reader:
+        return []
+    url = reader + VIETLOTT_BASE + VIETLOTT_LIST_PATH
+    try:
+        r = _session().get(url, timeout=TIMEOUT)
+        if r.status_code in (401, 403, 407):
+            print(f"vietlott reader-proxy: {r.status_code} — bỏ qua")
+            return []
+        r.raise_for_status()
+    except requests.RequestException as e:
+        print(f"WARNING: vietlott reader-proxy: {e}", file=sys.stderr)
+        return []
+    draws = _parse_vietlott_reader_text(r.text)
+    if draws:
+        print(f"vietlott.vn (reader-proxy vượt chặn): {len(draws)} kỳ quay")
+    return draws
+
+
 def _fetch_vietlott() -> list[dict]:
-    s = _session()
+    proxy = os.environ.get("VIETLOTT_PROXY", "").strip() or None
+    s = _session(proxy)
     list_url = VIETLOTT_BASE + VIETLOTT_LIST_PATH
     ajax_url = VIETLOTT_BASE + VIETLOTT_AJAX_PATH
+    if proxy:
+        print("vietlott.vn: định tuyến qua VIETLOTT_PROXY để vượt chặn")
     try:
         r = s.get(list_url, timeout=TIMEOUT)
         r.raise_for_status()
     except requests.RequestException as e:
-        print(f"WARNING: vietlott.vn list page thất bại: {e}", file=sys.stderr)
-        return []
+        print(f"WARNING: vietlott.vn list page thất bại: {e} → thử reader-proxy", file=sys.stderr)
+        return _fetch_vietlott_via_reader()
 
     key_m = re.search(
         r"ServerSideDrawResult\s*\(\s*RenderInfo\s*,\s*'([0-9a-fA-F]+)'", r.text)
     if not key_m:
-        print("WARNING: vietlott.vn: không lấy được AJAX key", file=sys.stderr)
-        return []
+        print("WARNING: vietlott.vn: không lấy được AJAX key → thử reader-proxy", file=sys.stderr)
+        return _fetch_vietlott_via_reader()
 
     key = key_m.group(1)
     all_draws: list[dict] = []
@@ -302,9 +377,9 @@ def _fetch_vietlott() -> list[dict]:
 
     if all_draws:
         print(f"vietlott.vn AJAX: {len(all_draws)} kỳ quay")
-    else:
-        print("WARNING: vietlott.vn AJAX: không parse được kỳ nào", file=sys.stderr)
-    return all_draws
+        return all_draws
+    print("WARNING: vietlott.vn AJAX: không parse được kỳ nào → thử reader-proxy", file=sys.stderr)
+    return _fetch_vietlott_via_reader()
 
 
 def _fetch_xosominhngoc() -> list[dict]:
