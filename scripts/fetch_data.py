@@ -4,12 +4,15 @@ fetch_data.py
 Cập nhật data/all.csv từ NhanAZ-Data (nguồn chính) + fallback scrapers.
 
 Chiến lược:
-  1. Tải NhanAZ-Data CSV (raw + CDN) → ghi đè data/all.csv
-  2. Nếu kỳ mới nhất trong file < kỳ hôm nay → chạy fallback:
-       a. NhanAZ CDN với cache-bust
-       b. Vietlott AJAX API
-       c. xosominhngoc.net.vn (nếu không bị 403)
-  3. Append kỳ mới hơn max hiện tại.
+  1. Tải NhanAZ-Data CSV (raw + CDN) → ghi đè data/all.csv (bộ lịch sử đầy đủ,
+     giữ lại kỳ local NhanAZ chưa có để không mất dữ liệu khi nguồn chính trễ).
+  2. Nếu kỳ mới nhất trong file < kỳ hôm nay → chạy fallback: THỬ TẤT CẢ nguồn
+     rồi GỘP lại (không phụ thuộc một nguồn — chống bị chặn):
+       - Vietlott.vn AJAX (chính thức, ưu tiên khử trùng)
+       - lotto-8.com (quốc tế, ít bị chặn)
+       - NhanAZ CDN bust (trên GitHub, gần như luôn truy cập được)
+       - xosominhngoc.net.vn (nếu không 403)
+  3. Lấp mọi kỳ THIẾU + append kỳ mới (khử trùng theo draw_id, giữ file sắp xếp).
 
 Nếu tất cả thất bại → giữ nguyên file, pipeline chạy trên dữ liệu cũ.
 """
@@ -43,6 +46,7 @@ NHANAZ_CDN_URL = (
 )
 
 XSMN_URL         = "https://xosominhngoc.net.vn/kqxs-lotto-535"
+LOTTO8_URL       = "https://www.lotto-8.com/Vietnam/listltoVM35.asp?indexpage=1"
 VIETLOTT_BASE    = "https://vietlott.vn"
 VIETLOTT_LIST_PATH = "/vi/trung-thuong/ket-qua-trung-thuong/winning-number-535"
 VIETLOTT_AJAX_PATH = (
@@ -361,6 +365,81 @@ def _fetch_xosominhngoc() -> list[dict]:
     return draws
 
 
+def _infer_year(day: int, month: int, today) -> int:
+    """lotto-8.com hiển thị ngày dạng dd/mm (không kèm năm đủ). Suy năm từ hôm
+    nay: mặc định năm hiện tại, nếu ngày rơi quá 7 ngày trong tương lai thì đó
+    là năm trước (xử lý ranh giới cuối/đầu năm)."""
+    from datetime import date
+    y = today.year
+    try:
+        cand = date(y, month, day)
+    except ValueError:
+        return y
+    if (cand - today).days > 7:
+        y -= 1
+    return y
+
+
+# Mỗi bản ghi: mã kỳ 5 chữ số → ngày dd/mm → (bỏ qua thứ/năm) → 5 số chính phân
+# tách bằng dấu phẩy → số đặc biệt. Non-greedy để không lấn sang kỳ kế tiếp.
+_LOTTO8_REC = re.compile(
+    r"(?<!\d)(\d{5})(?!\d)"                       # mã kỳ
+    r"\D+?(\d{1,2})/(\d{1,2})"                    # dd/mm
+    r"[\s\S]*?"                                   # bỏ qua "(Thứ ..)", năm "26", tab
+    r"(\d{1,2}(?:\s*,\s*\d{1,2}){4})"             # 5 số chính "10, 13, 18, 21, 27"
+    r"\D+?(\d{1,2})"                              # số đặc biệt
+)
+
+
+def _fetch_lotto8() -> list[dict]:
+    """Nguồn quốc tế lotto-8.com (VM35). Thường KHÔNG bị chặn như mirror nội địa.
+    Parser viết theo cấu trúc bảng suy đoán — lỗi/403 thì trả rỗng, và mọi bản
+    ghi đều qua kiểm tra hợp lệ (5 số 1-35 + ĐB 1-12) nên không thể làm hỏng file.
+    """
+    try:
+        r = _session().get(LOTTO8_URL, timeout=TIMEOUT)
+        if r.status_code == 403:
+            print("lotto-8.com: 403 Forbidden — bỏ qua")
+            return []
+        r.raise_for_status()
+    except requests.RequestException as e:
+        print(f"WARNING: lotto-8.com: {e}", file=sys.stderr)
+        return []
+
+    try:
+        from bs4 import BeautifulSoup
+        text = BeautifulSoup(r.text, "lxml").get_text("\n")
+    except ImportError:
+        text = r.text
+
+    today = (datetime.now(timezone.utc) + timedelta(hours=7)).date()
+    draws = []
+    for m in _LOTTO8_REC.finditer(text):
+        did, dd, mm, main_s, sp_s = m.groups()
+        try:
+            day, month = int(dd), int(mm)
+            numbers = sorted(int(x) for x in main_s.split(","))
+            special = int(sp_s)
+        except ValueError:
+            continue
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if not (1 <= special <= 12) or not (1 <= day <= 31 and 1 <= month <= 12):
+            continue
+        year = _infer_year(day, month, today)
+        draws.append({
+            "draw_id":    did.zfill(5),
+            "draw_date":  f"{year:04d}-{month:02d}-{day:02d}",
+            "numbers":    numbers,
+            "special":    special,
+            "data_source":"lotto8_com",
+            "source_url": LOTTO8_URL,
+        })
+    if draws:
+        print(f"lotto-8.com: {len(draws)} kỳ quay")
+    return draws
+
+
 # ── Bước 4: Append kỳ mới vào CSV ───────────────────────────────────────────
 
 def _rewrite_csv(rows: list[dict], fieldnames: list[str]) -> None:
@@ -491,36 +570,32 @@ def main():
     if not _needs_fallback(rows):
         return
 
-    # 3. Chạy fallback theo thứ tự ưu tiên.
-    # Vietlott.vn là NGUỒN CHÍNH THỨC: luôn mới nhất và ít bị chặn hơn các mirror
-    # bên thứ ba (xosominhngoc hay trả 403). Ưu tiên nó đầu tiên để dữ liệu vừa
-    # chuẩn vừa không bị trễ. NhanAZ bust + xosominhngoc chỉ là nguồn bổ sung.
-    print("\n=== Fallback scrapers ===")
-    cur_max = _max_draw_id(rows)
-
-    def _newest(lst):
-        return max((int(d["draw_id"]) for d in lst), default=0) if lst else 0
-
-    # 3a. Vietlott AJAX (chính thức — ưu tiên số 1)
-    scraped: list[dict] = _fetch_vietlott() or []
-
-    # 3b. NhanAZ CDN bust — bổ sung nếu Vietlott thất bại/không có kỳ mới hơn.
-    #     Gộp vào sau Vietlott: khi trùng draw_id, Vietlott (đứng trước) được giữ.
-    if _newest(scraped) <= cur_max:
-        nz = _fetch_nhanaz_bust()
-        if nz:
-            scraped = scraped + nz
-
-    # 3c. xosominhngoc — nguồn cuối cùng.
-    if _newest(scraped) <= cur_max:
-        xm = _fetch_xosominhngoc()
-        if xm:
-            scraped = scraped + xm
+    # 3. Chạy fallback: THỬ TẤT CẢ nguồn còn sống rồi GỘP lại.
+    # Không phụ thuộc một nguồn duy nhất — nếu nguồn chính (Vietlott) bị chặn,
+    # các nguồn khác (lotto-8.com quốc tế, NhanAZ trên GitHub, xosominhngoc) vẫn
+    # đóng góp. Thứ tự dưới đây = ƯU TIÊN KHỬ TRÙNG: nguồn đứng trước THẮNG khi
+    # trùng draw_id, nên số liệu CHÍNH THỨC (Vietlott) được giữ. _append_scraped
+    # tự khử trùng + lấp lỗ hổng + bỏ qua kỳ đã có.
+    print("\n=== Fallback scrapers (thử tất cả, gộp lại) ===")
+    scraped: list[dict] = []
+    for label, fn in (
+        ("Vietlott (chính thức)", _fetch_vietlott),
+        ("lotto-8.com",           _fetch_lotto8),
+        ("NhanAZ CDN bust",       _fetch_nhanaz_bust),
+        ("xosominhngoc",          _fetch_xosominhngoc),
+    ):
+        try:
+            part = fn() or []
+        except Exception as e:                       # một nguồn lỗi không được làm hỏng cả chuỗi
+            print(f"WARNING: nguồn {label} lỗi: {e}", file=sys.stderr)
+            part = []
+        if part:
+            scraped += part
 
     if scraped:
         _append_scraped(scraped)
     else:
-        print("Tất cả fallback thất bại — pipeline chạy trên dữ liệu NhanAZ hiện tại.")
+        print("Tất cả nguồn fallback đều bị chặn/thất bại — giữ nguyên dữ liệu hiện có.")
 
 
 if __name__ == "__main__":
