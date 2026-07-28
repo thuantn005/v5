@@ -491,22 +491,31 @@ def main():
     if not _needs_fallback(rows):
         return
 
-    # 3. Chạy fallback theo thứ tự ưu tiên
+    # 3. Chạy fallback theo thứ tự ưu tiên.
+    # Vietlott.vn là NGUỒN CHÍNH THỨC: luôn mới nhất và ít bị chặn hơn các mirror
+    # bên thứ ba (xosominhngoc hay trả 403). Ưu tiên nó đầu tiên để dữ liệu vừa
+    # chuẩn vừa không bị trễ. NhanAZ bust + xosominhngoc chỉ là nguồn bổ sung.
     print("\n=== Fallback scrapers ===")
-    scraped: list[dict] = []
+    cur_max = _max_draw_id(rows)
 
-    # 3a. NhanAZ CDN với cache-bust (thường bắt được kỳ mới nhất)
-    scraped = _fetch_nhanaz_bust()
+    def _newest(lst):
+        return max((int(d["draw_id"]) for d in lst), default=0) if lst else 0
 
-    # 3b. Vietlott AJAX
-    if not scraped or _max_draw_id(rows) >= max((int(d["draw_id"]) for d in scraped), default=0):
-        vl = _fetch_vietlott()
-        if vl:
-            scraped = vl
+    # 3a. Vietlott AJAX (chính thức — ưu tiên số 1)
+    scraped: list[dict] = _fetch_vietlott() or []
 
-    # 3c. xosominhngoc (nếu chưa có gì)
-    if not scraped:
-        scraped = _fetch_xosominhngoc()
+    # 3b. NhanAZ CDN bust — bổ sung nếu Vietlott thất bại/không có kỳ mới hơn.
+    #     Gộp vào sau Vietlott: khi trùng draw_id, Vietlott (đứng trước) được giữ.
+    if _newest(scraped) <= cur_max:
+        nz = _fetch_nhanaz_bust()
+        if nz:
+            scraped = scraped + nz
+
+    # 3c. xosominhngoc — nguồn cuối cùng.
+    if _newest(scraped) <= cur_max:
+        xm = _fetch_xosominhngoc()
+        if xm:
+            scraped = scraped + xm
 
     if scraped:
         _append_scraped(scraped)
