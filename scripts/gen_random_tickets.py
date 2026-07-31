@@ -471,6 +471,41 @@ def _ai_models(next_draw: int) -> list[dict]:
     return out
 
 
+def _r_model(draws: dict, next_draw: int, prev_draw: int, csv_path: str) -> dict | None:
+    """Chạy mô hình R (scripts/r_model.R) để lấy dự đoán kỳ tới + đối chiếu kỳ
+    trước. Graceful: nếu không có Rscript hoặc lỗi thì trả None (bỏ qua model)."""
+    import shutil
+    import subprocess
+    if not shutil.which("Rscript"):
+        return None
+    r_script = str(Path(__file__).resolve().parent / "r_model.R")
+
+    def run(target: int):
+        try:
+            r = subprocess.run(
+                ["Rscript", r_script, "--csv", csv_path, "--draw", str(target)],
+                capture_output=True, text=True, timeout=90)
+            if r.returncode != 0 or not r.stdout.strip():
+                return None
+            pred = json.loads(r.stdout.strip().splitlines()[-1])
+            if not pred.get("main") or len(set(pred["main"])) != 5:
+                return None
+            return pred
+        except Exception:
+            return None
+
+    pred = run(next_draw)
+    if not pred:
+        return None
+    lr = None
+    prevp = run(prev_draw)
+    if prevp and prev_draw in draws:
+        lr = _compare(sorted(prevp["main"]), prevp["special"], prev_draw, draws)
+    label = "Random Forest (R)"
+    return {"id": label, "label": label, "numbers": sorted(pred["main"]),
+            "special": pred["special"], "trace": pred.get("trace"), "last_result": lr}
+
+
 def _fixed_ticket(main: list, special: int, draws: dict, next_draw: int, prev_draw: int) -> dict:
     """Vé cố định (số không đổi mỗi kỳ) — thống kê qua toàn bộ lịch sử."""
     mset = set(main)
@@ -699,6 +734,9 @@ def main():
     # Chỉ giữ seed gốc (1 vé/nhóm ở trên) + các model AI; bỏ 2 mốc baseline.
     baselines = []
     models = _ai_models(next_draw)
+    r_model = _r_model(draws, next_draw, prev_draw, a.csv)
+    if r_model:
+        models.append(r_model)
 
     out = {
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
