@@ -2,35 +2,48 @@ name: Lotto 5/35 Predict & Notify
 
 on:
   schedule:
-    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7). We run ~2 HOURS
-    # after each draw (15:00 and 23:00 ICT) so both the fast scraper AND the
-    # slower primary dataset (which can take 2-4h to publish) have had ample
-    # time -- and the jackpot figure, which drives the "kỳ chia giải" alerts,
-    # is far more likely to be published by then.
+    # Draws happen at 13:00 and 21:00 Vietnam time (UTC+7). We fetch in TWO
+    # waves per draw so results appear fast without losing the slow jackpot data:
+    #   * EARLY wave (~35 & ~65 min after the draw): the fast scrapers
+    #     (lotto-8.com, xosominhngoc) already have the winning numbers by then,
+    #     so the dashboard updates within ~30-60 min instead of ~2h.
+    #   * LATE wave (~2h & ~2h20 after): the slower primary dataset AND the
+    #     jackpot figure (which drives the "kỳ chia giải" alerts, and can take
+    #     2-4h to publish) are captured. Idempotent per draw, so re-running is
+    #     harmless -- whichever attempt lands does the work exactly once.
     #
     # Reliability notes (why it's laid out this way):
     #  - cron minute is intentionally NOT ":00". GitHub Actions queues every
     #    top-of-hour request at once, the single most common cause of a
     #    scheduled run firing very late or getting silently dropped.
     #  - GitHub's free scheduler is best-effort: runs can be delayed by
-    #    minutes to several HOURS under load (we have observed ~5h drift).
-    #    This is a platform limitation we cannot remove -- so we (a) fire a
-    #    primary + backup trigger per draw, and (b) rely on the pipeline
-    #    being idempotent per draw (run_pipeline.already_predicted() /
-    #    multi_log.resolve_all() dedup), so a late/extra/dropped run is
-    #    harmless: whichever attempt actually lands does the work exactly
-    #    once, and the 2h margin absorbs the drift.
+    #    minutes to several HOURS under load. Multiple triggers per draw +
+    #    per-draw idempotency (run_pipeline.already_predicted() /
+    #    multi_log.resolve_all() dedup) absorb the drift.
     #  - Scheduled workflows only run from the DEFAULT branch (main) and are
     #    auto-disabled after 60 days with no repo commits; the daily
     #    auto-commit step below keeps the schedule alive.
-    - cron: "7 8 * * *"     # ~15:07 ICT (primary, 2h after the 13:00 draw)
-    - cron: "27 8 * * *"    # ~15:27 ICT (backup)
-    - cron: "7 16 * * *"    # ~23:07 ICT (primary, 2h after the 21:00 draw)
-    - cron: "27 16 * * *"   # ~23:27 ICT (backup)
+    # -- 13:00 ICT draw = 06:00 UTC --
+    - cron: "35 6 * * *"    # ~13:35 ICT (early, ~35m after the 13:00 draw)
+    - cron: "5 7 * * *"     # ~14:05 ICT (early, ~65m after)
+    - cron: "7 8 * * *"     # ~15:07 ICT (late, ~2h — jackpot value)
+    - cron: "27 8 * * *"    # ~15:27 ICT (late backup)
+    # -- 21:00 ICT draw = 14:00 UTC --
+    - cron: "35 14 * * *"   # ~21:35 ICT (early, ~35m after the 21:00 draw)
+    - cron: "5 15 * * *"    # ~22:05 ICT (early, ~65m after)
+    - cron: "7 16 * * *"    # ~23:07 ICT (late, ~2h — jackpot value)
+    - cron: "27 16 * * *"   # ~23:27 ICT (late backup)
   workflow_dispatch: {}     # allows manual "Run workflow" button too
 
 permissions:
   contents: write
+
+# Serialize runs: multiple triggers per draw must not push concurrently
+# (overlapping git push was causing intermittent run failures). Queue them
+# instead of cancelling, so every landed run still commits exactly once.
+concurrency:
+  group: predict-pipeline
+  cancel-in-progress: false
 
 jobs:
   predict:
@@ -77,5 +90,16 @@ jobs:
           git config user.name "lotto535-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/all.csv state/ docs/data.json docs/config_tickets.json docs/j1_tickets.json docs/jackpot_wins.json docs/random_tickets.json
-          git diff --cached --quiet || git commit -m "chore: update data, model logs & dashboard [skip ci]"
+          if git diff --cached --quiet; then
+            echo "Không có thay đổi để commit."; exit 0
+          fi
+          git commit -m "chore: update data, model logs & dashboard [skip ci]"
+          # Rebase-then-push với vài lần thử: nếu một run song song vừa push
+          # trước, rebase lên rồi push lại thay vì fail.
+          for i in 1 2 3 4; do
+            if git push; then exit 0; fi
+            echo "push bị từ chối (lần $i) → pull --rebase rồi thử lại"
+            git pull --rebase --autostash origin main || true
+            sleep $((i * 3))
+          done
           git push
