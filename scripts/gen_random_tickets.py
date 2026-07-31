@@ -639,35 +639,40 @@ def main():
 
     rank_ids = recent_ids if len(recent_ids) <= RANK_WINDOW else recent_ids[:RANK_WINDOW]
 
-    def build_group(gen_fn, pool, show, prefix, offset_base):
-        """Sinh `pool` vé ứng viên, xếp hạng theo backtest, CHỈ GIỮ top `show`.
+    def _mk(gen_fn, idx, tid, offset_base):
+        seed = next_draw + offset_base + idx * TICKET_SEED_STRIDE
+        return _build_ticket(gen_fn, idx, next_draw, prev_draw, draws, tid, recent_ids, seed)
 
-        2 giai đoạn cho nhanh:
-          1. Chấm điểm nhanh CẢ pool qua cửa sổ RANK_WINDOW kỳ gần nhất → lấy
-             shortlist rộng (show×4).
-          2. Tính thống kê ĐẦY ĐỦ (toàn lịch sử) cho shortlist, chọn top `show`,
-             đánh lại id 001..show theo thứ hạng (vé số 1 = tốt nhất).
+    def build_group(gen_fn, pool, prefix, offset_base):
+        """Trả về ĐÚNG 2 vé mỗi nhóm:
+          1. VÉ GỐC (PREFIX001) = idx=1 — dự đoán TẤT ĐỊNH của phương pháp
+             ('vé gốc'), số đổi theo kỳ theo công thức, cố định không qua lọc.
+          2. VÉ GIAI ĐOẠN 2 (PREFIX002) = vé xếp hạng CAO NHẤT theo backtest
+             (hướng Jackpot) khi quét pool ứng viên, khác vé gốc.
+
+        Chọn vé giai đoạn 2 bằng 2 bước: (a) sàng nhanh cả pool qua RANK_WINDOW kỳ
+        gần nhất → shortlist; (b) tính stats TOÀN lịch sử, lấy top KHÁC idx=1.
         """
-        # Giai đoạn 1 — sàng lọc nhanh
+        # (1) Vé gốc
+        base = _mk(gen_fn, 1, f"{prefix}001", offset_base)
+        base["name"] = "🎯 Vé gốc"
+        base["badge"] = "GỐC"
+
+        # (2) Vé giai đoạn 2 — quét pool tìm vé backtest tốt nhất (≠ vé gốc)
         prelim = []
-        for i in range(1, pool + 1):
+        for i in range(2, pool + 1):
             st = _recent_stats(gen_fn, i, draws, rank_ids)
             prelim.append((_rank_stats(st), i))
         prelim.sort(key=lambda x: x[0], reverse=True)
-        shortlist = [i for _, i in prelim[: max(show * 8, 80)]]
-
-        # Giai đoạn 2 — dựng vé đầy đủ cho shortlist rồi chọn top show
-        full = []
-        for i in shortlist:
-            seed = next_draw + offset_base + i * TICKET_SEED_STRIDE
-            full.append(_build_ticket(gen_fn, i, next_draw, prev_draw, draws,
-                                      f"{prefix}{i:03d}", recent_ids, seed))
+        shortlist = [i for _, i in prelim[:80]]
+        full = [_mk(gen_fn, i, f"{prefix}{i:03d}", offset_base) for i in shortlist]
         full.sort(key=_rank, reverse=True)
-        top = full[:show]
-        for rank, t in enumerate(top, 1):          # đánh lại id theo thứ hạng
-            t["id"] = f"{prefix}{rank:03d}"
-            t["trace"] = f"L535-{next_draw}-{t['id']}"
-        return top
+        stage2 = full[0]
+        stage2["id"] = f"{prefix}002"
+        stage2["trace"] = f"L535-{next_draw}-{prefix}002"
+        stage2["name"] = "📊 Vé giai đoạn 2"
+        stage2["badge"] = "G.ĐOẠN 2"
+        return [base, stage2]
 
     # Tính trước các thành phần (dùng chung cho mọi phương pháp lấy mẫu)
     comps = {d: _components(draws, d) for d in (set(recent_ids) | {next_draw})}
@@ -678,36 +683,35 @@ def main():
     # NHÓM "Kết hợp 3 dấu hiệu": nhiều VÉ GỐC (S001, S002...) — CÙNG 1 công thức,
     # mỗi vé 1 seed, số đổi mỗi kỳ theo seed (KHÔNG phải vé cố định).
     sig_gen = _make_method_gen(comps, "signal3", SIGNAL_SEED_OFFSET)
-    sig_tickets = build_group(sig_gen, a.pool, a.show, "S", SIGNAL_SEED_OFFSET)
-    # S001 = vé xếp hạng CAO NHẤT (lọc từ pool) → gắn nhãn DỰ ĐOÁN.
+    sig_tickets = build_group(sig_gen, a.pool, "S", SIGNAL_SEED_OFFSET)
+    # Vé gốc (S001) của signal3 chính là dự đoán tất định (đã trúng J1 kỳ #374).
     if sig_tickets:
-        sig_tickets[0]["name"] = "🔮 Dự đoán (S001)"
-        sig_tickets[0]["badge"] = "DỰ ĐOÁN"
+        sig_tickets[0]["name"] = "🔮 Vé gốc — Dự đoán (S001)"
     method_groups.append({
-        "label": f"Kết hợp 3 dấu hiệu lịch sử — top {len(sig_tickets)} vé (lọc từ {a.pool:,} · S001…)",
+        "label": "Kết hợp 3 dấu hiệu lịch sử — 2 vé (gốc + giai đoạn 2 · S001, S002)",
         "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt · mỗi vé 1 seed. "
-                f"Sinh {a.pool:,} vé ứng viên rồi CHỈ hiển thị {a.show} vé xếp hạng theo "
-                "JACKPOT 1 (5 số chính + ĐB) trong backtest — ưu tiên vé từng trúng/sát "
-                "jackpot; S001 = vé đứng đầu. LƯU Ý: jackpot trong quá khứ là survivorship "
-                "— KHÔNG làm vé dễ trúng kỳ tới hơn (vẫn 1/3.895.584).",
+                f"S001 = VÉ GỐC (dự đoán tất định). S002 = VÉ GIAI ĐOẠN 2, tốt nhất theo "
+                f"backtest hướng Jackpot khi quét {a.pool:,} vé ứng viên. LƯU Ý: 'từng "
+                "trúng/sát jackpot' là survivorship — KHÔNG làm vé dễ trúng kỳ tới hơn "
+                "(vẫn 1/3.895.584).",
         "method": "signal3", "tickets": sig_tickets,
     })
 
     # "Chọn ngẫu nhiên có thể lặp lại" (mốc so sánh) — cũng NHIỀU vé gốc, bằng số
     # với nhóm chính để so sánh công bằng.
     uni_gen = _make_method_gen(comps, "uniform", 9_000_000_000)
-    uni_tickets = build_group(uni_gen, a.pool, a.show, "U", 9_000_000_000)
+    uni_tickets = build_group(uni_gen, a.pool, "U", 9_000_000_000)
     method_groups.append({
-        "label": f"Chọn ngẫu nhiên có thể lặp lại — top {len(uni_tickets)} vé (lọc từ {a.pool:,} · U001…)",
+        "label": "Chọn ngẫu nhiên có thể lặp lại — 2 vé (gốc + giai đoạn 2 · U001, U002)",
         "note": "mốc so sánh công bằng — thuần ngẫu nhiên, mỗi vé 1 seed tái lập",
         "method": "uniform", "tickets": uni_tickets,
     })
 
     # Phương pháp thứ 3
     rec_gen = _make_method_gen(comps, "recent", 8_000_000_000)
-    rec_tickets = build_group(rec_gen, a.pool, a.show, "N", 8_000_000_000)
+    rec_tickets = build_group(rec_gen, a.pool, "N", 8_000_000_000)
     method_groups.append({
-        "label": f"Ưu tiên số nổi bật gần đây — top {len(rec_tickets)} vé (lọc từ {a.pool:,} · N001…)",
+        "label": "Ưu tiên số nổi bật gần đây — 2 vé (gốc + giai đoạn 2 · N001, N002)",
         "note": "tần suất 200 kỳ gần nhất · mỗi vé 1 seed, lấy mẫu ngẫu nhiên",
         "method": "recent", "tickets": rec_tickets,
     })
@@ -729,9 +733,9 @@ def main():
     ]
     for kind, prefix, offset, label, note in EXTRA_METHODS:
         gen = _make_method_gen(comps, kind, offset)
-        tickets = build_group(gen, a.pool, a.show, prefix, offset)
+        tickets = build_group(gen, a.pool, prefix, offset)
         method_groups.append({
-            "label": f"{label} — top {len(tickets)} vé (lọc từ {a.pool:,} · {prefix}001…)",
+            "label": f"{label} — 2 vé (gốc + giai đoạn 2 · {prefix}001, {prefix}002)",
             "note": note, "method": kind, "tickets": tickets,
         })
 
