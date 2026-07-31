@@ -343,10 +343,15 @@ def _build_ticket(gen_fn, idx: int, next_draw: int, prev_draw: int, draws: dict,
 
 
 def _rank_stats(r: dict):
-    """Điểm xếp hạng từ 1 dict thống kê backtest: số lần trúng >=3 số nhiều nhất
-    lên đầu, rồi hạng giải cao, rồi số khớp tốt nhất và trúng ĐB."""
-    tierscore = r.get("tier5", 0) * 1000 + r.get("tier4", 0) * 100 + r.get("tier3", 0) * 10
-    return (r.get("wins", 0), tierscore, r.get("best", 0), r.get("special_hits", 0))
+    """Điểm xếp hạng HƯỚNG JACKPOT: chỉ nhắm giải cao nhất (5 số chính + ĐB).
+    Thứ tự ưu tiên:
+      1. jackpot1  — trúng 5 số chính VÀ ĐB (Jackpot 1, mục tiêu duy nhất)
+      2. tier5     — trúng đúng 5 số chính (Jackpot 2, sát jackpot)
+      3. tier4     — trúng 4 số chính (gần)
+      4. special_hits — số lần trúng ĐB (phần ĐB của jackpot)
+      5. best / tier3 — mức khớp tốt nhất & 3 số (phá hòa)"""
+    return (r.get("jackpot1", 0), r.get("tier5", 0), r.get("tier4", 0),
+            r.get("special_hits", 0), r.get("best", 0), r.get("tier3", 0))
 
 
 def _rank(t):
@@ -649,7 +654,7 @@ def main():
             st = _recent_stats(gen_fn, i, draws, rank_ids)
             prelim.append((_rank_stats(st), i))
         prelim.sort(key=lambda x: x[0], reverse=True)
-        shortlist = [i for _, i in prelim[: max(show * 4, show)]]
+        shortlist = [i for _, i in prelim[: max(show * 8, 80)]]
 
         # Giai đoạn 2 — dựng vé đầy đủ cho shortlist rồi chọn top show
         full = []
@@ -681,9 +686,10 @@ def main():
     method_groups.append({
         "label": f"Kết hợp 3 dấu hiệu lịch sử — top {len(sig_tickets)} vé (lọc từ {a.pool:,} · S001…)",
         "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt · mỗi vé 1 seed. "
-                f"Sinh {a.pool:,} vé ứng viên rồi CHỈ hiển thị {a.show} vé trúng nhiều "
-                "nhất trong backtest; S001 = vé đứng đầu. LƯU Ý: 'trúng nhiều trong quá "
-                "khứ' là survivorship — KHÔNG làm vé dễ trúng kỳ tới hơn (vẫn 1/324.632).",
+                f"Sinh {a.pool:,} vé ứng viên rồi CHỈ hiển thị {a.show} vé xếp hạng theo "
+                "JACKPOT 1 (5 số chính + ĐB) trong backtest — ưu tiên vé từng trúng/sát "
+                "jackpot; S001 = vé đứng đầu. LƯU Ý: jackpot trong quá khứ là survivorship "
+                "— KHÔNG làm vé dễ trúng kỳ tới hơn (vẫn 1/3.895.584).",
         "method": "signal3", "tickets": sig_tickets,
     })
 
