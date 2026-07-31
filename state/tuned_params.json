@@ -1,4 +1,5 @@
 {
+  "special_fortune": {},
   "uniform_seeded": {},
   "momentum_seeded": {},
   "momentum_pure": {},
@@ -7,7 +8,5 @@
   "ramanujan_sigma": {},
   "aryabhata_cycle": {},
   "neural_perceptron": {},
-  "indian_per_slot": {},
-  "lstm_numpy": {},
-  "lstm_tf": {}
+  "indian_per_slot": {}
 }
