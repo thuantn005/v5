@@ -192,6 +192,12 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 
 
 
+/* ── Lịch sử trúng jackpot trên vé ── */
+.jh-line { margin:8px 0; padding:7px 10px; border-radius:9px; font-size:.74rem;
+  background:#2a1f00; border:1px solid var(--gold, #e0a400); line-height:1.5; }
+.jh-line .jh-j1 { color:#ffd54a; font-weight:700; }
+.jh-line .jh-j2 { color:#34d399; font-weight:700; }
+.jh-none { margin:8px 0; font-size:.7rem; color:var(--muted); }
 /* ── Banner "đang dự đoán kỳ nào" ── */
 .predict-banner {
   margin: 10px 0 6px; padding: 12px 18px; border-radius: 12px;
@@ -398,9 +404,19 @@ function ticketCard(t) {
         (t.badge ? '<span class="badge badge-random">' + esc(t.badge) + '</span>' : '') + '</div>'
     : '<div class="mp-name">Vé ' + esc(t.id) + '</div>';
   var traceHtml = t.trace ? '<div class="mp-trace">🔑 ' + esc(t.trace) + '</div>' : '';
+  var jh = t.jackpot_history || [];
+  var jhHtml = jh.length
+    ? '<div class="jh-line">🏆 Từng trúng jackpot: ' + jh.map(function(h){
+        var cls = h.tier === 'J1' ? 'jh-j1' : 'jh-j2';
+        var lab = h.tier === 'J1' ? 'Jackpot 1 (5+ĐB)' : 'Jackpot 2 (5 số)';
+        return '<span class="' + cls + '">' + lab + ' · kỳ #' + esc(String(h.draw_id)) +
+               (h.draw_date ? ' (' + esc(h.draw_date) + ')' : '') + '</span>';
+      }).join(' · ') + '</div>'
+    : '<div class="jh-none">Chưa từng trúng jackpot trong lịch sử</div>';
   return '<div class="card">' + nameHtml +
     '<div class="block-label" style="margin-top:8px">Vé kỳ tới</div>' +
     '<div class="balls">' + balls + '</div>' +
+    jhHtml +
     statBlock(t.recent) +
     compareBlock(t.last_result, true, 'Vé') +
     traceHtml + '</div>';

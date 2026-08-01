@@ -330,6 +330,22 @@ def _recent_stats(gen_fn, idx: int, draws: dict, recent_ids) -> dict:
     }
 
 
+def _jackpot_history(gen_fn, idx: int, draws: dict) -> list[dict]:
+    """Các kỳ mà vé (idx) từng khớp ĐỦ 5 số chính (jackpot) trong lịch sử.
+    tier='J1' nếu khớp cả ĐB (Jackpot 1), 'J2' nếu đúng 5 chính nhưng trượt ĐB."""
+    out = []
+    for d in sorted(draws):
+        act = draws[d]
+        if act.get("numbers") is None:
+            continue
+        main, sp = gen_fn(idx, d)
+        if len(set(main) & set(act["numbers"])) == 5:
+            j1 = (sp == act.get("special"))
+            out.append({"draw_id": d, "draw_date": act.get("draw_date", ""),
+                        "tier": "J1" if j1 else "J2", "special_hit": bool(j1)})
+    return out
+
+
 def _build_ticket(gen_fn, idx: int, next_draw: int, prev_draw: int, draws: dict,
                   tid: str, recent_ids, seed_val: int) -> dict:
     main, sp = gen_fn(idx, next_draw)
@@ -657,6 +673,7 @@ def main():
         base = _mk(gen_fn, 1, f"{prefix}001", offset_base)
         base["name"] = "🎯 Vé gốc"
         base["badge"] = "GỐC"
+        base["jackpot_history"] = _jackpot_history(gen_fn, 1, draws)
 
         # (2) Vé giai đoạn 2 — quét pool tìm vé backtest tốt nhất (≠ vé gốc)
         prelim = []
@@ -665,13 +682,14 @@ def main():
             prelim.append((_rank_stats(st), i))
         prelim.sort(key=lambda x: x[0], reverse=True)
         shortlist = [i for _, i in prelim[:80]]
-        full = [_mk(gen_fn, i, f"{prefix}{i:03d}", offset_base) for i in shortlist]
-        full.sort(key=_rank, reverse=True)
-        stage2 = full[0]
+        full = [(i, _mk(gen_fn, i, f"{prefix}{i:03d}", offset_base)) for i in shortlist]
+        full.sort(key=lambda it: _rank(it[1]), reverse=True)
+        stage2_idx, stage2 = full[0]
         stage2["id"] = f"{prefix}002"
         stage2["trace"] = f"L535-{next_draw}-{prefix}002"
         stage2["name"] = "📊 Vé giai đoạn 2"
         stage2["badge"] = "G.ĐOẠN 2"
+        stage2["jackpot_history"] = _jackpot_history(gen_fn, stage2_idx, draws)
         return [base, stage2]
 
     # Tính trước các thành phần (dùng chung cho mọi phương pháp lấy mẫu)
