@@ -193,8 +193,6 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 
 
 /* ── Lịch sử trúng jackpot trên vé ── */
-.jh-j1 { color:#ffd54a; }
-.jh-j2 { color:#34d399; }
 </style>
 </head>
 <body>
@@ -394,12 +392,9 @@ function ticketCard(t, nextDraw) {
   var traceHtml = t.trace ? '<div class="mp-trace">🔑 ' + esc(t.trace) + '</div>' : '';
   var jh = t.jackpot_history || [];
   var jhLines = jh.map(function(h){
-    var lab = h.tier === 'J1'
-      ? '<b class="jh-j1">JACKPOT 1</b>'
-      : '<b class="jh-j2">JACKPOT 2</b>';
     var nums = (h.numbers||[]).map(function(n){ return String(n).padStart(2,'0'); }).join(' ');
     var sp = h.special != null ? ' + ĐB ' + String(h.special).padStart(2,'0') : '';
-    return '<div>' + lab + ' · <span class="hid">#' + esc(String(h.draw_id)) + '</span> ' +
+    return '<div><span class="hid">#' + esc(String(h.draw_id)) + '</span> ' +
            '<span style="opacity:.7">' + esc(h.draw_date||'') + '</span>: ' + nums + sp + '</div>';
   }).join('');
   var jhHtml =
