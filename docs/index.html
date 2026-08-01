@@ -193,11 +193,8 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 
 
 /* ── Lịch sử trúng jackpot trên vé ── */
-.jh-line { margin:8px 0; padding:7px 10px; border-radius:9px; font-size:.74rem;
-  background:#2a1f00; border:1px solid var(--gold, #e0a400); line-height:1.5; }
-.jh-line .jh-j1 { color:#ffd54a; font-weight:700; }
-.jh-line .jh-j2 { color:#34d399; font-weight:700; }
-.jh-none { margin:8px 0; font-size:.7rem; color:var(--muted); }
+.jh-j1 { color:#ffd54a; }
+.jh-j2 { color:#34d399; }
 </style>
 </head>
 <body>
@@ -396,14 +393,18 @@ function ticketCard(t, nextDraw) {
     : '<div class="mp-name">Vé ' + esc(t.id) + '</div>';
   var traceHtml = t.trace ? '<div class="mp-trace">🔑 ' + esc(t.trace) + '</div>' : '';
   var jh = t.jackpot_history || [];
-  var jhHtml = jh.length
-    ? '<div class="jh-line">🏆 Từng trúng jackpot: ' + jh.map(function(h){
-        var cls = h.tier === 'J1' ? 'jh-j1' : 'jh-j2';
-        var lab = h.tier === 'J1' ? 'Jackpot 1 (5+ĐB)' : 'Jackpot 2 (5 số)';
-        return '<span class="' + cls + '">' + lab + ' · kỳ #' + esc(String(h.draw_id)) +
-               (h.draw_date ? ' (' + esc(h.draw_date) + ')' : '') + '</span>';
-      }).join(' · ') + '</div>'
-    : '<div class="jh-none">Chưa từng trúng jackpot trong lịch sử</div>';
+  var jhLines = jh.map(function(h){
+    var lab = h.tier === 'J1'
+      ? '<b class="jh-j1">JACKPOT 1</b>'
+      : '<b class="jh-j2">JACKPOT 2</b>';
+    var nums = (h.numbers||[]).map(function(n){ return String(n).padStart(2,'0'); }).join(' ');
+    var sp = h.special != null ? ' + ĐB ' + String(h.special).padStart(2,'0') : '';
+    return '<div>' + lab + ' · <span class="hid">#' + esc(String(h.draw_id)) + '</span> ' +
+           '<span style="opacity:.7">' + esc(h.draw_date||'') + '</span>: ' + nums + sp + '</div>';
+  }).join('');
+  var jhHtml =
+    '<div class="block-label" style="margin-top:8px">🏆 Jackpot lịch sử</div>' +
+    '<div class="hist">' + (jhLines || '— chưa từng trúng jackpot') + '</div>';
   return '<div class="card">' + nameHtml +
     '<div class="block-label" style="margin-top:8px">🎯 Vé dự đoán' + ndLabel + '</div>' +
     '<div class="balls">' + balls + '</div>' +

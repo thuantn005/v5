@@ -342,7 +342,8 @@ def _jackpot_history(gen_fn, idx: int, draws: dict) -> list[dict]:
         if len(set(main) & set(act["numbers"])) == 5:
             j1 = (sp == act.get("special"))
             out.append({"draw_id": d, "draw_date": act.get("draw_date", ""),
-                        "tier": "J1" if j1 else "J2", "special_hit": bool(j1)})
+                        "tier": "J1" if j1 else "J2", "special_hit": bool(j1),
+                        "numbers": sorted(main), "special": sp})
     return out
 
 
