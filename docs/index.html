@@ -192,10 +192,21 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 
 
 
+/* ── Banner "đang dự đoán kỳ nào" ── */
+.predict-banner {
+  margin: 10px 0 6px; padding: 12px 18px; border-radius: 12px;
+  background: linear-gradient(135deg, #2a1f00, #3a2c00);
+  border: 2px solid var(--gold, #e0a400);
+  font-size: 1.25rem; font-weight: 800; letter-spacing: .01em;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.predict-banner b { font-size: 1.7rem; color: var(--gold, #ffd54a); }
+.predict-banner .pd-date { font-size: .8rem; font-weight: 500; color: var(--muted); }
 </style>
 </head>
 <body>
 <h1>🧮 Lotto 5/35 – Bộ sưu tập Jackpot Config</h1>
+<div id="predict-draw"></div>
 <div class="sub" id="gen-time">Đang tải...</div>
 
 <div class="subscribe">
@@ -505,6 +516,11 @@ async function main() {
       fetch('jackpot_wins.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
       fetch('random_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
+    var _pd = document.getElementById('predict-draw');
+    if (_pd) _pd.innerHTML = (rtData && rtData.next_draw)
+      ? '<div class="predict-banner">🎯 ĐANG DỰ ĐOÁN CHO KỲ <b>#' + esc(String(rtData.next_draw)) + '</b>'
+        + '<span class="pd-date">(kỳ quay kế tiếp · đối chiếu kỳ #' + esc(String(rtData.prev_draw)) + ' vừa quay bên dưới)</span></div>'
+      : '';
     renderPin(wins);
     renderModels(rtData);
     renderRandomTickets(rtData);
