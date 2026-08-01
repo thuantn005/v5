@@ -35,7 +35,7 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
 N_SIGNAL = 50  # (giữ để tương thích) — nay dùng POOL/SHOW bên dưới
-POOL_DEFAULT = 5000  # số vé ỨNG VIÊN sinh ra mỗi nhóm (chỉ dùng để lọc)
+POOL_DEFAULT = 2000  # số vé ỨNG VIÊN sinh ra mỗi nhóm (chỉ dùng để lọc)
 SHOW_DEFAULT = 10    # số vé HIỂN THỊ mỗi nhóm = top theo backtest
 RANK_WINDOW = 60     # số kỳ gần nhất để XẾP HẠNG NHANH pool (top hiển thị vẫn
                      # tính stats TOÀN lịch sử ở giai đoạn 2)
