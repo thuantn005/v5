@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-01T05:51:11+00:00",
+ "generated_at": "2026-08-01T06:01:45+00:00",
  "next_draw": 797,
  "prev_draw": 796,
  "recent_n": 0,
@@ -215,7 +215,7 @@
  "groups": [
   {
    "label": "Kết hợp 3 dấu hiệu lịch sử — 2 vé (gốc + giai đoạn 2 · S001, S002)",
-   "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt · mỗi vé 1 seed. S001 = VÉ GỐC (dự đoán tất định). S002 = VÉ GIAI ĐOẠN 2, tốt nhất theo backtest hướng Jackpot khi quét 5,000 vé ứng viên. LƯU Ý: 'từng trúng/sát jackpot' là survivorship — KHÔNG làm vé dễ trúng kỳ tới hơn (vẫn 1/3.895.584).",
+   "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt · mỗi vé 1 seed. S001 = VÉ GỐC (dự đoán tất định). S002 = VÉ GIAI ĐOẠN 2, tốt nhất theo backtest hướng Jackpot khi quét 2,000 vé ứng viên. LƯU Ý: 'từng trúng/sát jackpot' là survivorship — KHÔNG làm vé dễ trúng kỳ tới hơn (vẫn 1/3.895.584).",
    "method": "signal3",
    "tickets": [
     {
@@ -269,7 +269,15 @@
        "draw_id": 374,
        "draw_date": "2026-01-01",
        "tier": "J1",
-       "special_hit": true
+       "special_hit": true,
+       "numbers": [
+        2,
+        3,
+        20,
+        25,
+        30
+       ],
+       "special": 3
       }
      ]
     },
@@ -324,7 +332,15 @@
        "draw_id": 789,
        "draw_date": "2026-07-28",
        "tier": "J2",
-       "special_hit": false
+       "special_hit": false,
+       "numbers": [
+        13,
+        17,
+        23,
+        33,
+        35
+       ],
+       "special": 5
       }
      ]
     }
@@ -434,7 +450,15 @@
        "draw_id": 745,
        "draw_date": "2026-07-06",
        "tier": "J1",
-       "special_hit": true
+       "special_hit": true,
+       "numbers": [
+        4,
+        22,
+        24,
+        28,
+        31
+       ],
+       "special": 7
       }
      ]
     }
