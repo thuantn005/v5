@@ -198,21 +198,10 @@ h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
 .jh-line .jh-j1 { color:#ffd54a; font-weight:700; }
 .jh-line .jh-j2 { color:#34d399; font-weight:700; }
 .jh-none { margin:8px 0; font-size:.7rem; color:var(--muted); }
-/* ── Banner "đang dự đoán kỳ nào" ── */
-.predict-banner {
-  margin: 10px 0 6px; padding: 12px 18px; border-radius: 12px;
-  background: linear-gradient(135deg, #2a1f00, #3a2c00);
-  border: 2px solid var(--gold, #e0a400);
-  font-size: 1.25rem; font-weight: 800; letter-spacing: .01em;
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-}
-.predict-banner b { font-size: 1.7rem; color: var(--gold, #ffd54a); }
-.predict-banner .pd-date { font-size: .8rem; font-weight: 500; color: var(--muted); }
 </style>
 </head>
 <body>
 <h1>🧮 Lotto 5/35 – Bộ sưu tập Jackpot Config</h1>
-<div id="predict-draw"></div>
 <div class="sub" id="gen-time">Đang tải...</div>
 
 <div class="subscribe">
@@ -268,8 +257,9 @@ function compareBlock(lr, withSpecial, predLabel) {
   </div>`;
 }
 
-function card(t, withSpecial) {
+function card(t, withSpecial, nextDraw) {
   const rec = t.recent || {};
+  const ndLabel = nextDraw ? ` — KỲ #${nextDraw}` : '';
   const next = t.numbers.map(n => b(n)).join('') + `<span class="plus">+</span>` + b(t.special, 'sp');
   const hist = (t.history || []).map(h => `<div>${histLine(h, withSpecial)}</div>`).join('');
   const nWin = (t.history || []).length;
@@ -279,7 +269,7 @@ function card(t, withSpecial) {
       <span class="seed">seed ${t.seed}</span></div>
     <div class="subline">🏅 Từng trúng ${winWord} · <b style="color:var(--gold)">${nWin} lần</b></div>
 
-    <div class="block-label">Vé kỳ tới</div>
+    <div class="block-label">🎯 Vé dự đoán${ndLabel}</div>
     <div class="balls">${next}</div>
 
     <div class="block-label">Jackpot lịch sử</div>
@@ -359,7 +349,7 @@ function renderArchive(winsData) {
 
 function collection(d, withSpecial, title, icon) {
   if (!d || !d.tickets || !d.tickets.length) return '';
-  const cards = d.tickets.map(t => card(t, withSpecial)).join('');
+  const cards = d.tickets.map(t => card(t, withSpecial, d.next_draw)).join('');
   return `<div class="collection">
     <div class="collection-head">
       <div class="collection-title">${icon} ${title} — vé kỳ #${d.next_draw}</div>
@@ -396,7 +386,8 @@ function statBlock(rec) {
     '</div>' + bd;
 }
 
-function ticketCard(t) {
+function ticketCard(t, nextDraw) {
+  var ndLabel = nextDraw ? ' — KỲ #' + esc(String(nextDraw)) : '';
   var balls = t.numbers.map(function(n){ return b(n); }).join('') +
     '<span class="plus">+</span>' + b(t.special, 'sp');
   var nameHtml = t.name
@@ -414,7 +405,7 @@ function ticketCard(t) {
       }).join(' · ') + '</div>'
     : '<div class="jh-none">Chưa từng trúng jackpot trong lịch sử</div>';
   return '<div class="card">' + nameHtml +
-    '<div class="block-label" style="margin-top:8px">Vé kỳ tới</div>' +
+    '<div class="block-label" style="margin-top:8px">🎯 Vé dự đoán' + ndLabel + '</div>' +
     '<div class="balls">' + balls + '</div>' +
     jhHtml +
     statBlock(t.recent) +
@@ -508,7 +499,7 @@ function renderRandomTickets(rt) {
     var groups = rt.groups || (rt.tickets ? [{ label: 'Vé ngẫu nhiên', tickets: rt.tickets }] : []);
     var html = '';
     groups.forEach(function(g, gi) {
-      var cards = (g.tickets || []).map(ticketCard).join('');
+      var cards = (g.tickets || []).map(function(t){ return ticketCard(t, rt.next_draw); }).join('');
       var noteHtml = g.note ? '<div class="mp-meta" style="width:100%">🔎 ' + esc(g.note) + '</div>' : '';
       html +=
         '<div class="mp-head" style="margin-top:24px">' +
@@ -532,11 +523,6 @@ async function main() {
       fetch('jackpot_wins.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
       fetch('random_tickets.json?_=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
-    var _pd = document.getElementById('predict-draw');
-    if (_pd) _pd.innerHTML = (rtData && rtData.next_draw)
-      ? '<div class="predict-banner">🎯 ĐANG DỰ ĐOÁN CHO KỲ <b>#' + esc(String(rtData.next_draw)) + '</b>'
-        + '<span class="pd-date">(kỳ quay kế tiếp · đối chiếu kỳ #' + esc(String(rtData.prev_draw)) + ' vừa quay bên dưới)</span></div>'
-      : '';
     renderPin(wins);
     renderModels(rtData);
     renderRandomTickets(rtData);
