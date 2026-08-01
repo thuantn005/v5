@@ -725,37 +725,8 @@ def main():
         "method": "uniform", "tickets": uni_tickets,
     })
 
-    # Phương pháp thứ 3
-    rec_gen = _make_method_gen(comps, "recent", 8_000_000_000)
-    rec_tickets = build_group(rec_gen, a.pool, "N", 8_000_000_000)
-    method_groups.append({
-        "label": "Ưu tiên số nổi bật gần đây — 2 vé (gốc + giai đoạn 2 · N001, N002)",
-        "note": "tần suất 200 kỳ gần nhất · mỗi vé 1 seed, lấy mẫu ngẫu nhiên",
-        "method": "recent", "tickets": rec_tickets,
-    })
-
-    # Thêm 4 công thức nữa — CÙNG cơ chế bốc số có trọng số (roulette wheel,
-    # random.Random(seed)) như đã tạo ra S001 và cú trúng Jackpot 1 kỳ #374.
-    EXTRA_METHODS = [
-        ("hot", "H", 4_000_000_000, "Số nóng (tần suất toàn lịch sử)",
-         "ưu tiên số ra nhiều nhất toàn lịch sử · mỗi vé 1 seed, bốc số có trọng số"),
-        ("cold", "L", 5_000_000_000, "Số lạnh (ít ra nhất)",
-         "ưu tiên số ra ít nhất toàn lịch sử · mỗi vé 1 seed, bốc số có trọng số"),
-        ("overdue", "O", 6_000_000_000, "Số quá hạn (lâu chưa ra)",
-         "ưu tiên số kỳ vắng mặt lâu nhất · mỗi vé 1 seed, bốc số có trọng số"),
-        ("companion", "D", 7_000_000_000, "Số đồng hành (đi cùng kỳ trước)",
-         "ưu tiên số hay xuất hiện cùng nhóm số của kỳ ngay trước · mỗi vé 1 seed, bốc số có trọng số"),
-        ("dynamic", "W", 8_800_000_000, f"Cửa sổ động (suy giảm mượt, half-life={DYNAMIC_HALF_LIFE} kỳ)",
-         "trọng số suy giảm mượt theo thời gian (không cắt cứng như 200 kỳ) · tốc độ suy giảm CỐ ĐỊNH TRƯỚC "
-         "· mỗi vé 1 seed, bốc số có trọng số"),
-    ]
-    for kind, prefix, offset, label, note in EXTRA_METHODS:
-        gen = _make_method_gen(comps, kind, offset)
-        tickets = build_group(gen, a.pool, prefix, offset)
-        method_groups.append({
-            "label": f"{label} — 2 vé (gốc + giai đoạn 2 · {prefix}001, {prefix}002)",
-            "note": note, "method": kind, "tickets": tickets,
-        })
+    # (Chỉ giữ 2 nhóm đầu: signal3 + uniform. Các nhóm recent/hot/cold/overdue/
+    #  companion/dynamic đã bỏ theo yêu cầu.)
 
     combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
 
