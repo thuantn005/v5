@@ -35,7 +35,7 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
 N_SIGNAL = 50  # (giữ để tương thích) — nay dùng POOL/SHOW bên dưới
-POOL_DEFAULT = 2000  # số vé ỨNG VIÊN sinh ra mỗi nhóm (chỉ dùng để lọc)
+POOL_DEFAULT = 5   # số vé mỗi nhóm (sinh idx 1..5, hiển thị hết — không lọc)
 SHOW_DEFAULT = 10    # số vé HIỂN THỊ mỗi nhóm = top theo backtest
 RANK_WINDOW = 60     # số kỳ gần nhất để XẾP HẠNG NHANH pool (top hiển thị vẫn
                      # tính stats TOÀN lịch sử ở giai đoạn 2)
@@ -661,37 +661,20 @@ def main():
         return _build_ticket(gen_fn, idx, next_draw, prev_draw, draws, tid, recent_ids, seed)
 
     def build_group(gen_fn, pool, prefix, offset_base):
-        """Trả về ĐÚNG 2 vé mỗi nhóm:
-          1. VÉ GỐC (PREFIX001) = idx=1 — dự đoán TẤT ĐỊNH của phương pháp
-             ('vé gốc'), số đổi theo kỳ theo công thức, cố định không qua lọc.
-          2. VÉ GIAI ĐOẠN 2 (PREFIX002) = vé xếp hạng CAO NHẤT theo backtest
-             (hướng Jackpot) khi quét pool ứng viên, khác vé gốc.
+        """Trả về ĐÚNG `pool` vé gốc (idx 1..pool) — KHÔNG quét/lọc pool lớn.
 
-        Chọn vé giai đoạn 2 bằng 2 bước: (a) sàng nhanh cả pool qua RANK_WINDOW kỳ
-        gần nhất → shortlist; (b) tính stats TOÀN lịch sử, lấy top KHÁC idx=1.
+        Mỗi vé là một VÉ GỐC của phương pháp: số đổi theo kỳ theo công thức +
+        seed riêng, tái lập được. Không có bước 'giai đoạn 2' lọc từ hàng nghìn
+        ứng viên nữa (lọc theo backtest là survivorship, không tăng cơ hội).
         """
-        # (1) Vé gốc
-        base = _mk(gen_fn, 1, f"{prefix}001", offset_base)
-        base["name"] = "🎯 Vé gốc"
-        base["badge"] = "GỐC"
-        base["jackpot_history"] = _jackpot_history(gen_fn, 1, draws)
-
-        # (2) Vé giai đoạn 2 — quét pool tìm vé backtest tốt nhất (≠ vé gốc)
-        prelim = []
-        for i in range(2, pool + 1):
-            st = _recent_stats(gen_fn, i, draws, rank_ids)
-            prelim.append((_rank_stats(st), i))
-        prelim.sort(key=lambda x: x[0], reverse=True)
-        shortlist = [i for _, i in prelim[:80]]
-        full = [(i, _mk(gen_fn, i, f"{prefix}{i:03d}", offset_base)) for i in shortlist]
-        full.sort(key=lambda it: _rank(it[1]), reverse=True)
-        stage2_idx, stage2 = full[0]
-        stage2["id"] = f"{prefix}002"
-        stage2["trace"] = f"L535-{next_draw}-{prefix}002"
-        stage2["name"] = "📊 Vé giai đoạn 2"
-        stage2["badge"] = "G.ĐOẠN 2"
-        stage2["jackpot_history"] = _jackpot_history(gen_fn, stage2_idx, draws)
-        return [base, stage2]
+        tickets = []
+        for i in range(1, pool + 1):
+            t = _mk(gen_fn, i, f"{prefix}{i:03d}", offset_base)
+            t["name"] = f"🎯 Vé gốc {i}"
+            t["badge"] = "GỐC"
+            t["jackpot_history"] = _jackpot_history(gen_fn, i, draws)
+            tickets.append(t)
+        return tickets
 
     # Tính trước các thành phần (dùng chung cho mọi phương pháp lấy mẫu)
     comps = {d: _components(draws, d) for d in (set(recent_ids) | {next_draw})}
@@ -707,12 +690,11 @@ def main():
     if sig_tickets:
         sig_tickets[0]["name"] = "🔮 Vé gốc — Dự đoán (S001)"
     method_groups.append({
-        "label": "Kết hợp 3 dấu hiệu lịch sử — 2 vé (gốc + giai đoạn 2 · S001, S002)",
-        "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt · mỗi vé 1 seed. "
-                f"S001 = VÉ GỐC (dự đoán tất định). S002 = VÉ GIAI ĐOẠN 2, tốt nhất theo "
-                f"backtest hướng Jackpot khi quét {a.pool:,} vé ứng viên. LƯU Ý: 'từng "
-                "trúng/sát jackpot' là survivorship — KHÔNG làm vé dễ trúng kỳ tới hơn "
-                "(vẫn 1/3.895.584).",
+        "label": f"Kết hợp 3 dấu hiệu lịch sử — {a.pool} vé gốc (S001…S{a.pool:03d})",
+        "note": "gần đây (200 kỳ) + toàn lịch sử + số kỳ vắng mặt · mỗi vé 1 seed, "
+                "số đổi theo kỳ theo công thức. LƯU Ý: mọi vé đều 1/324.632 (J2) và "
+                "1/3.895.584 (J1) như nhau — lịch sử jackpot bên dưới là quá khứ, "
+                "KHÔNG làm vé dễ trúng kỳ tới hơn.",
         "method": "signal3", "tickets": sig_tickets,
     })
 
@@ -721,7 +703,7 @@ def main():
     uni_gen = _make_method_gen(comps, "uniform", 9_000_000_000)
     uni_tickets = build_group(uni_gen, a.pool, "U", 9_000_000_000)
     method_groups.append({
-        "label": "Chọn ngẫu nhiên có thể lặp lại — 2 vé (gốc + giai đoạn 2 · U001, U002)",
+        "label": f"Chọn ngẫu nhiên có thể lặp lại — {a.pool} vé gốc (U001…U{a.pool:03d})",
         "note": "mốc so sánh công bằng — thuần ngẫu nhiên, mỗi vé 1 seed tái lập",
         "method": "uniform", "tickets": uni_tickets,
     })
