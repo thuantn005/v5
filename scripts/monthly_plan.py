@@ -97,7 +97,31 @@ def main():
     ap.add_argument("--price", type=int, default=10_000, help="giá 1 vé (VND)")
     ap.add_argument("--n", type=int, default=N_TICKETS, help="số vé mỗi tháng")
     ap.add_argument("--json", help="ghi kết quả ra file JSON")
+    ap.add_argument("--min-jackpot", type=float, default=20e9,
+                    help="CHỈ hiện vé khi Độc Đắc >= mức này (VND, mặc định 20 tỷ)")
+    ap.add_argument("--state", default="state/jackpot_state.json",
+                    help="file trạng thái để đọc giá trị Độc Đắc hiện tại")
+    ap.add_argument("--force", action="store_true", help="bỏ qua cổng lọc, hiện vé luôn")
     a = ap.parse_args()
+
+    # ── CỔNG LỌC EV: chỉ mua khi pot lớn ────────────────────────────────────
+    # Xác suất KHÔNG đổi (luôn 1/3.895.584 cho J1). Nhưng pot càng lớn thì mỗi
+    # vé càng ĐÁNG GIÁ hơn: EV(J1) = pot / 3.895.584. Nên mua khi pot cao là
+    # lựa chọn hợp lý về giá trị — KHÔNG phải vì "dễ trúng hơn".
+    jackpot = 0
+    try:
+        jackpot = int(json.load(open(a.state, encoding="utf-8")).get("peak_jackpot") or 0)
+    except Exception:
+        pass
+    ev_j1 = jackpot * P_J1
+    if jackpot and not a.force and jackpot < a.min_jackpot:
+        print(f"⏸️  CHƯA MUA THÁNG NÀY — Độc Đắc {jackpot/1e9:.2f} tỷ "
+              f"< ngưỡng {a.min_jackpot/1e9:.0f} tỷ")
+        print(f"    EV từ J1 hiện chỉ {ev_j1:,.0f} đ/vé (giá vé {a.price:,} đ) — chờ pot lớn hơn.")
+        print(f"    Muốn xem vé bất chấp: thêm --force  ·  đổi ngưỡng: --min-jackpot 12e9")
+        print("\n    Lưu ý: chờ pot lớn KHÔNG làm tăng xác suất trúng (luôn 1/3.895.584);")
+        print("    nó chỉ làm mỗi đồng bỏ ra đáng giá hơn NẾU trúng.")
+        return
 
     past = _past_combos(a.csv)
     tickets = build_tickets(a.month, past, a.n)
@@ -105,6 +129,14 @@ def main():
     cost_month = n * a.price
 
     print(f"═══ MODEL: MUA {n} VÉ / THÁNG (1 lần) — tháng {a.month} ═══\n")
+    if jackpot:
+        below = jackpot < a.min_jackpot
+        head = (f"⚠️  HIỆN VÉ DÙ CHƯA ĐẠT NGƯỠNG (--force) — Độc Đắc {jackpot/1e9:.2f} tỷ "
+                f"< {a.min_jackpot/1e9:.0f} tỷ") if below else \
+               (f"✅ MỞ MUA — Độc Đắc {jackpot/1e9:.2f} tỷ (>= ngưỡng {a.min_jackpot/1e9:.0f} tỷ)")
+        print(head)
+        print(f"   EV từ J1: {ev_j1:,.0f} đ/vé so với giá {a.price:,} đ "
+              f"({ev_j1/a.price*100:.0f}% giá vé)\n")
     print(f"{'Vé':<4} {'5 số chính':<22} {'ĐB'}")
     for t in tickets:
         nums = "  ".join(f"{x:02d}" for x in t["numbers"])
