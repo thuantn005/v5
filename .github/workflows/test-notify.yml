@@ -1,0 +1,35 @@
+name: Test thông báo ntfy
+
+# Chạy tay để kiểm tra đường gửi thông báo có hoạt động không.
+# Vào tab Actions -> "Test thông báo ntfy" -> Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Topic ntfy"
+        required: false
+        default: "lotto535-thuan"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Gửi thông báo thử
+        run: |
+          python scripts/notify_ntfy.py \
+            --topic "${{ inputs.topic || 'lotto535-thuan' }}" \
+            --title "✅ Test thông báo Lotto 5/35" \
+            --message "Nếu bạn đọc được tin này thì thông báo đã hoạt động bình thường. Gửi lúc $(TZ=Asia/Ho_Chi_Minh date '+%H:%M %d/%m/%Y') giờ VN." \
+            --priority high \
+            --tags white_check_mark,bell
