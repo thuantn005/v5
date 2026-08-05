@@ -526,7 +526,7 @@ async function main() {
     renderArchive(wins);
     const gen = (j2 && j2.generated_at) || (j1 && j1.generated_at);
     document.getElementById('gen-time').textContent =
-      'Cập nhật: ' + (gen ? new Date(gen).toLocaleString('vi-VN') : '—')
+      'Cập nhật: ' + (gen ? new Date(gen).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) + ' (giờ VN)' : '—')
       + ' · so sánh trực tiếp vé của từng config với kết quả thực';
 
     const html =

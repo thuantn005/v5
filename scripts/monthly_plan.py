@@ -90,7 +90,10 @@ def build_tickets(month: str, past: set[tuple], n: int = N_TICKETS) -> list[dict
 
 
 def main():
-    today = datetime.date.today()
+    # Luôn tính theo GIỜ VIỆT NAM (UTC+7) — server/Actions chạy UTC nên nếu dùng
+    # giờ máy sẽ lệch tháng ở ranh giới đầu/cuối tháng.
+    VN_TZ = datetime.timezone(datetime.timedelta(hours=7))
+    today = datetime.datetime.now(VN_TZ).date()
     ap = argparse.ArgumentParser(description="Model: mỗi tháng mua 5 vé, 1 lần")
     ap.add_argument("--month", default=f"{today:%Y-%m}", help="tháng YYYY-MM")
     ap.add_argument("--csv", default="data/all.csv")
