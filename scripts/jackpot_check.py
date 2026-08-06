@@ -74,12 +74,25 @@ JACKPOT_SOURCES = [
 # (secret VIETLOTT_PROXY) — đường duy nhất còn khả năng qua được WAF.
 VIETLOTT_JACKPOT_SOURCES = [u for u in JACKPOT_SOURCES if "vietlott.vn" in u]
 
-# Nguồn bên thứ ba bổ sung (best-effort). Trang nào không có/không parse được
-# dòng "Giá trị ... Độc Đắc: X" sẽ tự bị bỏ qua — không làm hỏng luồng.
+# Nguồn bên thứ ba bổ sung — CHỈ giữ URL đã kiểm chứng bằng
+# scripts/check_sources.py. Trang nào không parse được dòng "Giá trị ... Độc
+# Đắc: X" sẽ tự bị bỏ qua, không làm hỏng luồng.
+#   Đã GỠ (đo được HTTP 404, URL sai): xskt.com.vn, ketqua.net
 EXTRA_JACKPOT_SOURCES = [
+    # lotto-8: trả 200 nhưng hiện KHÔNG có dòng Độc Đắc. Giữ vì vô hại và
+    # trang có thể bổ sung sau; checker sẽ báo nếu bắt đầu có số.
     "https://www.lotto-8.com/Vietnam/listltoVM35.asp?indexpage=1",
-    "https://xskt.com.vn/xo-so-dien-toan/lotto-5-35",
-    "https://ketqua.net/xo-so-vietlott-lotto-535",
+]
+
+# ỨNG VIÊN — CHƯA kiểm chứng, KHÔNG dùng trong pipeline. check_sources.py sẽ dò
+# thử; cái nào thật sự trả về giá trị Độc Đắc thì mới chuyển lên
+# EXTRA_JACKPOT_SOURCES. Tránh lặp lại lỗi thêm URL đoán mò vào production.
+CANDIDATE_JACKPOT_SOURCES = [
+    "https://xosodaiphat.com/xo-so-dien-toan-vietlott/lotto-5-35.html",
+    "https://www.minhngoc.net.vn/ket-qua-xo-so/dien-toan-lotto-5-35.html",
+    "https://xoso.com.vn/lotto-5-35-xstd.html",
+    "https://ketqua.net/xo-so-vietlott",
+    "https://xskt.com.vn/xsdt/lotto-5-35",
 ]
 
 # NGUỒN CUỐI CÙNG: Google. Kém tin cậy — Google hay trả CAPTCHA cho IP

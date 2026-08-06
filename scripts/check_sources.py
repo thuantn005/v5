@@ -78,6 +78,9 @@ def check_jackpot_sources() -> None:
              if u not in J.VIETLOTT_JACKPOT_SOURCES]
     urls += [(u, u.split("/")[2]) for u in J.EXTRA_JACKPOT_SOURCES]
     urls.append((J.GOOGLE_JACKPOT_URL, "google.com"))
+    # Ứng viên chưa kiểm chứng — dò để biết cái nào đáng đưa vào pipeline.
+    urls += [(u, f"[ứng viên] {u.split('/')[2]}")
+             for u in getattr(J, "CANDIDATE_JACKPOT_SOURCES", [])]
 
     for url, label in urls:
         p = proxy if (proxy and "vietlott.vn" in url) else None
