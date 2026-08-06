@@ -1,10 +1,10 @@
 {
-  "pending": true,
-  "share_date": "2026-08-05",
-  "reminded": true,
-  "peak_jackpot": 24994046000,
-  "trigger_draw_id": "00804",
-  "trigger_draw_date": "2026-08-04",
+  "pending": false,
+  "share_date": null,
+  "reminded": false,
+  "peak_jackpot": 6126140000,
+  "trigger_draw_id": null,
+  "trigger_draw_date": null,
   "scrape_fail_alerted": false,
-  "prev_jackpot": 24994046000
+  "prev_jackpot": 6126140000
 }
