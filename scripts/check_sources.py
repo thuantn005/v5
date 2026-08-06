@@ -115,6 +115,26 @@ def check_jackpot_sources() -> None:
             print(f"  {BAD} {label:<26} {str(e)[:70]}")
 
 
+def check_gemini() -> None:
+    """Kiểm tra nguồn AI chốt cuối: key có hợp lệ không, có trả về số hợp lý không."""
+    print("\n═══ NGUỒN AI (Gemini — chốt chặn cuối) ═══")
+    if not os.environ.get("GEMINI_API_KEY", "").strip():
+        print(f"  {WARN}GEMINI_API_KEY chưa đặt — nguồn AI đang TẮT")
+        return
+    t = time.time()
+    try:
+        amount, ky = J._fetch_jackpot_gemini(None)
+    except Exception as e:
+        print(f"  {BAD} gemini: lỗi {str(e)[:80]}")
+        return
+    dt = time.time() - t
+    if amount:
+        print(f"  {OK} gemini: {amount:,} đ (kỳ #{ky or '?'}) trong {dt:.1f}s")
+        print("     ⚠️  Số do AI cung cấp — đối chiếu với nguồn thật ở trên trước khi tin.")
+    else:
+        print(f"  {BAD} gemini: không lấy được số ({dt:.1f}s) — xem WARNING ở trên")
+
+
 def check_notify() -> None:
     print("\n═══ THÔNG BÁO (ntfy) ═══")
     topic = os.environ.get("NTFY_TOPIC", "lotto535-thuan")
@@ -126,6 +146,7 @@ def main() -> None:
     print(f"KIỂM TRA NGUỒN — {time.strftime('%H:%M %d/%m/%Y')} (giờ máy)")
     check_draw_sources()
     check_jackpot_sources()
+    check_gemini()
     check_notify()
     print("\nXong. Nguồn ❌ không nhất thiết là lỗi hệ thống — pipeline chỉ cần "
           "MỘT nguồn sống ở mỗi nhóm.")
