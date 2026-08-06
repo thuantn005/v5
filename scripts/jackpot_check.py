@@ -286,21 +286,42 @@ def _fetch_jackpot_gemini(expected_draw_id: str | None) -> tuple[int | None, str
     )
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
            f"{GEMINI_MODEL}:generateContent")
-    payload = {
+    base = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "tools": [{"google_search": {}}],          # bắt buộc grounding
         "generationConfig": {"temperature": 0},
     }
-    try:
-        r = requests.post(url, timeout=40,
-                          headers={"Content-Type": "application/json",
-                                   "X-goog-api-key": key},
-                          json=payload)
-        r.raise_for_status()
-        parts = r.json()["candidates"][0]["content"]["parts"]
-        text = "".join(p.get("text", "") for p in parts)
-    except Exception as e:
-        print(f"WARNING: [jackpot] gemini: {str(e)[:90]}", file=sys.stderr)
+    # Tên trường công cụ grounding khác nhau giữa các phiên bản API/model. Thử
+    # lần lượt; KHÔNG bao giờ gọi mà thiếu grounding (dễ bịa số).
+    tool_variants = [
+        ("google_search", {"google_search": {}}),
+        ("googleSearch", {"googleSearch": {}}),
+        ("google_search_retrieval", {"google_search_retrieval": {}}),
+    ]
+    text = None
+    for name, tool in tool_variants:
+        try:
+            r = requests.post(url, timeout=40,
+                              headers={"Content-Type": "application/json",
+                                       "X-goog-api-key": key},
+                              json={**base, "tools": [tool]})
+        except requests.RequestException as e:
+            print(f"[jackpot] gemini: lỗi mạng ({name}): {str(e)[:80]}")
+            return None, None
+        if r.ok:
+            try:
+                parts = r.json()["candidates"][0]["content"]["parts"]
+                text = "".join(p.get("text", "") for p in parts)
+                break
+            except (KeyError, IndexError, ValueError) as e:
+                print(f"[jackpot] gemini: phản hồi lạ ({name}): {str(e)[:60]}")
+                return None, None
+        # In lỗi ra STDOUT để luôn thấy trong log Actions (stderr hay bị nuốt).
+        body = r.text[:200].replace("\n", " ")
+        print(f"[jackpot] gemini: HTTP {r.status_code} với tools={name} → {body}")
+        if r.status_code in (401, 403):
+            return None, None          # key sai/không quyền → thử tiếp vô ích
+    if text is None:
+        print("[jackpot] gemini: không gọi được API với mọi biến thể grounding")
         return None, None
 
     m = re.search(r"\{[^{}]*\}", text, re.S)
