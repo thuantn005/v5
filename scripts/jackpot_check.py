@@ -87,13 +87,18 @@ EXTRA_JACKPOT_SOURCES = [
 # ỨNG VIÊN — CHƯA kiểm chứng, KHÔNG dùng trong pipeline. check_sources.py sẽ dò
 # thử; cái nào thật sự trả về giá trị Độc Đắc thì mới chuyển lên
 # EXTRA_JACKPOT_SOURCES. Tránh lặp lại lỗi thêm URL đoán mò vào production.
-CANDIDATE_JACKPOT_SOURCES = [
-    "https://xosodaiphat.com/xo-so-dien-toan-vietlott/lotto-5-35.html",
-    "https://www.minhngoc.net.vn/ket-qua-xo-so/dien-toan-lotto-5-35.html",
-    "https://xoso.com.vn/lotto-5-35-xstd.html",
-    "https://ketqua.net/xo-so-vietlott",
-    "https://xskt.com.vn/xsdt/lotto-5-35",
-]
+#
+# ĐÃ DÒ VÀ LOẠI (đo 06/08/2026 trên GitHub Actions — đừng thêm lại):
+#   404          : xosodaiphat.com/xo-so-dien-toan-vietlott/lotto-5-35.html
+#                  xoso.com.vn/lotto-5-35-xstd.html
+#                  ketqua.net/xo-so-vietlott  (+ /xo-so-vietlott-lotto-535)
+#                  xskt.com.vn/xo-so-dien-toan/lotto-5-35
+#   200, KHÔNG có dòng "Giá trị Độc Đắc":
+#                  minhngoc.net.vn/ket-qua-xo-so/dien-toan-lotto-5-35.html
+#                  xskt.com.vn/xsdt/lotto-5-35
+# Kết luận: các trang kết quả phổ biến chỉ đăng DÃY SỐ, không đăng giá trị
+# Độc Đắc — nên rất ít nguồn thay thế được xosominhngoc.
+CANDIDATE_JACKPOT_SOURCES: list[str] = []
 
 # NGUỒN CUỐI CÙNG: Google. Kém tin cậy — Google hay trả CAPTCHA cho IP
 # datacenter (GitHub Actions) và HTML đổi liên tục, nên chỉ dùng khi mọi nguồn
