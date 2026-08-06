@@ -98,7 +98,11 @@ EXTRA_JACKPOT_SOURCES = [
 #                  xskt.com.vn/xsdt/lotto-5-35
 # Kết luận: các trang kết quả phổ biến chỉ đăng DÃY SỐ, không đăng giá trị
 # Độc Đắc — nên rất ít nguồn thay thế được xosominhngoc.
-CANDIDATE_JACKPOT_SOURCES: list[str] = []
+CANDIDATE_JACKPOT_SOURCES: list[str] = [
+    # Do người dùng cung cấp (06/08) — đang chờ check_sources.py xác nhận.
+    "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html",
+    "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
+]
 
 # NGUỒN CUỐI CÙNG: Google. Kém tin cậy — Google hay trả CAPTCHA cho IP
 # datacenter (GitHub Actions) và HTML đổi liên tục, nên chỉ dùng khi mọi nguồn
