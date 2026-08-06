@@ -56,10 +56,11 @@ VIETLOTT_AJAX_PATH = (
 # VƯỢT CHẶN cho nguồn chính Vietlott (dùng ở production khi vietlott.vn chặn IP):
 #  - VIETLOTT_PROXY: proxy do người dùng cấu hình (GitHub secret) — cách chắc
 #    chắn nhất, chạy được cả AJAX POST.
-#  - VIETLOTT_READER: reader-proxy công khai render JS (mặc định r.jina.ai) —
-#    dự phòng tự động, lấy trang list đã render rồi trích kết quả, không cần key.
-#    Đặt rỗng để tắt.
-VIETLOTT_READER_DEFAULT = "https://r.jina.ai/"
+#  - VIETLOTT_READER: reader-proxy công khai (vd "https://r.jina.ai/"). MẶC ĐỊNH
+#    TẮT: đã đo trên GitHub Actions — WAF của vietlott.vn trả 403 cho CẢ
+#    r.jina.ai, nên bật chỉ tốn thêm request mà không bao giờ thành công.
+#    Đặt biến môi trường nếu muốn thử một reader khác.
+VIETLOTT_READER_DEFAULT = ""
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -324,6 +325,11 @@ def _fetch_vietlott_via_reader() -> list[dict]:
 
 def _fetch_vietlott() -> list[dict]:
     proxy = os.environ.get("VIETLOTT_PROXY", "").strip() or None
+    if not proxy and not os.environ.get("VIETLOTT_READER", VIETLOTT_READER_DEFAULT).strip():
+        # Không proxy, không reader → gọi thẳng vietlott.vn chắc chắn 403 (đã đo
+        # trên CI). Bỏ qua để khỏi tốn request; các nguồn khác vẫn chạy đủ.
+        print("vietlott.vn: bỏ qua (WAF chặn IP datacenter — cần secret VIETLOTT_PROXY)")
+        return []
     s = _session(proxy)
     list_url = VIETLOTT_BASE + VIETLOTT_LIST_PATH
     ajax_url = VIETLOTT_BASE + VIETLOTT_AJAX_PATH

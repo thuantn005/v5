@@ -67,10 +67,11 @@ JACKPOT_SOURCES = [
     # minhchinh.com đã xóa: chậm cập nhật, không đáng tin cậy
 ]
 
-# Các nguồn vietlott.vn ở trên hay bị WAF chặn (403) từ CI. Thử lại CHÍNH các
-# trang đó qua reader-proxy render-JS để vẫn lấy được số CHÍNH THỨC.
-# Đặt VIETLOTT_READER="" để tắt.
-READER_PROXY = "https://r.jina.ai/"
+# vietlott.vn (nguồn CHÍNH THỨC) bị WAF chặn 403 với IP datacenter. Đã ĐO THỰC TẾ
+# trên GitHub Actions: cả request trực tiếp LẪN reader-proxy công cộng
+# (r.jina.ai) đều nhận 403 → thử chúng mỗi lần chạy chỉ tốn thời gian mà không
+# bao giờ thành công. Vì vậy CHỈ gọi vietlott.vn khi có proxy riêng
+# (secret VIETLOTT_PROXY) — đường duy nhất còn khả năng qua được WAF.
 VIETLOTT_JACKPOT_SOURCES = [u for u in JACKPOT_SOURCES if "vietlott.vn" in u]
 
 # Nguồn bên thứ ba bổ sung (best-effort). Trang nào không có/không parse được
@@ -226,25 +227,23 @@ def _extract_jackpot_vnd(html: str) -> int | None:
     return _extract_jackpot(html)[0]
 
 
-def _jackpot_attempts() -> list[tuple[str, str]]:
-    """Danh sách (url, nhãn) sẽ thử, theo thứ tự ưu tiên giảm dần.
-
-    ƯU TIÊN TUYỆT ĐỐI CHO NGUỒN CHÍNH THỨC (vietlott.vn): thử trực tiếp trước,
-    rồi NGAY LẬP TỨC thử lại chính các trang đó qua reader-proxy (vượt WAF 403).
-    Chỉ khi cả hai đường tới vietlott.vn đều hỏng mới rơi xuống bên thứ ba —
-    nếu không, một nguồn thứ ba 'sống' sẽ luôn thắng và số chính thức không
-    bao giờ được dùng.
-      1. vietlott.vn trực tiếp
-      2. vietlott.vn qua READER-PROXY  ← vẫn là số CHÍNH THỨC
-      3. xosominhngoc + các nguồn bên thứ ba
-      4. Google (chốt chặn cuối, hay CAPTCHA — thất bại là bình thường)
-    """
+def _vietlott_proxy() -> str | None:
+    """Proxy riêng để vượt WAF vietlott.vn (secret VIETLOTT_PROXY). Không có
+    thì bỏ qua hẳn vietlott.vn — gọi thẳng chỉ nhận 403."""
     import os
-    attempts = [(u, "vietlott.vn (chính thức)") for u in VIETLOTT_JACKPOT_SOURCES]
+    return os.environ.get("VIETLOTT_PROXY", "").strip() or None
 
-    reader = os.environ.get("VIETLOTT_READER", READER_PROXY).strip()
-    if reader:
-        attempts += [(reader + u, "vietlott.vn (chính thức, reader-proxy)")
+
+def _jackpot_attempts() -> list[tuple[str, str]]:
+    """Danh sách (url, nhãn) sẽ thử, theo thứ tự ưu tiên giảm dần:
+      1. vietlott.vn (CHÍNH THỨC) — CHỈ khi có secret VIETLOTT_PROXY, vì không
+         có proxy thì chắc chắn 403 (đã đo trên CI).
+      2. xosominhngoc + các nguồn bên thứ ba
+      3. Google (chốt chặn cuối, hay CAPTCHA — thất bại là bình thường)
+    """
+    attempts = []
+    if _vietlott_proxy():
+        attempts += [(u, "vietlott.vn (chính thức, qua proxy)")
                      for u in VIETLOTT_JACKPOT_SOURCES]
 
     third_party = [u for u in JACKPOT_SOURCES if u not in VIETLOTT_JACKPOT_SOURCES]
@@ -259,9 +258,13 @@ def _scrape_jackpot_vnd(expected_draw_id: str | None = None) -> tuple[int | None
     `expected_draw_id` = kỳ mới nhất trong dữ liệu. Chỉ chấp nhận giá trị của
     kỳ đó trở đi; giá trị của kỳ cũ hơn (trang chưa cập nhật) bị bỏ để tránh
     kích hoạt/huỷ kỳ chia giải nhầm."""
+    proxy = _vietlott_proxy()
     for url, label in _jackpot_attempts():
         try:
-            resp = requests.get(url, timeout=20, headers=_HEADERS)
+            # Chỉ định tuyến vietlott.vn qua proxy; nguồn khác đi thẳng.
+            proxies = ({"http": proxy, "https": proxy}
+                       if proxy and "vietlott.vn" in url else None)
+            resp = requests.get(url, timeout=20, headers=_HEADERS, proxies=proxies)
             resp.raise_for_status()
             amount, ky = _extract_jackpot(resp.text, expected_draw_id)
             if amount is not None:
