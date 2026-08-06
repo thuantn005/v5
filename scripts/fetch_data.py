@@ -532,10 +532,14 @@ _VN_REC = re.compile(
 
 # Nguồn cào số ỨNG VIÊN — check_sources.py dò thử, pipeline CHƯA dùng cho tới
 # khi xác minh được. (Cùng cơ chế như CANDIDATE_JACKPOT_SOURCES.)
-CANDIDATE_DRAW_SOURCES = [
-    ("minhchinh.com", "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html"),
-    ("onbit.vn", "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535"),
-]
+#
+# ĐÃ DÒ VÀ LOẠI (06/08/2026, GitHub Actions):
+#   minhchinh.com, onbit.vn → _fetch_vn_generic() lấy được 0 kỳ. HAI trang này
+#   VẪN dùng tốt cho GIÁ TRỊ ĐỘC ĐẮC (xem jackpot_check.EXTRA_JACKPOT_SOURCES),
+#   nhưng phần kết quả số của chúng không khớp _VN_REC — nhiều khả năng số nằm
+#   trong bảng/JS chứ không phải văn bản "mã kỳ … dd/mm/yyyy … 6 số" liền mạch.
+#   Không cố nữa: nhóm cào số đã có 4 nguồn khoẻ, thêm nữa không đáng công.
+CANDIDATE_DRAW_SOURCES: list[tuple[str, str]] = []
 
 
 def _fetch_vn_generic(url: str, source_name: str) -> list[dict]:
