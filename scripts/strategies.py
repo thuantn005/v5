@@ -428,7 +428,40 @@ def special_fortune(history, pool_min, pool_max, k, use_special, params=None):
             for n in pool}
 
 
+def chaos_logistic(history, pool_min, pool_max, k, use_special, params=None):
+    """Hỗn loạn tất định — ánh xạ logistic x' = r·x·(1−x) với r = 3.99 (vùng
+    chaos). Điểm khởi đầu x0 lấy từ lịch sử (tổng số kỳ gần nhất), nên mỗi kỳ
+    cho quỹ đạo khác hẳn; sai lệch x0 cực nhỏ cũng đổi hoàn toàn kết quả
+    ("hiệu ứng cánh bướm"). Bỏ 200 bước đầu cho quỹ đạo ổn định vào attractor,
+    rồi lấy các giá trị kế tiếp làm điểm cho từng số.
+
+    Đây là hệ TẤT ĐỊNH nhưng KHÔNG dự đoán được — cùng tính chất "ngẫu nhiên
+    có quy luật" mà nhiều người gán cho xổ số. Vẫn KHÔNG có lợi thế: kỳ quay
+    độc lập nên mọi quỹ đạo hỗn loạn cũng chỉ là một cách xáo số tái lập được.
+    """
+    R = 3.99
+    pool = list(range(pool_min, pool_max + 1))
+
+    if history:
+        last = history[-1]
+        base = (last.special if use_special else sum(last.numbers)) + len(history)
+    else:
+        base = 1
+    x = ((base * 9301 + 49297) % 233280) / 233280.0
+    x = min(max(x, 1e-6), 1 - 1e-6)
+
+    for _ in range(200):                 # burn-in vào attractor
+        x = R * x * (1 - x)
+
+    scores = {}
+    for n in pool:
+        x = R * x * (1 - x)
+        scores[n] = x
+    return scores
+
+
 STRATEGIES = {
+    "chaos_logistic": chaos_logistic,
     "special_fortune": special_fortune,
     "uniform_seeded": uniform_seeded,
     "momentum_seeded": momentum_seeded,
@@ -442,6 +475,7 @@ STRATEGIES = {
 }
 
 DEFAULT_PARAMS = {
+    "chaos_logistic": {},
     "special_fortune": {},
     "uniform_seeded": {"seed": None},
     "momentum_seeded": {"seed": None},
