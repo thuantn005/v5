@@ -63,8 +63,24 @@ def check_draw_sources() -> None:
         else:
             rows.append((label, BAD, f"0 kỳ, {dt:.1f}s"))
 
+    # Nguồn cào số ỨNG VIÊN — chưa dùng trong pipeline, dò để xác minh parser.
+    for name, url in getattr(F, "CANDIDATE_DRAW_SOURCES", []):
+        t = time.time()
+        try:
+            draws = F._fetch_vn_generic(url, name) or []
+        except Exception as e:
+            rows.append((f"[ứng viên] {name}", BAD, f"lỗi: {str(e)[:60]}"))
+            continue
+        dt = time.time() - t
+        if draws:
+            ids = sorted(int(d["draw_id"]) for d in draws)
+            rows.append((f"[ứng viên] {name}", OK,
+                         f"{len(draws)} kỳ (#{ids[0]}–#{ids[-1]}), {dt:.1f}s"))
+        else:
+            rows.append((f"[ứng viên] {name}", BAD, f"0 kỳ, {dt:.1f}s"))
+
     for label, st, note in rows:
-        print(f"  {st} {label:<18} {note}")
+        print(f"  {st} {label:<26} {note}")
 
 
 def check_jackpot_sources() -> None:

@@ -521,6 +521,70 @@ def _fetch_lotto8() -> list[dict]:
     return draws
 
 
+# Trang kết quả VN nói chung: "Kỳ (vé|quay thưởng) #00806", ngày dd/mm/yyyy,
+# rồi 5 số chính + 1 số ĐB (phân tách bởi khoảng trắng/dấu phẩy/thẻ HTML).
+_VN_REC = re.compile(
+    r"(?<!\d)(\d{5})(?!\d)"                        # mã kỳ 5 chữ số
+    r"[\s\S]{0,200}?(\d{1,2})/(\d{1,2})/(\d{4})"   # dd/mm/yyyy
+    r"[\s\S]{0,400}?"
+    r"((?:\b\d{1,2}\b[^\d\n]{1,12}){5}\b\d{1,2}\b)"  # 6 số: 5 chính + ĐB
+)
+
+# Nguồn cào số ỨNG VIÊN — check_sources.py dò thử, pipeline CHƯA dùng cho tới
+# khi xác minh được. (Cùng cơ chế như CANDIDATE_JACKPOT_SOURCES.)
+CANDIDATE_DRAW_SOURCES = [
+    ("minhchinh.com", "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html"),
+    ("onbit.vn", "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535"),
+]
+
+
+def _fetch_vn_generic(url: str, source_name: str) -> list[dict]:
+    """Parser tổng quát cho trang kết quả xổ số VN. Mọi bản ghi đều qua kiểm tra
+    hợp lệ (5 số khác nhau 1-35 + ĐB 1-12) nên dữ liệu sai bị loại — không thể
+    làm hỏng file. Lỗi/403 → trả rỗng."""
+    try:
+        r = _session().get(url, timeout=TIMEOUT)
+        if r.status_code == 403:
+            print(f"{source_name}: 403 Forbidden — bỏ qua")
+            return []
+        r.raise_for_status()
+    except requests.RequestException as e:
+        print(f"WARNING: {source_name}: {e}", file=sys.stderr)
+        return []
+
+    try:
+        from bs4 import BeautifulSoup
+        text = BeautifulSoup(r.text, "lxml").get_text("\n")
+    except ImportError:
+        text = r.text
+
+    draws, seen = [], set()
+    for m in _VN_REC.finditer(text):
+        did, dd, mm, yyyy, nums_s = m.groups()
+        nums = [int(x) for x in re.findall(r"\d{1,2}", nums_s)]
+        if len(nums) < 6:
+            continue
+        numbers, special = sorted(nums[:5]), nums[5]
+        if len(set(numbers)) != 5 or any(n < 1 or n > 35 for n in numbers):
+            continue
+        if not (1 <= special <= 12):
+            continue
+        if did in seen:
+            continue
+        seen.add(did)
+        draws.append({
+            "draw_id":    did.zfill(5),
+            "draw_date":  f"{int(yyyy):04d}-{int(mm):02d}-{int(dd):02d}",
+            "numbers":    numbers,
+            "special":    special,
+            "data_source": source_name.replace(".", "_"),
+            "source_url": url,
+        })
+    if draws:
+        print(f"{source_name}: {len(draws)} kỳ quay")
+    return draws
+
+
 # ── Bước 4: Append kỳ mới vào CSV ───────────────────────────────────────────
 
 def _rewrite_csv(rows: list[dict], fieldnames: list[str]) -> None:
