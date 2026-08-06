@@ -79,9 +79,18 @@ VIETLOTT_JACKPOT_SOURCES = [u for u in JACKPOT_SOURCES if "vietlott.vn" in u]
 # Đắc: X" sẽ tự bị bỏ qua, không làm hỏng luồng.
 #   Đã GỠ (đo được HTTP 404, URL sai): xskt.com.vn, ketqua.net
 EXTRA_JACKPOT_SOURCES = [
+    # ĐÃ KIỂM CHỨNG 06/08/2026 (do người dùng cung cấp): trả đúng
+    # 24.994.046.000 đ gắn ĐÚNG kỳ #806 — khớp xosominhngoc. Nguồn dự phòng
+    # đáng tin cậy thứ hai, đặt ngay sau nguồn chính.
+    "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html",
     # lotto-8: trả 200 nhưng hiện KHÔNG có dòng Độc Đắc. Giữ vì vô hại và
     # trang có thể bổ sung sau; checker sẽ báo nếu bắt đầu có số.
     "https://www.lotto-8.com/Vietnam/listltoVM35.asp?indexpage=1",
+    # onbit.vn: ĐÃ KIỂM CHỨNG có số, NHƯNG đo được 14.537.041.000 đ và KHÔNG
+    # gắn được mã kỳ — lệch hẳn giá trị thật của kỳ #806. Nhiều khả năng là pot
+    # cũ/khác sản phẩm. Để CUỐI: lớp kiểm định theo kỳ sẽ loại giá trị không
+    # khớp kỳ mới nhất, nên nó chỉ được dùng khi mọi nguồn trên đều chết.
+    "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
 ]
 
 # ỨNG VIÊN — CHƯA kiểm chứng, KHÔNG dùng trong pipeline. check_sources.py sẽ dò
@@ -98,11 +107,8 @@ EXTRA_JACKPOT_SOURCES = [
 #                  xskt.com.vn/xsdt/lotto-5-35
 # Kết luận: các trang kết quả phổ biến chỉ đăng DÃY SỐ, không đăng giá trị
 # Độc Đắc — nên rất ít nguồn thay thế được xosominhngoc.
-CANDIDATE_JACKPOT_SOURCES: list[str] = [
-    # Do người dùng cung cấp (06/08) — đang chờ check_sources.py xác nhận.
-    "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html",
-    "https://onbit.vn/ket-qua-xo-so/vietlott-lotto535",
-]
+#   ĐÃ THĂNG HẠNG (kiểm chứng đạt): minhchinh.com, onbit.vn
+CANDIDATE_JACKPOT_SOURCES: list[str] = []
 
 # NGUỒN CUỐI CÙNG: Google. Kém tin cậy — Google hay trả CAPTCHA cho IP
 # datacenter (GitHub Actions) và HTML đổi liên tục, nên chỉ dùng khi mọi nguồn
