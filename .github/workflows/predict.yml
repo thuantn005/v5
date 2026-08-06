@@ -83,6 +83,8 @@ jobs:
       - name: Run pipeline (build 3 tickets -> notify -> log -> resolve)
         env:
           NTFY_TOPIC: lotto535-thuan
+          VIETLOTT_PROXY: ${{ secrets.VIETLOTT_PROXY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python scripts/run_pipeline.py
 
       - name: Notify via ntfy if any config ticket won a prize

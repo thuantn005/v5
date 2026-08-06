@@ -23,5 +23,6 @@ jobs:
       - name: Kiểm tra tất cả nguồn
         env:
           VIETLOTT_PROXY: ${{ secrets.VIETLOTT_PROXY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NTFY_TOPIC: lotto535-thuan
         run: python scripts/check_sources.py

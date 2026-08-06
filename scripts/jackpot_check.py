@@ -255,6 +255,80 @@ def _extract_jackpot_vnd(html: str) -> int | None:
     return _extract_jackpot(html)[0]
 
 
+# ── Nguồn AI (Gemini) — CHỐT CHẶN CUỐI ──────────────────────────────────────
+# Chỉ bật khi có secret GEMINI_API_KEY. Đặt SAU mọi nguồn thật vì LLM có thể
+# BỊA một con số trông rất hợp lý — nguy hiểm hơn scraper hỏng (scraper hỏng thì
+# im, LLM bịa thì thuyết phục). Ba lớp chặn:
+#   1. Bắt buộc Google Search grounding (không cho trả lời từ trí nhớ)
+#   2. Chỉ nhận số trong khoảng hợp lý GEMINI_MIN..GEMINI_MAX
+#   3. Vẫn đi qua lớp kiểm định theo kỳ như mọi nguồn khác
+GEMINI_MODEL = "gemini-flash-latest"
+GEMINI_MIN_VND = 5_000_000_000     # pot khởi điểm ~6 tỷ
+GEMINI_MAX_VND = 500_000_000_000   # trần an toàn
+
+
+def _fetch_jackpot_gemini(expected_draw_id: str | None) -> tuple[int | None, str | None]:
+    """Hỏi Gemini (có Google Search grounding) giá trị Độc Đắc hiện tại.
+    Trả (số tiền, mã kỳ) hoặc (None, None). Không có API key → bỏ qua."""
+    import json as _json
+    import os
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not key:
+        return None, None
+
+    prompt = (
+        "Tra cứu bằng Google Search: giá trị giải Độc Đắc (Jackpot) hiện tại của "
+        "xổ số Vietlott Lotto 5/35, và mã kỳ quay gần nhất. "
+        "CHỈ trả lời bằng JSON thuần, không giải thích, dạng: "
+        '{"jackpot_vnd": <số nguyên VND, không dấu chấm>, "draw_id": "<mã kỳ 5 chữ số>"} '
+        "Nếu không tra được chắc chắn, trả {\"jackpot_vnd\": null, \"draw_id\": null}. "
+        "TUYỆT ĐỐI không đoán hay bịa số."
+    )
+    url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+           f"{GEMINI_MODEL}:generateContent")
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "tools": [{"google_search": {}}],          # bắt buộc grounding
+        "generationConfig": {"temperature": 0},
+    }
+    try:
+        r = requests.post(url, timeout=40,
+                          headers={"Content-Type": "application/json",
+                                   "X-goog-api-key": key},
+                          json=payload)
+        r.raise_for_status()
+        parts = r.json()["candidates"][0]["content"]["parts"]
+        text = "".join(p.get("text", "") for p in parts)
+    except Exception as e:
+        print(f"WARNING: [jackpot] gemini: {str(e)[:90]}", file=sys.stderr)
+        return None, None
+
+    m = re.search(r"\{[^{}]*\}", text, re.S)
+    if not m:
+        print("WARNING: [jackpot] gemini: không đọc được JSON", file=sys.stderr)
+        return None, None
+    try:
+        data = _json.loads(m.group(0))
+        amount = data.get("jackpot_vnd")
+        ky = data.get("draw_id")
+    except ValueError:
+        return None, None
+
+    if not isinstance(amount, int):
+        return None, None
+    if not (GEMINI_MIN_VND <= amount <= GEMINI_MAX_VND):
+        print(f"WARNING: [jackpot] gemini: bỏ {amount:,} VND — ngoài khoảng hợp lý",
+              file=sys.stderr)
+        return None, None
+    ky = str(ky).zfill(5) if ky else None
+    if expected_draw_id and ky and int(ky) < int(expected_draw_id):
+        print(f"WARNING: [jackpot] gemini: bỏ giá trị của kỳ #{ky} (cũ hơn "
+              f"#{expected_draw_id})", file=sys.stderr)
+        return None, None
+    print(f"[jackpot] gemini (AI, chốt cuối): {amount:,} VND ✓ (kỳ #{ky or '?'})")
+    return amount, ky
+
+
 def _vietlott_proxy() -> str | None:
     """Proxy riêng để vượt WAF vietlott.vn (secret VIETLOTT_PROXY). Không có
     thì bỏ qua hẳn vietlott.vn — gọi thẳng chỉ nhận 403."""
@@ -310,6 +384,12 @@ def _scrape_jackpot_vnd(expected_draw_id: str | None = None) -> tuple[int | None
                       file=sys.stderr)
         except requests.RequestException as e:
             print(f"WARNING: [jackpot] {label}: {e}", file=sys.stderr)
+
+    # CHỐT CHẶN CUỐI: mọi nguồn thật đã chết → thử Gemini (nếu có API key).
+    amount, ky = _fetch_jackpot_gemini(expected_draw_id)
+    if amount is not None:
+        return amount, f"gemini:{GEMINI_MODEL}"
+
     print("WARNING: [jackpot] tất cả nguồn đều thất bại", file=sys.stderr)
     return None, None
 
