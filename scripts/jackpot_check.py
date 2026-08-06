@@ -227,21 +227,28 @@ def _extract_jackpot_vnd(html: str) -> int | None:
 
 
 def _jackpot_attempts() -> list[tuple[str, str]]:
-    """Danh sách (url, nhãn) sẽ thử, theo thứ tự ưu tiên giảm dần:
-      1. Nguồn gốc (vietlott.vn chính thức + xosominhngoc)
-      2. vietlott.vn qua READER-PROXY — vượt 403 để vẫn lấy được số CHÍNH THỨC
-      3. Nguồn bên thứ ba bổ sung
+    """Danh sách (url, nhãn) sẽ thử, theo thứ tự ưu tiên giảm dần.
+
+    ƯU TIÊN TUYỆT ĐỐI CHO NGUỒN CHÍNH THỨC (vietlott.vn): thử trực tiếp trước,
+    rồi NGAY LẬP TỨC thử lại chính các trang đó qua reader-proxy (vượt WAF 403).
+    Chỉ khi cả hai đường tới vietlott.vn đều hỏng mới rơi xuống bên thứ ba —
+    nếu không, một nguồn thứ ba 'sống' sẽ luôn thắng và số chính thức không
+    bao giờ được dùng.
+      1. vietlott.vn trực tiếp
+      2. vietlott.vn qua READER-PROXY  ← vẫn là số CHÍNH THỨC
+      3. xosominhngoc + các nguồn bên thứ ba
       4. Google (chốt chặn cuối, hay CAPTCHA — thất bại là bình thường)
     """
     import os
-    attempts = [(u, u.split("/")[2]) for u in JACKPOT_SOURCES]
+    attempts = [(u, "vietlott.vn (chính thức)") for u in VIETLOTT_JACKPOT_SOURCES]
 
     reader = os.environ.get("VIETLOTT_READER", READER_PROXY).strip()
     if reader:
-        attempts += [(reader + u, "vietlott.vn (reader-proxy)")
+        attempts += [(reader + u, "vietlott.vn (chính thức, reader-proxy)")
                      for u in VIETLOTT_JACKPOT_SOURCES]
 
-    attempts += [(u, u.split("/")[2]) for u in EXTRA_JACKPOT_SOURCES]
+    third_party = [u for u in JACKPOT_SOURCES if u not in VIETLOTT_JACKPOT_SOURCES]
+    attempts += [(u, u.split("/")[2]) for u in third_party + EXTRA_JACKPOT_SOURCES]
     attempts.append((GOOGLE_JACKPOT_URL, "google.com (chốt chặn cuối)"))
     return attempts
 
