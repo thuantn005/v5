@@ -66,6 +66,29 @@ JACKPOT_SOURCES = [
     # xsmn.mobi đã xóa: trả số cũ, không đồng bộ với vietlott.vn
     # minhchinh.com đã xóa: chậm cập nhật, không đáng tin cậy
 ]
+
+# Các nguồn vietlott.vn ở trên hay bị WAF chặn (403) từ CI. Thử lại CHÍNH các
+# trang đó qua reader-proxy render-JS để vẫn lấy được số CHÍNH THỨC.
+# Đặt VIETLOTT_READER="" để tắt.
+READER_PROXY = "https://r.jina.ai/"
+VIETLOTT_JACKPOT_SOURCES = [u for u in JACKPOT_SOURCES if "vietlott.vn" in u]
+
+# Nguồn bên thứ ba bổ sung (best-effort). Trang nào không có/không parse được
+# dòng "Giá trị ... Độc Đắc: X" sẽ tự bị bỏ qua — không làm hỏng luồng.
+EXTRA_JACKPOT_SOURCES = [
+    "https://www.lotto-8.com/Vietnam/listltoVM35.asp?indexpage=1",
+    "https://xskt.com.vn/xo-so-dien-toan/lotto-5-35",
+    "https://ketqua.net/xo-so-vietlott-lotto-535",
+]
+
+# NGUỒN CUỐI CÙNG: Google. Kém tin cậy — Google hay trả CAPTCHA cho IP
+# datacenter (GitHub Actions) và HTML đổi liên tục, nên chỉ dùng khi mọi nguồn
+# trên đều chết; thất bại là bình thường và được bỏ qua yên lặng.
+GOOGLE_JACKPOT_URL = (
+    "https://www.google.com/search?q=gi%C3%A1+tr%E1%BB%8B+gi%E1%BA%A3i+"
+    "%C4%91%E1%BB%99c+%C4%91%E1%BA%AFc+lotto+5%2F35+vietlott&hl=vi"
+)
+
 THRESHOLD_VND = 12_000_000_000
 
 _HEADERS = {
@@ -203,14 +226,33 @@ def _extract_jackpot_vnd(html: str) -> int | None:
     return _extract_jackpot(html)[0]
 
 
+def _jackpot_attempts() -> list[tuple[str, str]]:
+    """Danh sách (url, nhãn) sẽ thử, theo thứ tự ưu tiên giảm dần:
+      1. Nguồn gốc (vietlott.vn chính thức + xosominhngoc)
+      2. vietlott.vn qua READER-PROXY — vượt 403 để vẫn lấy được số CHÍNH THỨC
+      3. Nguồn bên thứ ba bổ sung
+      4. Google (chốt chặn cuối, hay CAPTCHA — thất bại là bình thường)
+    """
+    import os
+    attempts = [(u, u.split("/")[2]) for u in JACKPOT_SOURCES]
+
+    reader = os.environ.get("VIETLOTT_READER", READER_PROXY).strip()
+    if reader:
+        attempts += [(reader + u, "vietlott.vn (reader-proxy)")
+                     for u in VIETLOTT_JACKPOT_SOURCES]
+
+    attempts += [(u, u.split("/")[2]) for u in EXTRA_JACKPOT_SOURCES]
+    attempts.append((GOOGLE_JACKPOT_URL, "google.com (chốt chặn cuối)"))
+    return attempts
+
+
 def _scrape_jackpot_vnd(expected_draw_id: str | None = None) -> tuple[int | None, str | None]:
     """Lấy giá trị Độc Đắc, ĐÃ kiểm định theo kỳ.
 
     `expected_draw_id` = kỳ mới nhất trong dữ liệu. Chỉ chấp nhận giá trị của
     kỳ đó trở đi; giá trị của kỳ cũ hơn (trang chưa cập nhật) bị bỏ để tránh
     kích hoạt/huỷ kỳ chia giải nhầm."""
-    for url in JACKPOT_SOURCES:
-        label = url.split("/")[2]  # hostname để log ngắn gọn
+    for url, label in _jackpot_attempts():
         try:
             resp = requests.get(url, timeout=20, headers=_HEADERS)
             resp.raise_for_status()
@@ -230,7 +272,7 @@ def _scrape_jackpot_vnd(expected_draw_id: str | None = None) -> tuple[int | None
                       file=sys.stderr)
         except requests.RequestException as e:
             print(f"WARNING: [jackpot] {label}: {e}", file=sys.stderr)
-    print(f"WARNING: [jackpot] tất cả {len(JACKPOT_SOURCES)} nguồn đều thất bại", file=sys.stderr)
+    print("WARNING: [jackpot] tất cả nguồn đều thất bại", file=sys.stderr)
     return None, None
 
 
