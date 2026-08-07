@@ -34,6 +34,7 @@ from references import _fair_from_seed, REPEAT_SEED_OFFSET  # noqa: E402
 
 TICKET_SEED_STRIDE = 10_000_000
 SIGNAL_SEED_OFFSET = 3_000_000_000
+MOMENTUM_SEED_OFFSET = 5_000_000_000
 N_SIGNAL = 50  # (giữ để tương thích) — nay dùng POOL/SHOW bên dưới
 POOL_DEFAULT = 5   # số vé mỗi nhóm (sinh idx 1..5, hiển thị hết — không lọc)
 SHOW_DEFAULT = 10    # số vé HIỂN THỊ mỗi nhóm = top theo backtest
@@ -208,6 +209,13 @@ def _method_weight(c: dict, kind: str):
         base = _norm(c["recent"])
     elif kind == "dynamic":  # cửa sổ động: trọng số suy giảm mượt theo half-life
         base = _norm(c["dynamic"])
+    elif kind == "momentum":
+        # QUÁN TÍNH pha NGẪU NHIÊN: 40% đà gần đây (dynamic, suy giảm mượt) +
+        # 60% nền phẳng — giữ đúng tinh thần momentum_seeded trong strategies.py.
+        # Nền phẳng khiến việc bốc số vẫn trải rộng, chỉ nghiêng nhẹ về số
+        # đang "có đà". Backtest: ngang ngẫu nhiên (p≈0.5), không có lợi thế.
+        dyn = _norm(c["dynamic"])
+        base = [0.4 * dyn[i] + 0.6 for i in range(35)]
     else:  # signal3 = kết hợp 3 dấu hiệu: tần suất gần đây + toàn lịch sử + số kỳ vắng mặt
         r, h, o = _norm(c["recent"]), _norm(c["hot"]), _norm(c["overdue"])
         base = [r[i] + h[i] + o[i] for i in range(35)]
@@ -708,8 +716,21 @@ def main():
         "method": "uniform", "tickets": uni_tickets,
     })
 
-    # (Chỉ giữ 2 nhóm đầu: signal3 + uniform. Các nhóm recent/hot/cold/overdue/
-    #  companion/dynamic đã bỏ theo yêu cầu.)
+    # "Ngẫu nhiên quán tính": vẫn bốc ngẫu nhiên có seed, chỉ nghiêng nhẹ về
+    # những số đang "có đà" (cửa sổ động, suy giảm mượt).
+    mom_gen = _make_method_gen(comps, "momentum", MOMENTUM_SEED_OFFSET)
+    mom_tickets = build_group(mom_gen, a.pool, "M", MOMENTUM_SEED_OFFSET)
+    method_groups.append({
+        "label": f"Chọn ngẫu nhiên quán tính — {a.pool} vé gốc (M001…M{a.pool:03d})",
+        "note": "40% đà gần đây (cửa sổ động) + 60% nền phẳng · mỗi vé 1 seed tái lập. "
+                "LƯU Ý: backtest cho thấy quán tính NGANG ngẫu nhiên thuần "
+                "(p≈0.5, không có ý nghĩa thống kê) — đây là cách bốc số khác, "
+                "KHÔNG phải lợi thế.",
+        "method": "momentum", "tickets": mom_tickets,
+    })
+
+    # (Chỉ giữ 3 nhóm: signal3 + uniform + momentum. Các nhóm recent/hot/cold/
+    #  overdue/companion/dynamic đã bỏ theo yêu cầu.)
 
     combo_tickets = _top_combo_tickets(draws, next_draw, prev_draw, a.combos) if a.combos > 0 else []
 

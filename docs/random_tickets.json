@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-08-06T08:40:39+00:00",
+ "generated_at": "2026-08-07T02:16:47+00:00",
  "next_draw": 808,
  "prev_draw": 807,
  "recent_n": 0,
@@ -715,6 +715,253 @@
       "jackpot1": 0,
       "best": 4,
       "special_hits": 84
+     },
+     "name": "🎯 Vé gốc 5",
+     "badge": "GỐC",
+     "jackpot_history": []
+    }
+   ]
+  },
+  {
+   "label": "Chọn ngẫu nhiên quán tính — 5 vé gốc (M001…M005)",
+   "note": "40% đà gần đây (cửa sổ động) + 60% nền phẳng · mỗi vé 1 seed tái lập. LƯU Ý: backtest cho thấy quán tính NGANG ngẫu nhiên thuần (p≈0.5, không có ý nghĩa thống kê) — đây là cách bốc số khác, KHÔNG phải lợi thế.",
+   "method": "momentum",
+   "tickets": [
+    {
+     "id": "M001",
+     "seed": 5010000808,
+     "numbers": [
+      5,
+      12,
+      20,
+      28,
+      34
+     ],
+     "special": 11,
+     "trace": "L535-808-M001",
+     "last_result": {
+      "draw_id": 807,
+      "draw_date": "2026-08-06",
+      "actual": [
+       10,
+       15,
+       19,
+       21,
+       23
+      ],
+      "actual_special": 7,
+      "predicted": [
+       7,
+       9,
+       16,
+       17,
+       28
+      ],
+      "predicted_special": 6,
+      "main_hits": 0,
+      "special_hit": false
+     },
+     "recent": {
+      "n": 807,
+      "wins": 13,
+      "tier3": 13,
+      "tier4": 0,
+      "tier5": 0,
+      "jackpot1": 0,
+      "best": 3,
+      "special_hits": 66
+     },
+     "name": "🎯 Vé gốc 1",
+     "badge": "GỐC",
+     "jackpot_history": []
+    },
+    {
+     "id": "M002",
+     "seed": 5020000808,
+     "numbers": [
+      3,
+      12,
+      29,
+      30,
+      31
+     ],
+     "special": 1,
+     "trace": "L535-808-M002",
+     "last_result": {
+      "draw_id": 807,
+      "draw_date": "2026-08-06",
+      "actual": [
+       10,
+       15,
+       19,
+       21,
+       23
+      ],
+      "actual_special": 7,
+      "predicted": [
+       2,
+       8,
+       14,
+       28,
+       30
+      ],
+      "predicted_special": 8,
+      "main_hits": 0,
+      "special_hit": false
+     },
+     "recent": {
+      "n": 807,
+      "wins": 9,
+      "tier3": 9,
+      "tier4": 0,
+      "tier5": 0,
+      "jackpot1": 0,
+      "best": 3,
+      "special_hits": 69
+     },
+     "name": "🎯 Vé gốc 2",
+     "badge": "GỐC",
+     "jackpot_history": []
+    },
+    {
+     "id": "M003",
+     "seed": 5030000808,
+     "numbers": [
+      4,
+      10,
+      12,
+      18,
+      33
+     ],
+     "special": 3,
+     "trace": "L535-808-M003",
+     "last_result": {
+      "draw_id": 807,
+      "draw_date": "2026-08-06",
+      "actual": [
+       10,
+       15,
+       19,
+       21,
+       23
+      ],
+      "actual_special": 7,
+      "predicted": [
+       2,
+       16,
+       19,
+       25,
+       34
+      ],
+      "predicted_special": 2,
+      "main_hits": 1,
+      "special_hit": false
+     },
+     "recent": {
+      "n": 807,
+      "wins": 12,
+      "tier3": 12,
+      "tier4": 0,
+      "tier5": 0,
+      "jackpot1": 0,
+      "best": 3,
+      "special_hits": 79
+     },
+     "name": "🎯 Vé gốc 3",
+     "badge": "GỐC",
+     "jackpot_history": []
+    },
+    {
+     "id": "M004",
+     "seed": 5040000808,
+     "numbers": [
+      9,
+      10,
+      11,
+      16,
+      25
+     ],
+     "special": 8,
+     "trace": "L535-808-M004",
+     "last_result": {
+      "draw_id": 807,
+      "draw_date": "2026-08-06",
+      "actual": [
+       10,
+       15,
+       19,
+       21,
+       23
+      ],
+      "actual_special": 7,
+      "predicted": [
+       8,
+       11,
+       18,
+       20,
+       23
+      ],
+      "predicted_special": 7,
+      "main_hits": 1,
+      "special_hit": true
+     },
+     "recent": {
+      "n": 807,
+      "wins": 14,
+      "tier3": 14,
+      "tier4": 0,
+      "tier5": 0,
+      "jackpot1": 0,
+      "best": 3,
+      "special_hits": 68
+     },
+     "name": "🎯 Vé gốc 4",
+     "badge": "GỐC",
+     "jackpot_history": []
+    },
+    {
+     "id": "M005",
+     "seed": 5050000808,
+     "numbers": [
+      2,
+      11,
+      24,
+      28,
+      32
+     ],
+     "special": 4,
+     "trace": "L535-808-M005",
+     "last_result": {
+      "draw_id": 807,
+      "draw_date": "2026-08-06",
+      "actual": [
+       10,
+       15,
+       19,
+       21,
+       23
+      ],
+      "actual_special": 7,
+      "predicted": [
+       1,
+       7,
+       9,
+       13,
+       19
+      ],
+      "predicted_special": 9,
+      "main_hits": 1,
+      "special_hit": false
+     },
+     "recent": {
+      "n": 807,
+      "wins": 7,
+      "tier3": 6,
+      "tier4": 1,
+      "tier5": 0,
+      "jackpot1": 0,
+      "best": 4,
+      "special_hits": 79
      },
      "name": "🎯 Vé gốc 5",
      "badge": "GỐC",
