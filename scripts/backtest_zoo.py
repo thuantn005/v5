@@ -10,13 +10,12 @@ Thước đo: số trúng trung bình trên 5 số chính. Mốc ngẫu nhiên L
 "đỉnh nhiễu": khi so N model, model tốt nhất TẤT NHIÊN cao hơn mốc dù không có
 kỹ năng nào. Vượt ngưỡng đó mới đáng nói.
 
-Chọn số: mặc định MỌI model đều BỐC NGẪU NHIÊN theo trọng số điểm của nó
-(`--mode sample`), không lấy tất định 5 số điểm cao nhất. Chế độ tất định cũ
-vẫn còn ở `--mode top` để đối chứng.
+Chọn số: mặc định TẤT ĐỊNH (`--mode top`) — mỗi model lấy đúng 5 số điểm cao
+nhất, một vé duy nhất cho mỗi kỳ, tái lập 100%. Chế độ bốc ngẫu nhiên theo
+trọng số vẫn còn ở `--mode sample` để đối chứng.
 
-    python3 scripts/backtest_zoo.py                  # mặc định (sample)
-    python3 scripts/backtest_zoo.py --mode top       # đối chứng tất định
-    python3 scripts/backtest_zoo.py --temp 0.25      # bám model chặt hơn
+    python3 scripts/backtest_zoo.py                  # mặc định (tất định)
+    python3 scripts/backtest_zoo.py --mode sample    # đối chứng ngẫu nhiên
     python3 scripts/backtest_zoo.py --test 150       # nhiều kỳ kiểm tra hơn
     python3 scripts/backtest_zoo.py --models knn,mlp # chỉ vài model
     python3 scripts/backtest_zoo.py --predict        # + dự đoán kỳ tới
@@ -171,9 +170,9 @@ def main() -> None:
     ap.add_argument("--refit", type=int, default=10, help="huấn luyện lại mỗi N kỳ")
     ap.add_argument("--models", default="", help="lọc theo tên, cách nhau bởi dấu phẩy")
     ap.add_argument("--predict", action="store_true", help="xuất dự đoán kỳ tới")
-    ap.add_argument("--mode", choices=("sample", "top"), default="sample",
-                    help="sample = bốc ngẫu nhiên theo trọng số (mặc định); "
-                         "top = lấy tất định 5 điểm cao nhất")
+    ap.add_argument("--mode", choices=("top", "sample"), default="top",
+                    help="top = TẤT ĐỊNH, lấy 5 số điểm cao nhất (mặc định); "
+                         "sample = bốc ngẫu nhiên theo trọng số")
     ap.add_argument("--temp", type=float, default=Z.DEFAULT_TEMPERATURE,
                     help="nhiệt độ khi bốc: nhỏ = bám model, lớn = ngẫu nhiên hơn")
     ap.add_argument("--tickets", type=int, default=5,
