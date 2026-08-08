@@ -1,235 +1,1302 @@
 {
-  "generated_at": "2026-08-08T07:00:38",
+  "generated_at": "2026-08-08T07:15:56",
   "next_draw": 808,
+  "mode": "sample",
+  "temperature": 0.5,
+  "tickets_per_model": 5,
   "disclaimer": "Mỗi vé đều 1/324.632 (J2) và 1/3.895.584 (J1) — bằng nhau, bất kể model nào sinh ra. Backtest cho thấy không model nào vượt ngẫu nhiên.",
   "predictions": [
     {
       "model": "logistic_regression",
       "label": "Hồi quy logistic",
-      "numbers": [
-        1,
-        3,
-        27,
-        30,
-        34
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            3,
+            10,
+            21,
+            23,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-logistic_regression-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            18,
+            28,
+            30,
+            33
+          ],
+          "special": 9,
+          "trace": "zoo-808-logistic_regression-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            3,
+            4,
+            11,
+            27,
+            32
+          ],
+          "special": 10,
+          "trace": "zoo-808-logistic_regression-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            3,
+            5,
+            7,
+            15,
+            27
+          ],
+          "special": 6,
+          "trace": "zoo-808-logistic_regression-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            5,
+            20,
+            26,
+            28,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-logistic_regression-sample-05"
+        }
+      ]
     },
     {
       "model": "naive_bayes",
       "label": "Naive Bayes Gauss",
-      "numbers": [
-        11,
-        14,
-        20,
-        27,
-        29
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            6,
+            9,
+            20,
+            22,
+            27
+          ],
+          "special": 5,
+          "trace": "zoo-808-naive_bayes-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            18,
+            27,
+            28,
+            33
+          ],
+          "special": 9,
+          "trace": "zoo-808-naive_bayes-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            5,
+            6,
+            11,
+            25,
+            32
+          ],
+          "special": 9,
+          "trace": "zoo-808-naive_bayes-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            5,
+            6,
+            8,
+            17,
+            26
+          ],
+          "special": 7,
+          "trace": "zoo-808-naive_bayes-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            7,
+            20,
+            25,
+            27,
+            34
+          ],
+          "special": 8,
+          "trace": "zoo-808-naive_bayes-sample-05"
+        }
+      ]
     },
     {
       "model": "knn",
       "label": "k láng giềng gần nhất",
-      "numbers": [
-        1,
-        3,
-        10,
-        24,
-        25
-      ],
-      "special": 2
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            5,
+            9,
+            20,
+            23,
+            25
+          ],
+          "special": 2,
+          "trace": "zoo-808-knn-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            17,
+            25,
+            28,
+            32
+          ],
+          "special": 10,
+          "trace": "zoo-808-knn-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            3,
+            5,
+            11,
+            24,
+            31
+          ],
+          "special": 10,
+          "trace": "zoo-808-knn-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            3,
+            5,
+            7,
+            15,
+            24
+          ],
+          "special": 4,
+          "trace": "zoo-808-knn-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            5,
+            17,
+            24,
+            25,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-knn-sample-05"
+        }
+      ]
     },
     {
       "model": "perceptron",
       "label": "Perceptron",
-      "numbers": [
-        5,
-        8,
-        16,
-        24,
-        27
-      ],
-      "special": 11
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            5,
+            8,
+            20,
+            21,
+            26
+          ],
+          "special": 3,
+          "trace": "zoo-808-perceptron-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            16,
+            26,
+            28,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-perceptron-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            4,
+            5,
+            10,
+            24,
+            31
+          ],
+          "special": 11,
+          "trace": "zoo-808-perceptron-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            4,
+            5,
+            6,
+            15,
+            24
+          ],
+          "special": 5,
+          "trace": "zoo-808-perceptron-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            5,
+            17,
+            24,
+            27,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-perceptron-sample-05"
+        }
+      ]
     },
     {
       "model": "mlp",
       "label": "Mạng nơ-ron 1 lớp ẩn",
-      "numbers": [
-        1,
-        3,
-        27,
-        28,
-        30
-      ],
-      "special": 4
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            3,
+            8,
+            20,
+            22,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-mlp-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            17,
+            28,
+            30,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-mlp-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            3,
+            4,
+            11,
+            27,
+            32
+          ],
+          "special": 10,
+          "trace": "zoo-808-mlp-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            3,
+            4,
+            6,
+            14,
+            27
+          ],
+          "special": 4,
+          "trace": "zoo-808-mlp-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            4,
+            20,
+            26,
+            28,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-mlp-sample-05"
+        }
+      ]
     },
     {
       "model": "linear_regression",
       "label": "Hồi quy tuyến tính ridge",
-      "numbers": [
-        1,
-        3,
-        20,
-        30,
-        34
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            4,
+            8,
+            20,
+            22,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-linear_regression-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            18,
+            28,
+            29,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-linear_regression-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            3,
+            5,
+            11,
+            26,
+            32
+          ],
+          "special": 10,
+          "trace": "zoo-808-linear_regression-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            3,
+            5,
+            8,
+            16,
+            27
+          ],
+          "special": 6,
+          "trace": "zoo-808-linear_regression-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            6,
+            20,
+            26,
+            28,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-linear_regression-sample-05"
+        }
+      ]
     },
     {
       "model": "svm",
       "label": "SVM tuyến tính (hinge)",
-      "numbers": [
-        18,
-        22,
-        28,
-        33,
-        34
-      ],
-      "special": 4
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            7,
+            11,
+            22,
+            23,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-svm-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            2,
+            19,
+            27,
+            28,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-svm-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            6,
+            7,
+            13,
+            25,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-svm-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            5,
+            6,
+            10,
+            18,
+            26
+          ],
+          "special": 6,
+          "trace": "zoo-808-svm-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            8,
+            19,
+            26,
+            28,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-svm-sample-05"
+        }
+      ]
     },
     {
       "model": "decision_tree",
       "label": "Cây quyết định",
-      "numbers": [
-        3,
-        15,
-        19,
-        25,
-        35
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            5,
+            10,
+            20,
+            22,
+            26
+          ],
+          "special": 4,
+          "trace": "zoo-808-decision_tree-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            2,
+            18,
+            26,
+            28,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-decision_tree-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            4,
+            5,
+            11,
+            24,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-decision_tree-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            3,
+            6,
+            8,
+            15,
+            25
+          ],
+          "special": 5,
+          "trace": "zoo-808-decision_tree-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            6,
+            19,
+            25,
+            27,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-decision_tree-sample-05"
+        }
+      ]
     },
     {
       "model": "random_forest",
       "label": "Rừng ngẫu nhiên",
-      "numbers": [
-        5,
-        15,
-        25,
-        34,
-        35
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            5,
+            11,
+            21,
+            23,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-random_forest-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            19,
+            27,
+            29,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-random_forest-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            5,
+            6,
+            11,
+            24,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-random_forest-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            5,
+            6,
+            8,
+            17,
+            25
+          ],
+          "special": 6,
+          "trace": "zoo-808-random_forest-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            7,
+            20,
+            25,
+            28,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-random_forest-sample-05"
+        }
+      ]
     },
     {
       "model": "gradient_boosting",
       "label": "Tăng cường gradient",
-      "numbers": [
-        1,
-        5,
-        15,
-        32,
-        35
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            5,
+            10,
+            20,
+            21,
+            27
+          ],
+          "special": 4,
+          "trace": "zoo-808-gradient_boosting-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            17,
+            26,
+            29,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-gradient_boosting-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            4,
+            5,
+            11,
+            24,
+            32
+          ],
+          "special": 10,
+          "trace": "zoo-808-gradient_boosting-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            4,
+            5,
+            7,
+            15,
+            24
+          ],
+          "special": 6,
+          "trace": "zoo-808-gradient_boosting-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            6,
+            19,
+            24,
+            27,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-gradient_boosting-sample-05"
+        }
+      ]
     },
     {
       "model": "adaboost",
       "label": "AdaBoost (gốc cây)",
-      "numbers": [
-        11,
-        20,
-        27,
-        29,
-        34
-      ],
-      "special": 7
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            6,
+            11,
+            22,
+            24,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-adaboost-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            20,
+            28,
+            29,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-adaboost-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            5,
+            7,
+            11,
+            27,
+            32
+          ],
+          "special": 10,
+          "trace": "zoo-808-adaboost-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            5,
+            7,
+            8,
+            18,
+            27
+          ],
+          "special": 7,
+          "trace": "zoo-808-adaboost-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            8,
+            20,
+            27,
+            28,
+            34
+          ],
+          "special": 9,
+          "trace": "zoo-808-adaboost-sample-05"
+        }
+      ]
     },
     {
       "model": "markov_chain",
       "label": "Xích Markov bậc 1",
-      "numbers": [
-        5,
-        15,
-        18,
-        28,
-        34
-      ],
-      "special": 4
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            6,
+            10,
+            19,
+            20,
+            27
+          ],
+          "special": 4,
+          "trace": "zoo-808-markov_chain-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            2,
+            18,
+            27,
+            28,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-markov_chain-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            6,
+            7,
+            12,
+            23,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-markov_chain-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            5,
+            7,
+            9,
+            17,
+            25
+          ],
+          "special": 4,
+          "trace": "zoo-808-markov_chain-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            8,
+            18,
+            23,
+            28,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-markov_chain-sample-05"
+        }
+      ]
     },
     {
       "model": "k_means",
       "label": "Phân cụm k-means",
-      "numbers": [
-        15,
-        18,
-        27,
-        28,
-        33
-      ],
-      "special": 4
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            6,
+            11,
+            20,
+            21,
+            27
+          ],
+          "special": 4,
+          "trace": "zoo-808-k_means-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            18,
+            27,
+            28,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-k_means-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            6,
+            7,
+            12,
+            24,
+            31
+          ],
+          "special": 11,
+          "trace": "zoo-808-k_means-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            6,
+            7,
+            10,
+            16,
+            26
+          ],
+          "special": 4,
+          "trace": "zoo-808-k_means-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            8,
+            18,
+            24,
+            27,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-k_means-sample-05"
+        }
+      ]
     },
     {
       "model": "pca",
       "label": "PCA (lặp luỹ thừa)",
-      "numbers": [
-        4,
-        15,
-        22,
-        23,
-        27
-      ],
-      "special": 4
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            5,
+            9,
+            19,
+            21,
+            26
+          ],
+          "special": 4,
+          "trace": "zoo-808-pca-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            17,
+            26,
+            27,
+            31
+          ],
+          "special": 10,
+          "trace": "zoo-808-pca-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            4,
+            6,
+            11,
+            23,
+            30
+          ],
+          "special": 10,
+          "trace": "zoo-808-pca-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            4,
+            5,
+            8,
+            15,
+            24
+          ],
+          "special": 4,
+          "trace": "zoo-808-pca-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            6,
+            17,
+            22,
+            27,
+            32
+          ],
+          "special": 9,
+          "trace": "zoo-808-pca-sample-05"
+        }
+      ]
     },
     {
       "model": "exponential_smoothing",
       "label": "Làm mượt hàm mũ",
-      "numbers": [
-        2,
-        10,
-        15,
-        21,
-        33
-      ],
-      "special": 3
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            7,
+            10,
+            19,
+            20,
+            24
+          ],
+          "special": 3,
+          "trace": "zoo-808-exponential_smoothing-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            2,
+            16,
+            24,
+            26,
+            33
+          ],
+          "special": 9,
+          "trace": "zoo-808-exponential_smoothing-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            5,
+            7,
+            12,
+            21,
+            33
+          ],
+          "special": 10,
+          "trace": "zoo-808-exponential_smoothing-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            4,
+            6,
+            9,
+            15,
+            23
+          ],
+          "special": 4,
+          "trace": "zoo-808-exponential_smoothing-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            8,
+            18,
+            22,
+            25,
+            33
+          ],
+          "special": 9,
+          "trace": "zoo-808-exponential_smoothing-sample-05"
+        }
+      ]
     },
     {
       "model": "som",
       "label": "Bản đồ tự tổ chức (SOM)",
-      "numbers": [
-        5,
-        10,
-        15,
-        22,
-        28
-      ],
-      "special": 4
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            6,
+            10,
+            19,
+            21,
+            25
+          ],
+          "special": 4,
+          "trace": "zoo-808-som-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            2,
+            16,
+            25,
+            27,
+            31
+          ],
+          "special": 9,
+          "trace": "zoo-808-som-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            5,
+            6,
+            12,
+            22,
+            29
+          ],
+          "special": 9,
+          "trace": "zoo-808-som-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            4,
+            5,
+            10,
+            15,
+            23
+          ],
+          "special": 4,
+          "trace": "zoo-808-som-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            8,
+            18,
+            22,
+            26,
+            32
+          ],
+          "special": 9,
+          "trace": "zoo-808-som-sample-05"
+        }
+      ]
     },
     {
       "model": "genetic_algorithm",
       "label": "Giải thuật di truyền",
-      "numbers": [
-        15,
-        27,
-        28,
-        33,
-        34
-      ],
-      "special": 3
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            9,
+            15,
+            26,
+            27,
+            31
+          ],
+          "special": 4,
+          "trace": "zoo-808-genetic_algorithm-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            2,
+            25,
+            28,
+            29,
+            34
+          ],
+          "special": 11,
+          "trace": "zoo-808-genetic_algorithm-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            6,
+            10,
+            15,
+            28,
+            34
+          ],
+          "special": 11,
+          "trace": "zoo-808-genetic_algorithm-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            7,
+            8,
+            14,
+            19,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-genetic_algorithm-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            12,
+            23,
+            28,
+            30,
+            34
+          ],
+          "special": 11,
+          "trace": "zoo-808-genetic_algorithm-sample-05"
+        }
+      ]
     },
     {
       "model": "simulated_annealing",
       "label": "Ủ mô phỏng",
-      "numbers": [
-        3,
-        22,
-        27,
-        28,
-        33
-      ],
-      "special": 12
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            4,
+            9,
+            23,
+            26,
+            28
+          ],
+          "special": 4,
+          "trace": "zoo-808-simulated_annealing-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            22,
+            27,
+            28,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-simulated_annealing-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            3,
+            7,
+            16,
+            27,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-simulated_annealing-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            3,
+            8,
+            9,
+            19,
+            27
+          ],
+          "special": 4,
+          "trace": "zoo-808-simulated_annealing-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            4,
+            19,
+            27,
+            28,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-simulated_annealing-sample-05"
+        }
+      ]
     },
     {
       "model": "monte_carlo",
       "label": "Monte Carlo",
-      "numbers": [
-        3,
-        15,
-        27,
-        28,
-        33
-      ],
-      "special": 9
+      "mode": "sample",
+      "temperature": 0.5,
+      "tickets": [
+        {
+          "index": 1,
+          "numbers": [
+            6,
+            10,
+            23,
+            26,
+            28
+          ],
+          "special": 3,
+          "trace": "zoo-808-monte_carlo-sample-01"
+        },
+        {
+          "index": 2,
+          "numbers": [
+            1,
+            20,
+            27,
+            28,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-monte_carlo-sample-02"
+        },
+        {
+          "index": 3,
+          "numbers": [
+            4,
+            6,
+            13,
+            27,
+            33
+          ],
+          "special": 11,
+          "trace": "zoo-808-monte_carlo-sample-03"
+        },
+        {
+          "index": 4,
+          "numbers": [
+            4,
+            5,
+            9,
+            16,
+            27
+          ],
+          "special": 5,
+          "trace": "zoo-808-monte_carlo-sample-04"
+        },
+        {
+          "index": 5,
+          "numbers": [
+            7,
+            19,
+            27,
+            28,
+            34
+          ],
+          "special": 10,
+          "trace": "zoo-808-monte_carlo-sample-05"
+        }
+      ]
     }
   ]
 }

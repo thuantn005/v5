@@ -10,7 +10,13 @@ Thước đo: số trúng trung bình trên 5 số chính. Mốc ngẫu nhiên L
 "đỉnh nhiễu": khi so N model, model tốt nhất TẤT NHIÊN cao hơn mốc dù không có
 kỹ năng nào. Vượt ngưỡng đó mới đáng nói.
 
-    python3 scripts/backtest_zoo.py                  # mặc định
+Chọn số: mặc định MỌI model đều BỐC NGẪU NHIÊN theo trọng số điểm của nó
+(`--mode sample`), không lấy tất định 5 số điểm cao nhất. Chế độ tất định cũ
+vẫn còn ở `--mode top` để đối chứng.
+
+    python3 scripts/backtest_zoo.py                  # mặc định (sample)
+    python3 scripts/backtest_zoo.py --mode top       # đối chứng tất định
+    python3 scripts/backtest_zoo.py --temp 0.25      # bám model chặt hơn
     python3 scripts/backtest_zoo.py --test 150       # nhiều kỳ kiểm tra hơn
     python3 scripts/backtest_zoo.py --models knn,mlp # chỉ vài model
     python3 scripts/backtest_zoo.py --predict        # + dự đoán kỳ tới
@@ -74,7 +80,8 @@ def load_draws():
         return parse_draws(list(csv.DictReader(f)))
 
 
-def _run_supervised(name, factory, draws, cache, cache_sp, test_ids, window, refit):
+def _run_supervised(name, factory, draws, cache, cache_sp, test_ids, window, refit,
+                    mode, temp):
     """Huấn luyện lại mỗi `refit` kỳ trên cửa sổ trượt, rồi chấm điểm kỳ t.
 
     Chấm CẢ 5 số chính lẫn số đặc biệt — có số đặc biệt mới đo được Jackpot 1.
@@ -97,22 +104,22 @@ def _run_supervised(name, factory, draws, cache, cache_sp, test_ids, window, ref
         rows, rows_sp = cache.get(t), cache_sp.get(t)
         if rows is None or rows_sp is None:
             continue
-        main = Z.top_k(model.predict(Z.apply_standardise(rows, mean, std)),
-                       5, Z.MAIN_MIN, seed_tiebreak=t)
-        sp = Z.top_k(model_sp.predict(Z.apply_standardise(rows_sp, mean_sp, std_sp)),
-                     1, Z.SPECIAL_MIN, seed_tiebreak=t)[0]
+        main = Z.choose(model.predict(Z.apply_standardise(rows, mean, std)),
+                        5, Z.MAIN_MIN, t, mode, temp)
+        sp = Z.choose(model_sp.predict(Z.apply_standardise(rows_sp, mean_sp, std_sp)),
+                      1, Z.SPECIAL_MIN, t + 7_000_000, mode, temp)[0]
         picks[t] = (main, sp)
     return picks
 
 
-def _run_custom(name, fn, draws, test_ids, window):
+def _run_custom(name, fn, draws, test_ids, window, mode, temp):
     picks = {}
     for t in test_ids:
         lo = max(0, t - window)
-        main = Z.top_k(fn(draws, t, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=t),
-                       5, Z.MAIN_MIN, seed_tiebreak=t)
-        sp = Z.top_k(fn(draws, t, lo, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, seed=t),
-                     1, Z.SPECIAL_MIN, seed_tiebreak=t)[0]
+        main = Z.choose(fn(draws, t, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=t),
+                        5, Z.MAIN_MIN, t, mode, temp)
+        sp = Z.choose(fn(draws, t, lo, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, seed=t),
+                      1, Z.SPECIAL_MIN, t + 7_000_000, mode, temp)[0]
         picks[t] = (main, sp)
     return picks
 
@@ -164,6 +171,13 @@ def main() -> None:
     ap.add_argument("--refit", type=int, default=10, help="huấn luyện lại mỗi N kỳ")
     ap.add_argument("--models", default="", help="lọc theo tên, cách nhau bởi dấu phẩy")
     ap.add_argument("--predict", action="store_true", help="xuất dự đoán kỳ tới")
+    ap.add_argument("--mode", choices=("sample", "top"), default="sample",
+                    help="sample = bốc ngẫu nhiên theo trọng số (mặc định); "
+                         "top = lấy tất định 5 điểm cao nhất")
+    ap.add_argument("--temp", type=float, default=Z.DEFAULT_TEMPERATURE,
+                    help="nhiệt độ khi bốc: nhỏ = bám model, lớn = ngẫu nhiên hơn")
+    ap.add_argument("--tickets", type=int, default=5,
+                    help="số vé mỗi model xuất ra khi --predict (chỉ ở mode sample)")
     a = ap.parse_args()
 
     draws = load_draws()
@@ -181,6 +195,7 @@ def main() -> None:
     print(f"BACKTEST MODEL ZOO — {len(wanted)} model")
     print(f"  dữ liệu: {T} kỳ (#{draws[0].draw_id}–#{draws[-1].draw_id})")
     print(f"  kiểm tra: {a.test} kỳ cuối · cửa sổ {a.window} · refit mỗi {a.refit} kỳ")
+    print(f"  chế độ chọn số: {a.mode}" + (f" (nhiệt độ {a.temp})" if a.mode == "sample" else ""))
     print(f"  mốc ngẫu nhiên lý thuyết: {EXPECTED_RANDOM_HITS:.4f} số trúng/kỳ\n")
 
     t0 = time.time()
@@ -194,11 +209,11 @@ def main() -> None:
         if name in Z.SUPERVISED_MODELS:
             _, factory = Z.SUPERVISED_MODELS[name]
             picks = _run_supervised(name, factory, draws, cache, cache_sp,
-                                    test_ids, a.window, a.refit)
+                                    test_ids, a.window, a.refit, a.mode, a.temp)
             family = "supervised"
         else:
             _, fn = Z.CUSTOM_MODELS[name]
-            picks = _run_custom(name, fn, draws, test_ids, a.window)
+            picks = _run_custom(name, fn, draws, test_ids, a.window, a.mode, a.temp)
             family = "custom"
         ev = _evaluate(picks, draws)
         if ev is None:
@@ -267,6 +282,8 @@ def main() -> None:
         "test_draws": a.test,
         "window": a.window,
         "refit": a.refit,
+        "mode": a.mode,
+        "temperature": a.temp,
         "expected_random_hits": round(EXPECTED_RANDOM_HITS, 4),
         "noise_max_threshold": round(thr, 4),
         "results": results,
@@ -296,32 +313,48 @@ def _write_predictions(draws, cache, wanted, a):
 
     out = []
     for name in wanted:
+        # Chấm điểm MỘT lần cho mỗi model, rồi bốc `--tickets` vé từ cùng bộ điểm
+        # với seed khác nhau (chế độ sample). Chế độ top chỉ có 1 vé duy nhất.
         if name in Z.SUPERVISED_MODELS:
             _, factory = Z.SUPERVISED_MODELS[name]
             X, y = Z.build_dataset(draws, cache_main, lo, T, Z.MAIN_MIN, Z.MAIN_MAX, False)
             Xs, mu, sd = Z.standardise(X)
             m = factory().fit(Xs, y)
-            main = Z.top_k(m.predict(Z.apply_standardise(rows_main, mu, sd)),
-                           5, Z.MAIN_MIN, seed_tiebreak=next_id)
+            s_main = m.predict(Z.apply_standardise(rows_main, mu, sd))
             Xp, yp = Z.build_dataset(draws, cache_sp, lo, T,
                                      Z.SPECIAL_MIN, Z.SPECIAL_MAX, True)
             Xps, mu2, sd2 = Z.standardise(Xp)
             m2 = factory().fit(Xps, yp)
-            sp = Z.top_k(m2.predict(Z.apply_standardise(rows_sp, mu2, sd2)),
-                         1, Z.SPECIAL_MIN, seed_tiebreak=next_id)[0]
+            s_sp = m2.predict(Z.apply_standardise(rows_sp, mu2, sd2))
         else:
             _, fn = Z.CUSTOM_MODELS[name]
-            main = Z.top_k(fn(draws, T, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=next_id),
-                           5, Z.MAIN_MIN, seed_tiebreak=next_id)
-            sp = Z.top_k(fn(draws, T, lo, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, seed=next_id),
-                         1, Z.SPECIAL_MIN, seed_tiebreak=next_id)[0]
+            s_main = fn(draws, T, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=next_id)
+            s_sp = fn(draws, T, lo, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, seed=next_id)
+
+        n_tickets = 1 if a.mode == "top" else max(1, a.tickets)
+        tickets = []
+        for v in range(1, n_tickets + 1):
+            seed = next_id * 1000 + v
+            tickets.append({
+                "index": v,
+                "numbers": Z.choose(s_main, 5, Z.MAIN_MIN, seed, a.mode, a.temp),
+                "special": Z.choose(s_sp, 1, Z.SPECIAL_MIN, seed + 7_000_000,
+                                    a.mode, a.temp)[0],
+                "trace": f"zoo-{next_id}-{name}-{a.mode}-{v:02d}",
+            })
         out.append({"model": name, "label": Z.model_label(name),
-                    "numbers": main, "special": sp})
-        print(f"  {name:<22} {' '.join(f'{n:02d}' for n in main)} + ĐB {sp:02d}")
+                    "mode": a.mode, "temperature": a.temp, "tickets": tickets})
+        shown = "   ".join(f"{' '.join(f'{n:02d}' for n in t['numbers'])}+{t['special']:02d}"
+                           for t in tickets[:3])
+        more = f"  (+{len(tickets) - 3} vé)" if len(tickets) > 3 else ""
+        print(f"  {name:<22} {shown}{more}")
 
     payload = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "next_draw": next_id,
+        "mode": a.mode,
+        "temperature": a.temp,
+        "tickets_per_model": 1 if a.mode == "top" else max(1, a.tickets),
         "disclaimer": "Mỗi vé đều 1/324.632 (J2) và 1/3.895.584 (J1) — bằng nhau, "
                       "bất kể model nào sinh ra. Backtest cho thấy không model nào "
                       "vượt ngẫu nhiên.",

@@ -874,8 +874,71 @@ def model_label(name: str) -> str:
 
 
 def top_k(scores: list[float], k: int, pool_min: int, seed_tiebreak: int = 0) -> list[int]:
-    """k số điểm cao nhất; hoà thì phá bằng nhiễu có seed (tránh thiên vị số nhỏ)."""
+    """TẤT ĐỊNH: k số điểm cao nhất; hoà thì phá bằng nhiễu có seed.
+
+    Giữ lại để đối chứng — chế độ mặc định giờ là sample_k().
+    """
     rng = random.Random(seed_tiebreak)
     ranked = sorted(range(len(scores)),
                     key=lambda j: (-scores[j], rng.random()))
     return sorted(pool_min + j for j in ranked[:k])
+
+
+DEFAULT_TEMPERATURE = 0.5
+
+
+def sample_k(scores: list[float], k: int, pool_min: int, seed: int,
+             temperature: float = DEFAULT_TEMPERATURE) -> list[int]:
+    """NGẪU NHIÊN CÓ TRỌNG SỐ: bốc k số không hoàn lại, xác suất theo điểm model.
+
+    Vì sao tốt hơn top_k:
+
+      * top_k luôn nhả CÙNG một vé cho tới khi lịch sử đổi đủ để đảo thứ hạng.
+        Model chấm 35 số nhưng chỉ 5 số trên cùng có cơ hội — 30 số còn lại bị
+        loại vĩnh viễn dù điểm chỉ kém chút xíu. Đó là đặt cược tất cả vào phần
+        chênh lệch nhỏ nhất, ồn nhất của điểm số.
+      * Bốc theo trọng số giữ nguyên thứ hạng của model (số điểm cao vẫn hay
+        được chọn hơn) nhưng trải rủi ro ra cả dải, và mỗi kỳ / mỗi seed cho vé
+        khác nhau — tái lập được từ seed.
+
+    Điểm được chuẩn hoá min–max về [0,1] trước (điểm thô của svm /
+    linear_regression có thể âm), rồi w = exp(z / temperature).
+      temperature → 0   : gần như tất định (giống top_k)
+      temperature = 0.5 : số điểm cao nhất có trọng số ≈ e² ≈ 7,4 lần thấp nhất
+      temperature → ∞   : ngẫu nhiên đều, bỏ qua model
+    """
+    n = len(scores)
+    k = min(k, n)
+    rng = random.Random(seed)
+    lo, hi = min(scores), max(scores)
+    if hi - lo < 1e-12:
+        return sorted(pool_min + j for j in rng.sample(range(n), k))
+    tau = max(temperature, 1e-3)
+    w = [math.exp((s - lo) / (hi - lo) / tau) for s in scores]
+
+    picked = []
+    for _ in range(k):
+        total = sum(w)
+        if total <= 0:
+            rest = [j for j in range(n) if j not in picked]
+            picked.append(rng.choice(rest))
+            continue
+        r, acc = rng.random() * total, 0.0
+        for j in range(n):
+            acc += w[j]
+            if acc >= r:
+                picked.append(j)
+                w[j] = 0.0
+                break
+        else:
+            picked.append(max(range(n), key=lambda j: w[j]))
+            w[picked[-1]] = 0.0
+    return sorted(pool_min + j for j in picked)
+
+
+def choose(scores: list[float], k: int, pool_min: int, seed: int,
+           mode: str = "sample", temperature: float = DEFAULT_TEMPERATURE) -> list[int]:
+    """Bộ chọn dùng chung cho mọi model: 'sample' (mặc định) hoặc 'top'."""
+    if mode == "top":
+        return top_k(scores, k, pool_min, seed_tiebreak=seed)
+    return sample_k(scores, k, pool_min, seed, temperature)
