@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-08-08T09:06:14+00:00",
- "next_draw": 812,
- "prev_draw": 811,
+ "generated_at": "2026-08-08T15:02:37+00:00",
+ "next_draw": 813,
+ "prev_draw": 812,
  "recent_n": 0,
  "disclaimer": "Mọi vé đều gồm 5 SỐ KHÁC NHAU (hợp lệ). Nhóm '50 vé từ tất cả tổ hợp' được chọn vì TRÚNG NHIỀU TRONG QUÁ KHỨ (survivorship) — điều này KHÔNG làm chúng dễ trúng kỳ tới hơn; mọi tổ hợp vẫn 1/324.632. Chơi có trách nhiệm.",
  "my_pick": {
@@ -14,9 +14,9 @@
    27
   ],
   "special": 5,
-  "trace": "L535-812-MY",
+  "trace": "L535-813-MY",
   "recent": {
-   "n": 811,
+   "n": 812,
    "wins": 15,
    "tier3": 11,
    "tier4": 3,
@@ -26,16 +26,16 @@
    "jackpot1": 0
   },
   "last_result": {
-   "draw_id": 811,
+   "draw_id": 812,
    "draw_date": "2026-08-08",
    "actual": [
-    3,
-    12,
-    19,
-    29,
-    30
+    6,
+    10,
+    13,
+    14,
+    19
    ],
-   "actual_special": 7,
+   "actual_special": 8,
    "predicted": [
     11,
     16,
@@ -54,33 +54,33 @@
    "label": "Mạng nơ-ron (Perceptron)",
    "numbers": [
     1,
-    2,
-    4,
+    7,
+    14,
     24,
-    26
+    34
    ],
-   "special": 4,
-   "trace": "lotto535|neural-perceptron|target=00812|data=c092ece4500e",
+   "special": 2,
+   "trace": "lotto535|neural-perceptron|target=00813|data=e0c411218393",
    "last_result": {
-    "draw_id": 811,
+    "draw_id": 812,
     "draw_date": "2026-08-08",
     "actual": [
-     3,
-     12,
-     19,
-     29,
-     30
-    ],
-    "actual_special": 7,
-    "predicted": [
-     8,
-     15,
-     16,
-     18,
+     6,
+     10,
+     13,
+     14,
      19
     ],
-    "predicted_special": 1,
-    "main_hits": 1,
+    "actual_special": 8,
+    "predicted": [
+     1,
+     2,
+     4,
+     24,
+     26
+    ],
+    "predicted_special": 4,
+    "main_hits": 0,
     "special_hit": false
    }
   },
@@ -88,126 +88,126 @@
    "id": "Random Forest (R)",
    "label": "Random Forest (R)",
    "numbers": [
-    5,
-    23,
-    28,
-    30,
-    34
+    13,
+    26,
+    27,
+    34,
+    35
    ],
-   "special": 7,
-   "trace": "L535-812-R",
+   "special": 1,
+   "trace": "L535-813-R",
    "last_result": {
-    "draw_id": 811,
+    "draw_id": 812,
     "draw_date": "2026-08-08",
     "actual": [
-     3,
-     12,
-     19,
-     29,
-     30
+     6,
+     10,
+     13,
+     14,
+     19
     ],
-    "actual_special": 7,
+    "actual_special": 8,
     "predicted": [
      5,
-     14,
-     25,
+     23,
      28,
+     30,
      34
     ],
-    "predicted_special": 10,
+    "predicted_special": 7,
     "main_hits": 0,
     "special_hit": false
    }
   }
  ],
  "special_advice": {
-  "total": 811,
+  "total": 812,
   "expected_pct": 8.3,
   "table": [
    {
     "n": 1,
     "count": 67,
     "pct": 8.3,
-    "gap": 24
+    "gap": 25
    },
    {
     "n": 2,
     "count": 64,
     "pct": 7.9,
-    "gap": 9
+    "gap": 10
    },
    {
     "n": 3,
     "count": 74,
     "pct": 9.1,
-    "gap": 7
+    "gap": 8
    },
    {
     "n": 4,
     "count": 63,
     "pct": 7.8,
-    "gap": 2
+    "gap": 3
    },
    {
     "n": 5,
     "count": 62,
     "pct": 7.6,
-    "gap": 3
+    "gap": 4
    },
    {
     "n": 6,
     "count": 64,
     "pct": 7.9,
-    "gap": 6
+    "gap": 7
    },
    {
     "n": 7,
     "count": 71,
-    "pct": 8.8,
-    "gap": 0
+    "pct": 8.7,
+    "gap": 1
    },
    {
     "n": 8,
-    "count": 68,
-    "pct": 8.4,
-    "gap": 5
+    "count": 69,
+    "pct": 8.5,
+    "gap": 0
    },
    {
     "n": 9,
     "count": 72,
     "pct": 8.9,
-    "gap": 12
+    "gap": 13
    },
    {
     "n": 10,
     "count": 71,
-    "pct": 8.8,
-    "gap": 1
+    "pct": 8.7,
+    "gap": 2
    },
    {
     "n": 11,
     "count": 63,
     "pct": 7.8,
-    "gap": 55
+    "gap": 56
    },
    {
     "n": 12,
     "count": 72,
     "pct": 8.9,
-    "gap": 11
+    "gap": 12
    }
   ],
   "hot": 3,
   "overdue": 11,
   "balanced": 3,
   "backtest": {
-   "tested": 761,
+   "tested": 762,
    "expected_pct": 8.33,
    "pct": {
-    "nóng": 6.7,
-    "quá hạn": 8.02,
-    "cân bằng": 8.41,
-    "lạnh": 9.59
+    "nóng": 6.69,
+    "quá hạn": 8.01,
+    "cân bằng": 8.4,
+    "lạnh": 9.58
    }
   }
  },
@@ -220,40 +220,40 @@
    "tickets": [
     {
      "id": "S001",
-     "seed": 3010000812,
+     "seed": 3010000813,
      "numbers": [
-      2,
+      1,
       10,
       11,
-      23,
-      31
+      25,
+      26
      ],
-     "special": 1,
-     "trace": "L535-812-S001",
+     "special": 4,
+     "trace": "L535-813-S001",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
        6,
        10,
-       11,
-       22,
-       33
+       13,
+       14,
+       19
       ],
-      "predicted_special": 6,
-      "main_hits": 0,
+      "actual_special": 8,
+      "predicted": [
+       2,
+       10,
+       11,
+       23,
+       31
+      ],
+      "predicted_special": 1,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 10,
       "tier3": 8,
       "tier4": 1,
@@ -283,40 +283,40 @@
     },
     {
      "id": "S002",
-     "seed": 3020000812,
+     "seed": 3020000813,
      "numbers": [
-      4,
-      14,
-      28,
-      32,
-      34
+      2,
+      11,
+      15,
+      17,
+      19
      ],
-     "special": 4,
-     "trace": "L535-812-S002",
+     "special": 3,
+     "trace": "L535-813-S002",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
-       8,
+       6,
+       10,
+       13,
        14,
-       19,
-       26,
-       32
+       19
       ],
-      "predicted_special": 6,
+      "actual_special": 8,
+      "predicted": [
+       4,
+       14,
+       28,
+       32,
+       34
+      ],
+      "predicted_special": 4,
       "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 10,
       "tier3": 10,
       "tier4": 0,
@@ -331,40 +331,40 @@
     },
     {
      "id": "S003",
-     "seed": 3030000812,
+     "seed": 3030000813,
      "numbers": [
-      2,
+      5,
       11,
-      19,
-      27,
-      34
+      15,
+      17,
+      18
      ],
-     "special": 7,
-     "trace": "L535-812-S003",
+     "special": 12,
+     "trace": "L535-813-S003",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       7,
-       15,
-       23,
-       30,
-       35
+       2,
+       11,
+       19,
+       27,
+       34
       ],
-      "predicted_special": 2,
+      "predicted_special": 7,
       "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 12,
       "tier3": 12,
       "tier4": 0,
@@ -379,40 +379,40 @@
     },
     {
      "id": "S004",
-     "seed": 3040000812,
+     "seed": 3040000813,
      "numbers": [
-      12,
-      15,
-      22,
-      26,
-      27
+      18,
+      23,
+      25,
+      29,
+      34
      ],
-     "special": 12,
-     "trace": "L535-812-S004",
+     "special": 4,
+     "trace": "L535-813-S004",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       11,
+       12,
        15,
-       18,
-       19,
-       34
+       22,
+       26,
+       27
       ],
-      "predicted_special": 1,
-      "main_hits": 1,
+      "predicted_special": 12,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 15,
       "tier3": 14,
       "tier4": 1,
@@ -427,40 +427,40 @@
     },
     {
      "id": "S005",
-     "seed": 3050000812,
+     "seed": 3050000813,
      "numbers": [
-      4,
-      8,
-      16,
-      19,
-      31
+      6,
+      9,
+      10,
+      32,
+      35
      ],
-     "special": 12,
-     "trace": "L535-812-S005",
+     "special": 3,
+     "trace": "L535-813-S005",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
-       1,
+       6,
+       10,
+       13,
        14,
-       17,
-       22,
-       34
+       19
       ],
-      "predicted_special": 10,
-      "main_hits": 0,
+      "actual_special": 8,
+      "predicted": [
+       4,
+       8,
+       16,
+       19,
+       31
+      ],
+      "predicted_special": 12,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 5,
       "tier3": 5,
       "tier4": 0,
@@ -482,40 +482,40 @@
    "tickets": [
     {
      "id": "U001",
-     "seed": 9010000812,
+     "seed": 9010000813,
      "numbers": [
-      2,
-      7,
-      8,
-      16,
-      31
+      3,
+      4,
+      22,
+      25,
+      27
      ],
-     "special": 12,
-     "trace": "L535-812-U001",
+     "special": 6,
+     "trace": "L535-813-U001",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       4,
-       5,
-       18,
-       28,
+       2,
+       7,
+       8,
+       16,
        31
       ],
-      "predicted_special": 11,
+      "predicted_special": 12,
       "main_hits": 0,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 13,
       "tier3": 12,
       "tier4": 1,
@@ -530,40 +530,40 @@
     },
     {
      "id": "U002",
-     "seed": 9020000812,
+     "seed": 9020000813,
      "numbers": [
-      9,
-      19,
-      22,
-      26,
-      31
+      1,
+      7,
+      18,
+      30,
+      32
      ],
-     "special": 10,
-     "trace": "L535-812-U002",
+     "special": 2,
+     "trace": "L535-813-U002",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       12,
+       9,
        19,
-       23,
-       27,
-       29
+       22,
+       26,
+       31
       ],
-      "predicted_special": 1,
-      "main_hits": 3,
+      "predicted_special": 10,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 17,
       "tier3": 16,
       "tier4": 1,
@@ -578,47 +578,47 @@
     },
     {
      "id": "U003",
-     "seed": 9030000812,
+     "seed": 9030000813,
      "numbers": [
-      2,
-      6,
-      18,
-      32,
+      5,
+      14,
+      26,
+      29,
       34
      ],
-     "special": 8,
-     "trace": "L535-812-U003",
+     "special": 9,
+     "trace": "L535-813-U003",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
-       4,
-       8,
-       9,
+       6,
        10,
-       25
+       13,
+       14,
+       19
+      ],
+      "actual_special": 8,
+      "predicted": [
+       2,
+       6,
+       18,
+       32,
+       34
       ],
       "predicted_special": 8,
-      "main_hits": 0,
-      "special_hit": false
+      "main_hits": 1,
+      "special_hit": true
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 6,
       "tier3": 6,
       "tier4": 0,
       "tier5": 0,
       "jackpot1": 0,
       "best": 3,
-      "special_hits": 80
+      "special_hits": 81
      },
      "name": "🎯 Vé gốc 3",
      "badge": "GỐC",
@@ -626,40 +626,40 @@
     },
     {
      "id": "U004",
-     "seed": 9040000812,
+     "seed": 9040000813,
      "numbers": [
-      4,
-      11,
-      12,
-      29,
-      34
+      1,
+      2,
+      21,
+      23,
+      35
      ],
-     "special": 10,
-     "trace": "L535-812-U004",
+     "special": 2,
+     "trace": "L535-813-U004",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       3,
        4,
-       5,
-       23,
-       24
+       11,
+       12,
+       29,
+       34
       ],
-      "predicted_special": 2,
-      "main_hits": 1,
+      "predicted_special": 10,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 10,
       "tier3": 10,
       "tier4": 0,
@@ -674,47 +674,47 @@
     },
     {
      "id": "U005",
-     "seed": 9050000812,
+     "seed": 9050000813,
      "numbers": [
+      1,
       4,
-      8,
-      17,
-      31,
-      33
+      12,
+      24,
+      29
      ],
-     "special": 8,
-     "trace": "L535-812-U005",
+     "special": 10,
+     "trace": "L535-813-U005",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
-       2,
-       7,
+       6,
+       10,
        13,
-       16,
+       14,
+       19
+      ],
+      "actual_special": 8,
+      "predicted": [
+       4,
+       8,
+       17,
+       31,
        33
       ],
-      "predicted_special": 10,
+      "predicted_special": 8,
       "main_hits": 0,
-      "special_hit": false
+      "special_hit": true
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 13,
       "tier3": 12,
       "tier4": 1,
       "tier5": 0,
       "jackpot1": 0,
       "best": 4,
-      "special_hits": 84
+      "special_hits": 85
      },
      "name": "🎯 Vé gốc 5",
      "badge": "GỐC",
@@ -729,40 +729,40 @@
    "tickets": [
     {
      "id": "M001",
-     "seed": 5010000812,
+     "seed": 5010000813,
      "numbers": [
+      3,
+      7,
+      14,
       18,
-      22,
-      23,
-      30,
-      33
+      19
      ],
-     "special": 1,
-     "trace": "L535-812-M001",
+     "special": 3,
+     "trace": "L535-813-M001",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
-       9,
-       11,
+       6,
+       10,
+       13,
        14,
+       19
+      ],
+      "actual_special": 8,
+      "predicted": [
+       18,
        22,
+       23,
+       30,
        33
       ],
-      "predicted_special": 10,
+      "predicted_special": 1,
       "main_hits": 0,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 13,
       "tier3": 13,
       "tier4": 0,
@@ -777,40 +777,40 @@
     },
     {
      "id": "M002",
-     "seed": 5020000812,
+     "seed": 5020000813,
      "numbers": [
+      4,
+      10,
+      16,
       20,
-      21,
-      24,
-      28,
-      35
+      33
      ],
      "special": 5,
-     "trace": "L535-812-M002",
+     "trace": "L535-813-M002",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       12,
+       20,
        21,
-       27,
-       34,
+       24,
+       28,
        35
       ],
-      "predicted_special": 12,
-      "main_hits": 1,
+      "predicted_special": 5,
+      "main_hits": 0,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 9,
       "tier3": 9,
       "tier4": 0,
@@ -825,40 +825,40 @@
     },
     {
      "id": "M003",
-     "seed": 5030000812,
+     "seed": 5030000813,
      "numbers": [
-      5,
-      6,
-      15,
-      16,
-      28
+      25,
+      29,
+      33,
+      34,
+      35
      ],
-     "special": 2,
-     "trace": "L535-812-M003",
+     "special": 3,
+     "trace": "L535-813-M003",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
        6,
-       12,
+       10,
+       13,
+       14,
+       19
+      ],
+      "actual_special": 8,
+      "predicted": [
+       5,
+       6,
        15,
-       20,
-       23
+       16,
+       28
       ],
       "predicted_special": 2,
       "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 12,
       "tier3": 12,
       "tier4": 0,
@@ -873,40 +873,40 @@
     },
     {
      "id": "M004",
-     "seed": 5040000812,
+     "seed": 5040000813,
      "numbers": [
-      5,
-      13,
-      18,
-      22,
-      31
+      14,
+      15,
+      20,
+      23,
+      32
      ],
-     "special": 10,
-     "trace": "L535-812-M004",
+     "special": 3,
+     "trace": "L535-813-M004",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
-      ],
-      "actual_special": 7,
-      "predicted": [
        6,
-       16,
-       25,
-       28,
-       35
+       10,
+       13,
+       14,
+       19
       ],
-      "predicted_special": 7,
-      "main_hits": 0,
-      "special_hit": true
+      "actual_special": 8,
+      "predicted": [
+       5,
+       13,
+       18,
+       22,
+       31
+      ],
+      "predicted_special": 10,
+      "main_hits": 1,
+      "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 15,
       "tier3": 15,
       "tier4": 0,
@@ -921,40 +921,40 @@
     },
     {
      "id": "M005",
-     "seed": 5050000812,
+     "seed": 5050000813,
      "numbers": [
-      4,
-      16,
-      19,
-      22,
-      33
+      6,
+      17,
+      18,
+      24,
+      30
      ],
-     "special": 9,
-     "trace": "L535-812-M005",
+     "special": 5,
+     "trace": "L535-813-M005",
      "last_result": {
-      "draw_id": 811,
+      "draw_id": 812,
       "draw_date": "2026-08-08",
       "actual": [
-       3,
-       12,
-       19,
-       29,
-       30
+       6,
+       10,
+       13,
+       14,
+       19
       ],
-      "actual_special": 7,
+      "actual_special": 8,
       "predicted": [
-       7,
-       8,
-       23,
-       29,
-       30
+       4,
+       16,
+       19,
+       22,
+       33
       ],
       "predicted_special": 9,
-      "main_hits": 2,
+      "main_hits": 1,
       "special_hit": false
      },
      "recent": {
-      "n": 811,
+      "n": 812,
       "wins": 7,
       "tier3": 6,
       "tier4": 1,
