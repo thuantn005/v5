@@ -74,10 +74,14 @@ def load_draws():
         return parse_draws(list(csv.DictReader(f)))
 
 
-def _run_supervised(name, factory, draws, cache, test_ids, window, refit):
-    """Huấn luyện lại mỗi `refit` kỳ trên cửa sổ trượt, rồi chấm điểm kỳ t."""
+def _run_supervised(name, factory, draws, cache, cache_sp, test_ids, window, refit):
+    """Huấn luyện lại mỗi `refit` kỳ trên cửa sổ trượt, rồi chấm điểm kỳ t.
+
+    Chấm CẢ 5 số chính lẫn số đặc biệt — có số đặc biệt mới đo được Jackpot 1.
+    """
     picks = {}
     model = mean = std = None
+    model_sp = mean_sp = std_sp = None
     for step, t in enumerate(test_ids):
         if step % refit == 0 or model is None:
             lo = max(0, t - window)
@@ -86,11 +90,18 @@ def _run_supervised(name, factory, draws, cache, test_ids, window, refit):
                 continue
             Xs, mean, std = Z.standardise(X)
             model = factory().fit(Xs, y)
-        rows = cache.get(t)
-        if rows is None:
+            Xp, yp = Z.build_dataset(draws, cache_sp, lo, t,
+                                     Z.SPECIAL_MIN, Z.SPECIAL_MAX, True)
+            Xps, mean_sp, std_sp = Z.standardise(Xp)
+            model_sp = factory().fit(Xps, yp)
+        rows, rows_sp = cache.get(t), cache_sp.get(t)
+        if rows is None or rows_sp is None:
             continue
-        scores = model.predict(Z.apply_standardise(rows, mean, std))
-        picks[t] = Z.top_k(scores, 5, Z.MAIN_MIN, seed_tiebreak=t)
+        main = Z.top_k(model.predict(Z.apply_standardise(rows, mean, std)),
+                       5, Z.MAIN_MIN, seed_tiebreak=t)
+        sp = Z.top_k(model_sp.predict(Z.apply_standardise(rows_sp, mean_sp, std_sp)),
+                     1, Z.SPECIAL_MIN, seed_tiebreak=t)[0]
+        picks[t] = (main, sp)
     return picks
 
 
@@ -98,8 +109,11 @@ def _run_custom(name, fn, draws, test_ids, window):
     picks = {}
     for t in test_ids:
         lo = max(0, t - window)
-        scores = fn(draws, t, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=t)
-        picks[t] = Z.top_k(scores, 5, Z.MAIN_MIN, seed_tiebreak=t)
+        main = Z.top_k(fn(draws, t, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=t),
+                       5, Z.MAIN_MIN, seed_tiebreak=t)
+        sp = Z.top_k(fn(draws, t, lo, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, seed=t),
+                     1, Z.SPECIAL_MIN, seed_tiebreak=t)[0]
+        picks[t] = (main, sp)
     return picks
 
 
@@ -108,19 +122,25 @@ def _run_random(draws, test_ids, seed=2024):
     picks = {}
     for t in test_ids:
         rng = random.Random(seed + t)
-        picks[t] = sorted(rng.sample(range(Z.MAIN_MIN, Z.MAIN_MAX + 1), 5))
+        picks[t] = (sorted(rng.sample(range(Z.MAIN_MIN, Z.MAIN_MAX + 1), 5)),
+                    rng.randint(Z.SPECIAL_MIN, Z.SPECIAL_MAX))
     return picks
 
 
 def _evaluate(picks, draws):
-    hits, dist, jackpots = [], [0] * 6, 0
-    for t, pick in picks.items():
+    hits, dist = [], [0] * 6
+    jackpot1 = jackpot2 = special_hits = 0
+    for t, (pick, sp) in picks.items():
         actual = set(draws[t].numbers)
         h = len(actual & set(pick))
         hits.append(h)
         dist[h] += 1
+        hit_sp = (sp == draws[t].special)
+        special_hits += 1 if hit_sp else 0
         if h == 5:
-            jackpots += 1
+            jackpot2 += 1
+            if hit_sp:
+                jackpot1 += 1
     if not hits:
         return None
     n = len(hits)
@@ -129,7 +149,10 @@ def _evaluate(picks, draws):
         "n_draws": n,
         "avg_hits": round(mean, 4),
         "dist": dist,
-        "jackpot2": jackpots,
+        "jackpot1": jackpot1,
+        "jackpot2": jackpot2,
+        "special_hits": special_hits,
+        "special_rate": round(special_hits / n, 4),
         "p_value": round(_p_value(mean, n, EXPECTED_RANDOM_HITS, VAR_RANDOM), 4),
     }
 
@@ -162,6 +185,7 @@ def main() -> None:
 
     t0 = time.time()
     cache = Z.build_feature_cache(draws, Z.MAIN_MIN, Z.MAIN_MAX, False, first)
+    cache_sp = Z.build_feature_cache(draws, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, first)
     print(f"  đặc trưng: xong trong {time.time() - t0:.1f}s\n")
 
     results = []
@@ -169,7 +193,8 @@ def main() -> None:
         t1 = time.time()
         if name in Z.SUPERVISED_MODELS:
             _, factory = Z.SUPERVISED_MODELS[name]
-            picks = _run_supervised(name, factory, draws, cache, test_ids, a.window, a.refit)
+            picks = _run_supervised(name, factory, draws, cache, cache_sp,
+                                    test_ids, a.window, a.refit)
             family = "supervised"
         else:
             _, fn = Z.CUSTOM_MODELS[name]
@@ -182,25 +207,44 @@ def main() -> None:
                   seconds=round(time.time() - t1, 1))
         results.append(ev)
         print(f"  · {name:<22} {ev['avg_hits']:.4f}  p={ev['p_value']:.3f}  "
-              f"({ev['seconds']}s)")
+              f"J1={ev['jackpot1']} J2={ev['jackpot2']}  ({ev['seconds']}s)")
 
     ev = _evaluate(_run_random(draws, test_ids), draws)
     ev.update(model="random_baseline", label="Ngẫu nhiên (mốc thật)",
               family="baseline", seconds=0.0)
     results.append(ev)
-    print(f"  · {'random_baseline':<22} {ev['avg_hits']:.4f}  p={ev['p_value']:.3f}\n")
+    print(f"  · {'random_baseline':<22} {ev['avg_hits']:.4f}  p={ev['p_value']:.3f}  "
+          f"J1={ev['jackpot1']} J2={ev['jackpot2']}\n")
 
     results.sort(key=lambda r: -r["avg_hits"])
     thr = _noise_max(len(wanted), a.test, VAR_RANDOM)
 
-    print("═" * 68)
-    print(f"{'#':<3}{'MODEL':<24}{'TRÚNG TB':>10}{'p':>8}{'J2':>5}  HỌ")
-    print("─" * 68)
+    print("═" * 76)
+    print(f"{'#':<3}{'MODEL':<24}{'TRÚNG TB':>10}{'p':>8}{'ĐB':>7}{'J2':>4}{'J1':>4}  HỌ")
+    print("─" * 76)
     for i, r in enumerate(results, 1):
         flag = "★" if r["avg_hits"] > thr and r["family"] != "baseline" else " "
         print(f"{i:<3}{r['model']:<24}{r['avg_hits']:>10.4f}{r['p_value']:>8.3f}"
-              f"{r['jackpot2']:>5}  {r['family']}{flag}")
-    print("═" * 68)
+              f"{r['special_rate']:>7.3f}{r['jackpot2']:>4}{r['jackpot1']:>4}  "
+              f"{r['family']}{flag}")
+    print("═" * 76)
+
+    # ── Kết luận về JACKPOT: câu hỏi thật sự người chơi quan tâm ──
+    n_arms = len(results)
+    tickets = sum(r["n_draws"] for r in results)
+    tot_j1 = sum(r["jackpot1"] for r in results)
+    tot_j2 = sum(r["jackpot2"] for r in results)
+    exp_j1 = tickets / 3_895_584
+    exp_j2 = tickets / 324_632
+    print(f"\n─── JACKPOT ───")
+    print(f"Tổng lượt chơi thử : {tickets:,} vé-kỳ ({n_arms} nhánh × {a.test} kỳ)")
+    print(f"Jackpot 1 (5+ĐB)   : {tot_j1}   (kỳ vọng nếu thuần may rủi: {exp_j1:.4f})")
+    print(f"Jackpot 2 (5 chính): {tot_j2}   (kỳ vọng nếu thuần may rủi: {exp_j2:.4f})")
+    print(f"Tỉ lệ trúng số ĐB  : mốc lý thuyết {SPECIAL_RANDOM_RATE:.4f}")
+    print(f"\n   Với {tickets:,} vé-kỳ, ngay cả một model HOÀN HẢO-may-mắn cũng chỉ")
+    print(f"   kỳ vọng {exp_j1:.4f} lần J1. Số 0 ở trên KHÔNG chứng minh model kém —")
+    print(f"   nó cho thấy backtest KHÔNG THỂ đo được kỹ năng trúng jackpot. Muốn")
+    print(f"   phân biệt model tốt gấp đôi với may rủi cần cỡ hàng nghìn năm chơi.")
 
     best = max((r for r in results if r["family"] != "baseline"),
                key=lambda r: r["avg_hits"])
