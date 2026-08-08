@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+"""backtest_zoo.py — backtest tiến (walk-forward) TẤT CẢ model trong model_zoo.py.
+
+Luật chơi nghiêm ngặt: dự đoán kỳ t CHỈ được dùng dữ liệu tới kỳ t-1. Model có
+giám sát huấn luyện lại theo chu kỳ trên cửa sổ trượt; model tự thân tính lại
+từ đầu ở mỗi kỳ.
+
+Thước đo: số trúng trung bình trên 5 số chính. Mốc ngẫu nhiên LÝ THUYẾT là
+5·5/35 = 0,7143 (siêu bội). Kèm p-value hai phía và — quan trọng nhất — ngưỡng
+"đỉnh nhiễu": khi so N model, model tốt nhất TẤT NHIÊN cao hơn mốc dù không có
+kỹ năng nào. Vượt ngưỡng đó mới đáng nói.
+
+    python3 scripts/backtest_zoo.py                  # mặc định
+    python3 scripts/backtest_zoo.py --test 150       # nhiều kỳ kiểm tra hơn
+    python3 scripts/backtest_zoo.py --models knn,mlp # chỉ vài model
+    python3 scripts/backtest_zoo.py --predict        # + dự đoán kỳ tới
+
+Kết quả: state/model_zoo_leaderboard.json (và docs/model_zoo.json nếu --predict)
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import math
+import os
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from model import parse_draws                                     # noqa: E402
+import model_zoo as Z                                             # noqa: E402
+
+DATA_PATH = "data/all.csv"
+OUT_PATH = "state/model_zoo_leaderboard.json"
+PREDICT_PATH = "docs/model_zoo.json"
+
+POOL_N, DRAWN_K, PICK_K = 35, 5, 5
+EXPECTED_RANDOM_HITS = PICK_K * DRAWN_K / POOL_N                   # 0.714285…
+SPECIAL_RANDOM_RATE = 1 / 12
+
+
+def _hypergeom_var(N=POOL_N, K=DRAWN_K, n=PICK_K) -> float:
+    p = K / N
+    return n * p * (1 - p) * (N - n) / (N - 1)
+
+
+VAR_RANDOM = _hypergeom_var()
+
+
+def _p_value(mean: float, n: int, mu: float, var: float) -> float:
+    """p hai phía, xấp xỉ chuẩn (dùng erfc — không cần scipy)."""
+    if n <= 1:
+        return 1.0
+    se = math.sqrt(var / n)
+    if se == 0:
+        return 1.0
+    return math.erfc(abs(mean - mu) / se / math.sqrt(2))
+
+
+def _noise_max(n_models: int, n_draws: int, var: float) -> float:
+    """Kỳ vọng GIÁ TRỊ LỚN NHẤT trong n_models mẫu nhiễu — mốc phải vượt qua
+    thì mới được coi là có tín hiệu, chứ không phải mốc 0,7143."""
+    if n_models < 2 or n_draws < 2:
+        return EXPECTED_RANDOM_HITS
+    se = math.sqrt(var / n_draws)
+    return EXPECTED_RANDOM_HITS + math.sqrt(2 * math.log(n_models)) * se
+
+
+def load_draws():
+    with open(DATA_PATH, newline="", encoding="utf-8") as f:
+        return parse_draws(list(csv.DictReader(f)))
+
+
+def _run_supervised(name, factory, draws, cache, test_ids, window, refit):
+    """Huấn luyện lại mỗi `refit` kỳ trên cửa sổ trượt, rồi chấm điểm kỳ t."""
+    picks = {}
+    model = mean = std = None
+    for step, t in enumerate(test_ids):
+        if step % refit == 0 or model is None:
+            lo = max(0, t - window)
+            X, y = Z.build_dataset(draws, cache, lo, t, Z.MAIN_MIN, Z.MAIN_MAX, False)
+            if not X:
+                continue
+            Xs, mean, std = Z.standardise(X)
+            model = factory().fit(Xs, y)
+        rows = cache.get(t)
+        if rows is None:
+            continue
+        scores = model.predict(Z.apply_standardise(rows, mean, std))
+        picks[t] = Z.top_k(scores, 5, Z.MAIN_MIN, seed_tiebreak=t)
+    return picks
+
+
+def _run_custom(name, fn, draws, test_ids, window):
+    picks = {}
+    for t in test_ids:
+        lo = max(0, t - window)
+        scores = fn(draws, t, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=t)
+        picks[t] = Z.top_k(scores, 5, Z.MAIN_MIN, seed_tiebreak=t)
+    return picks
+
+
+def _run_random(draws, test_ids, seed=2024):
+    import random
+    picks = {}
+    for t in test_ids:
+        rng = random.Random(seed + t)
+        picks[t] = sorted(rng.sample(range(Z.MAIN_MIN, Z.MAIN_MAX + 1), 5))
+    return picks
+
+
+def _evaluate(picks, draws):
+    hits, dist, jackpots = [], [0] * 6, 0
+    for t, pick in picks.items():
+        actual = set(draws[t].numbers)
+        h = len(actual & set(pick))
+        hits.append(h)
+        dist[h] += 1
+        if h == 5:
+            jackpots += 1
+    if not hits:
+        return None
+    n = len(hits)
+    mean = sum(hits) / n
+    return {
+        "n_draws": n,
+        "avg_hits": round(mean, 4),
+        "dist": dist,
+        "jackpot2": jackpots,
+        "p_value": round(_p_value(mean, n, EXPECTED_RANDOM_HITS, VAR_RANDOM), 4),
+    }
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--test", type=int, default=80, help="số kỳ dùng để kiểm tra")
+    ap.add_argument("--window", type=int, default=150, help="cửa sổ huấn luyện (kỳ)")
+    ap.add_argument("--refit", type=int, default=10, help="huấn luyện lại mỗi N kỳ")
+    ap.add_argument("--models", default="", help="lọc theo tên, cách nhau bởi dấu phẩy")
+    ap.add_argument("--predict", action="store_true", help="xuất dự đoán kỳ tới")
+    a = ap.parse_args()
+
+    draws = load_draws()
+    T = len(draws)
+    if T < a.window + a.test + 5:
+        a.test = max(20, T - a.window - 5)
+    test_ids = list(range(T - a.test, T))
+    first = max(0, test_ids[0] - a.window - 1)
+
+    wanted = [m.strip() for m in a.models.split(",") if m.strip()] or Z.ALL_MODELS
+    unknown = [m for m in wanted if m not in Z.ALL_MODELS]
+    if unknown:
+        sys.exit(f"Không có model: {', '.join(unknown)}\nCó: {', '.join(Z.ALL_MODELS)}")
+
+    print(f"BACKTEST MODEL ZOO — {len(wanted)} model")
+    print(f"  dữ liệu: {T} kỳ (#{draws[0].draw_id}–#{draws[-1].draw_id})")
+    print(f"  kiểm tra: {a.test} kỳ cuối · cửa sổ {a.window} · refit mỗi {a.refit} kỳ")
+    print(f"  mốc ngẫu nhiên lý thuyết: {EXPECTED_RANDOM_HITS:.4f} số trúng/kỳ\n")
+
+    t0 = time.time()
+    cache = Z.build_feature_cache(draws, Z.MAIN_MIN, Z.MAIN_MAX, False, first)
+    print(f"  đặc trưng: xong trong {time.time() - t0:.1f}s\n")
+
+    results = []
+    for name in wanted:
+        t1 = time.time()
+        if name in Z.SUPERVISED_MODELS:
+            _, factory = Z.SUPERVISED_MODELS[name]
+            picks = _run_supervised(name, factory, draws, cache, test_ids, a.window, a.refit)
+            family = "supervised"
+        else:
+            _, fn = Z.CUSTOM_MODELS[name]
+            picks = _run_custom(name, fn, draws, test_ids, a.window)
+            family = "custom"
+        ev = _evaluate(picks, draws)
+        if ev is None:
+            continue
+        ev.update(model=name, label=Z.model_label(name), family=family,
+                  seconds=round(time.time() - t1, 1))
+        results.append(ev)
+        print(f"  · {name:<22} {ev['avg_hits']:.4f}  p={ev['p_value']:.3f}  "
+              f"({ev['seconds']}s)")
+
+    ev = _evaluate(_run_random(draws, test_ids), draws)
+    ev.update(model="random_baseline", label="Ngẫu nhiên (mốc thật)",
+              family="baseline", seconds=0.0)
+    results.append(ev)
+    print(f"  · {'random_baseline':<22} {ev['avg_hits']:.4f}  p={ev['p_value']:.3f}\n")
+
+    results.sort(key=lambda r: -r["avg_hits"])
+    thr = _noise_max(len(wanted), a.test, VAR_RANDOM)
+
+    print("═" * 68)
+    print(f"{'#':<3}{'MODEL':<24}{'TRÚNG TB':>10}{'p':>8}{'J2':>5}  HỌ")
+    print("─" * 68)
+    for i, r in enumerate(results, 1):
+        flag = "★" if r["avg_hits"] > thr and r["family"] != "baseline" else " "
+        print(f"{i:<3}{r['model']:<24}{r['avg_hits']:>10.4f}{r['p_value']:>8.3f}"
+              f"{r['jackpot2']:>5}  {r['family']}{flag}")
+    print("═" * 68)
+
+    best = max((r for r in results if r["family"] != "baseline"),
+               key=lambda r: r["avg_hits"])
+    print(f"\nMốc ngẫu nhiên lý thuyết : {EXPECTED_RANDOM_HITS:.4f}")
+    print(f"Ngưỡng ĐỈNH NHIỄU ({len(wanted)} model): {thr:.4f}")
+    print(f"Model cao nhất           : {best['model']} = {best['avg_hits']:.4f}")
+    if best["avg_hits"] <= thr:
+        print("\n=> Model cao nhất VẪN DƯỚI ngưỡng đỉnh nhiễu. Nghĩa là: chênh lệch")
+        print("   này là thứ ta LUÔN thấy khi so nhiều model không có kỹ năng gì.")
+        print("   KHÔNG model nào ở đây có lợi thế thật.")
+    else:
+        print("\n=> Vượt ngưỡng đỉnh nhiễu. Vẫn PHẢI kiểm chứng lại trên dữ liệu")
+        print("   HOÀN TOÀN MỚI (kỳ chưa xảy ra) trước khi tin — vượt ngưỡng một")
+        print("   lần trên dữ liệu quá khứ là chuyện thường gặp do thiên lệch chọn.")
+    print(f"\nTổng: {time.time() - t0:.1f}s")
+
+    payload = {
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "n_draws_total": T,
+        "test_draws": a.test,
+        "window": a.window,
+        "refit": a.refit,
+        "expected_random_hits": round(EXPECTED_RANDOM_HITS, 4),
+        "noise_max_threshold": round(thr, 4),
+        "results": results,
+    }
+    os.makedirs("state", exist_ok=True)
+    with open(OUT_PATH, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    print(f"Đã ghi {OUT_PATH}")
+
+    if a.predict:
+        _write_predictions(draws, cache, wanted, a)
+
+
+def _write_predictions(draws, cache, wanted, a):
+    """Dự đoán kỳ TIẾP THEO (chưa quay) bằng từng model — 5 số chính + số đặc biệt."""
+    T = len(draws)
+    next_id = int(draws[-1].draw_id) + 1
+    lo = max(0, T - a.window)
+
+    # Đặc trưng cho kỳ T (chưa có kết quả) — cache chỉ tới T-1, nên dựng thêm.
+    cache_main = Z.build_feature_cache(draws, Z.MAIN_MIN, Z.MAIN_MAX, False, lo)
+    cache_sp = Z.build_feature_cache(draws, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, lo)
+    rows_main = Z.build_feature_cache(draws + [draws[-1]], Z.MAIN_MIN, Z.MAIN_MAX,
+                                      False, T)[T]
+    rows_sp = Z.build_feature_cache(draws + [draws[-1]], Z.SPECIAL_MIN, Z.SPECIAL_MAX,
+                                    True, T)[T]
+
+    out = []
+    for name in wanted:
+        if name in Z.SUPERVISED_MODELS:
+            _, factory = Z.SUPERVISED_MODELS[name]
+            X, y = Z.build_dataset(draws, cache_main, lo, T, Z.MAIN_MIN, Z.MAIN_MAX, False)
+            Xs, mu, sd = Z.standardise(X)
+            m = factory().fit(Xs, y)
+            main = Z.top_k(m.predict(Z.apply_standardise(rows_main, mu, sd)),
+                           5, Z.MAIN_MIN, seed_tiebreak=next_id)
+            Xp, yp = Z.build_dataset(draws, cache_sp, lo, T,
+                                     Z.SPECIAL_MIN, Z.SPECIAL_MAX, True)
+            Xps, mu2, sd2 = Z.standardise(Xp)
+            m2 = factory().fit(Xps, yp)
+            sp = Z.top_k(m2.predict(Z.apply_standardise(rows_sp, mu2, sd2)),
+                         1, Z.SPECIAL_MIN, seed_tiebreak=next_id)[0]
+        else:
+            _, fn = Z.CUSTOM_MODELS[name]
+            main = Z.top_k(fn(draws, T, lo, Z.MAIN_MIN, Z.MAIN_MAX, False, seed=next_id),
+                           5, Z.MAIN_MIN, seed_tiebreak=next_id)
+            sp = Z.top_k(fn(draws, T, lo, Z.SPECIAL_MIN, Z.SPECIAL_MAX, True, seed=next_id),
+                         1, Z.SPECIAL_MIN, seed_tiebreak=next_id)[0]
+        out.append({"model": name, "label": Z.model_label(name),
+                    "numbers": main, "special": sp})
+        print(f"  {name:<22} {' '.join(f'{n:02d}' for n in main)} + ĐB {sp:02d}")
+
+    payload = {
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "next_draw": next_id,
+        "disclaimer": "Mỗi vé đều 1/324.632 (J2) và 1/3.895.584 (J1) — bằng nhau, "
+                      "bất kể model nào sinh ra. Backtest cho thấy không model nào "
+                      "vượt ngẫu nhiên.",
+        "predictions": out,
+    }
+    os.makedirs("docs", exist_ok=True)
+    with open(PREDICT_PATH, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    print(f"Đã ghi {PREDICT_PATH}")
+
+
+if __name__ == "__main__":
+    main()

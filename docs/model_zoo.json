@@ -1,0 +1,235 @@
+{
+  "generated_at": "2026-08-08T06:40:57",
+  "next_draw": 808,
+  "disclaimer": "Mỗi vé đều 1/324.632 (J2) và 1/3.895.584 (J1) — bằng nhau, bất kể model nào sinh ra. Backtest cho thấy không model nào vượt ngẫu nhiên.",
+  "predictions": [
+    {
+      "model": "logistic_regression",
+      "label": "Hồi quy logistic",
+      "numbers": [
+        1,
+        3,
+        27,
+        30,
+        34
+      ],
+      "special": 7
+    },
+    {
+      "model": "naive_bayes",
+      "label": "Naive Bayes Gauss",
+      "numbers": [
+        11,
+        14,
+        20,
+        27,
+        29
+      ],
+      "special": 7
+    },
+    {
+      "model": "knn",
+      "label": "k láng giềng gần nhất",
+      "numbers": [
+        1,
+        3,
+        10,
+        24,
+        25
+      ],
+      "special": 2
+    },
+    {
+      "model": "perceptron",
+      "label": "Perceptron",
+      "numbers": [
+        5,
+        8,
+        16,
+        24,
+        27
+      ],
+      "special": 11
+    },
+    {
+      "model": "mlp",
+      "label": "Mạng nơ-ron 1 lớp ẩn",
+      "numbers": [
+        1,
+        3,
+        27,
+        28,
+        30
+      ],
+      "special": 4
+    },
+    {
+      "model": "linear_regression",
+      "label": "Hồi quy tuyến tính ridge",
+      "numbers": [
+        1,
+        3,
+        20,
+        30,
+        34
+      ],
+      "special": 7
+    },
+    {
+      "model": "svm",
+      "label": "SVM tuyến tính (hinge)",
+      "numbers": [
+        18,
+        22,
+        28,
+        33,
+        34
+      ],
+      "special": 4
+    },
+    {
+      "model": "decision_tree",
+      "label": "Cây quyết định",
+      "numbers": [
+        3,
+        15,
+        19,
+        25,
+        35
+      ],
+      "special": 7
+    },
+    {
+      "model": "random_forest",
+      "label": "Rừng ngẫu nhiên",
+      "numbers": [
+        5,
+        15,
+        25,
+        34,
+        35
+      ],
+      "special": 7
+    },
+    {
+      "model": "gradient_boosting",
+      "label": "Tăng cường gradient",
+      "numbers": [
+        1,
+        5,
+        15,
+        32,
+        35
+      ],
+      "special": 7
+    },
+    {
+      "model": "adaboost",
+      "label": "AdaBoost (gốc cây)",
+      "numbers": [
+        11,
+        20,
+        27,
+        29,
+        34
+      ],
+      "special": 7
+    },
+    {
+      "model": "markov_chain",
+      "label": "Xích Markov bậc 1",
+      "numbers": [
+        5,
+        15,
+        18,
+        28,
+        34
+      ],
+      "special": 4
+    },
+    {
+      "model": "k_means",
+      "label": "Phân cụm k-means",
+      "numbers": [
+        15,
+        18,
+        27,
+        28,
+        33
+      ],
+      "special": 4
+    },
+    {
+      "model": "pca",
+      "label": "PCA (lặp luỹ thừa)",
+      "numbers": [
+        4,
+        15,
+        22,
+        23,
+        27
+      ],
+      "special": 4
+    },
+    {
+      "model": "exponential_smoothing",
+      "label": "Làm mượt hàm mũ",
+      "numbers": [
+        2,
+        10,
+        15,
+        21,
+        33
+      ],
+      "special": 3
+    },
+    {
+      "model": "som",
+      "label": "Bản đồ tự tổ chức (SOM)",
+      "numbers": [
+        5,
+        10,
+        15,
+        22,
+        28
+      ],
+      "special": 4
+    },
+    {
+      "model": "genetic_algorithm",
+      "label": "Giải thuật di truyền",
+      "numbers": [
+        15,
+        27,
+        28,
+        33,
+        34
+      ],
+      "special": 3
+    },
+    {
+      "model": "simulated_annealing",
+      "label": "Ủ mô phỏng",
+      "numbers": [
+        3,
+        22,
+        27,
+        28,
+        33
+      ],
+      "special": 12
+    },
+    {
+      "model": "monte_carlo",
+      "label": "Monte Carlo",
+      "numbers": [
+        3,
+        15,
+        27,
+        28,
+        33
+      ],
+      "special": 9
+    }
+  ]
+}

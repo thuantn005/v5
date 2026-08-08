@@ -1,0 +1,371 @@
+{
+  "generated_at": "2026-08-08T06:40:55",
+  "n_draws_total": 807,
+  "test_draws": 200,
+  "window": 200,
+  "refit": 5,
+  "expected_random_hits": 0.7143,
+  "noise_max_threshold": 0.8404,
+  "results": [
+    {
+      "n_draws": 200,
+      "avg_hits": 0.855,
+      "dist": [
+        69,
+        97,
+        28,
+        6,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.0068,
+      "model": "random_baseline",
+      "label": "Ngẫu nhiên (mốc thật)",
+      "family": "baseline",
+      "seconds": 0.0
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.815,
+      "dist": [
+        77,
+        88,
+        30,
+        5,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.0526,
+      "model": "mlp",
+      "label": "Mạng nơ-ron 1 lớp ẩn",
+      "family": "supervised",
+      "seconds": 19.3
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.775,
+      "dist": [
+        80,
+        91,
+        23,
+        6,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.2427,
+      "model": "gradient_boosting",
+      "label": "Tăng cường gradient",
+      "family": "supervised",
+      "seconds": 14.3
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.77,
+      "dist": [
+        80,
+        88,
+        30,
+        2,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.2837,
+      "model": "som",
+      "label": "Bản đồ tự tổ chức (SOM)",
+      "family": "custom",
+      "seconds": 3.7
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.765,
+      "dist": [
+        81,
+        89,
+        26,
+        4,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.3292,
+      "model": "adaboost",
+      "label": "AdaBoost (gốc cây)",
+      "family": "supervised",
+      "seconds": 6.2
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.765,
+      "dist": [
+        84,
+        83,
+        29,
+        4,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.3292,
+      "model": "exponential_smoothing",
+      "label": "Làm mượt hàm mũ",
+      "family": "custom",
+      "seconds": 0.1
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.765,
+      "dist": [
+        81,
+        89,
+        26,
+        4,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.3292,
+      "model": "genetic_algorithm",
+      "label": "Giải thuật di truyền",
+      "family": "custom",
+      "seconds": 1.6
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.76,
+      "dist": [
+        82,
+        88,
+        26,
+        4,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.3791,
+      "model": "random_forest",
+      "label": "Rừng ngẫu nhiên",
+      "family": "supervised",
+      "seconds": 4.3
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.75,
+      "dist": [
+        84,
+        84,
+        30,
+        2,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.492,
+      "model": "naive_bayes",
+      "label": "Naive Bayes Gauss",
+      "family": "supervised",
+      "seconds": 0.6
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.75,
+      "dist": [
+        82,
+        91,
+        23,
+        3,
+        1,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.492,
+      "model": "monte_carlo",
+      "label": "Monte Carlo",
+      "family": "custom",
+      "seconds": 4.3
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.745,
+      "dist": [
+        82,
+        89,
+        27,
+        2,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.5545,
+      "model": "decision_tree",
+      "label": "Cây quyết định",
+      "family": "supervised",
+      "seconds": 1.7
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.745,
+      "dist": [
+        89,
+        78,
+        28,
+        5,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.5545,
+      "model": "k_means",
+      "label": "Phân cụm k-means",
+      "family": "custom",
+      "seconds": 6.5
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.715,
+      "dist": [
+        90,
+        79,
+        29,
+        2,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.989,
+      "model": "svm",
+      "label": "SVM tuyến tính (hinge)",
+      "family": "supervised",
+      "seconds": 4.6
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.71,
+      "dist": [
+        83,
+        93,
+        23,
+        1,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.9343,
+      "model": "pca",
+      "label": "PCA (lặp luỹ thừa)",
+      "family": "custom",
+      "seconds": 4.7
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.705,
+      "dist": [
+        89,
+        84,
+        24,
+        3,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.8582,
+      "model": "logistic_regression",
+      "label": "Hồi quy logistic",
+      "family": "supervised",
+      "seconds": 8.0
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.705,
+      "dist": [
+        85,
+        94,
+        16,
+        5,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.8582,
+      "model": "knn",
+      "label": "k láng giềng gần nhất",
+      "family": "supervised",
+      "seconds": 4.7
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.705,
+      "dist": [
+        87,
+        86,
+        26,
+        1,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.8582,
+      "model": "simulated_annealing",
+      "label": "Ủ mô phỏng",
+      "family": "custom",
+      "seconds": 0.3
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.7,
+      "dist": [
+        89,
+        85,
+        23,
+        3,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.7834,
+      "model": "linear_regression",
+      "label": "Hồi quy tuyến tính ridge",
+      "family": "supervised",
+      "seconds": 1.3
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.69,
+      "dist": [
+        85,
+        94,
+        19,
+        2,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.6403,
+      "model": "perceptron",
+      "label": "Perceptron",
+      "family": "supervised",
+      "seconds": 3.7
+    },
+    {
+      "n_draws": 200,
+      "avg_hits": 0.63,
+      "dist": [
+        98,
+        79,
+        22,
+        1,
+        0,
+        0
+      ],
+      "jackpot2": 0,
+      "p_value": 0.1049,
+      "model": "markov_chain",
+      "label": "Xích Markov bậc 1",
+      "family": "custom",
+      "seconds": 0.1
+    }
+  ]
+}
