@@ -1,0 +1,360 @@
+{
+  "generated_at": "2026-08-08T07:28:39",
+  "tickets_per_model_per_draw": 60,
+  "test_draws": 600,
+  "total_ticket_draws": 684000,
+  "temperature": 0.5,
+  "tier_distribution": [
+    299922,
+    288604,
+    85905,
+    9286,
+    278,
+    5
+  ],
+  "tier_expected": [
+    300260.31,
+    288711.83,
+    85544.25,
+    9165.46,
+    316.05,
+    2.11
+  ],
+  "jackpot2": 5,
+  "jackpot2_expected": 2.107,
+  "jackpot1": 0,
+  "jackpot1_expected": 0.175583,
+  "special_hits": 56836,
+  "special_expected": 57000.0,
+  "per_model": {
+    "logistic_regression": {
+      "n": 36000,
+      "dist": [
+        15953,
+        14949,
+        4604,
+        474,
+        19,
+        1
+      ],
+      "jackpot2": 1,
+      "jackpot1": 0,
+      "special_hits": 3139
+    },
+    "naive_bayes": {
+      "n": 36000,
+      "dist": [
+        15963,
+        15095,
+        4445,
+        486,
+        11,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 3082
+    },
+    "knn": {
+      "n": 36000,
+      "dist": [
+        15810,
+        15140,
+        4558,
+        482,
+        10,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2958
+    },
+    "perceptron": {
+      "n": 36000,
+      "dist": [
+        15586,
+        15258,
+        4613,
+        526,
+        15,
+        2
+      ],
+      "jackpot2": 2,
+      "jackpot1": 0,
+      "special_hits": 2947
+    },
+    "mlp": {
+      "n": 36000,
+      "dist": [
+        15636,
+        15255,
+        4581,
+        519,
+        9,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2908
+    },
+    "linear_regression": {
+      "n": 36000,
+      "dist": [
+        16017,
+        14991,
+        4487,
+        492,
+        13,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 3060
+    },
+    "svm": {
+      "n": 36000,
+      "dist": [
+        15627,
+        15230,
+        4640,
+        488,
+        14,
+        1
+      ],
+      "jackpot2": 1,
+      "jackpot1": 0,
+      "special_hits": 2940
+    },
+    "decision_tree": {
+      "n": 36000,
+      "dist": [
+        15986,
+        15059,
+        4458,
+        479,
+        18,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2923
+    },
+    "random_forest": {
+      "n": 36000,
+      "dist": [
+        15682,
+        15245,
+        4608,
+        445,
+        20,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 3125
+    },
+    "gradient_boosting": {
+      "n": 36000,
+      "dist": [
+        15794,
+        15306,
+        4434,
+        454,
+        12,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2973
+    },
+    "adaboost": {
+      "n": 36000,
+      "dist": [
+        15690,
+        15286,
+        4502,
+        506,
+        16,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 3074
+    },
+    "markov_chain": {
+      "n": 36000,
+      "dist": [
+        15779,
+        15285,
+        4413,
+        506,
+        17,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 3096
+    },
+    "k_means": {
+      "n": 36000,
+      "dist": [
+        15876,
+        15132,
+        4472,
+        506,
+        13,
+        1
+      ],
+      "jackpot2": 1,
+      "jackpot1": 0,
+      "special_hits": 2928
+    },
+    "pca": {
+      "n": 36000,
+      "dist": [
+        15802,
+        15161,
+        4532,
+        494,
+        11,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2991
+    },
+    "exponential_smoothing": {
+      "n": 36000,
+      "dist": [
+        15894,
+        15167,
+        4474,
+        449,
+        16,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2934
+    },
+    "som": {
+      "n": 36000,
+      "dist": [
+        15584,
+        15274,
+        4620,
+        508,
+        14,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2968
+    },
+    "genetic_algorithm": {
+      "n": 36000,
+      "dist": [
+        15703,
+        15269,
+        4525,
+        483,
+        20,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2918
+    },
+    "simulated_annealing": {
+      "n": 36000,
+      "dist": [
+        15890,
+        15174,
+        4412,
+        504,
+        20,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2877
+    },
+    "monte_carlo": {
+      "n": 36000,
+      "dist": [
+        15650,
+        15328,
+        4527,
+        485,
+        10,
+        0
+      ],
+      "jackpot2": 0,
+      "jackpot1": 0,
+      "special_hits": 2995
+    }
+  },
+  "jackpot2_log": [
+    {
+      "model": "logistic_regression",
+      "draw": "00532",
+      "numbers": [
+        7,
+        15,
+        19,
+        27,
+        32
+      ],
+      "special": 4
+    },
+    {
+      "model": "perceptron",
+      "draw": "00217",
+      "numbers": [
+        1,
+        4,
+        14,
+        15,
+        32
+      ],
+      "special": 7
+    },
+    {
+      "model": "perceptron",
+      "draw": "00331",
+      "numbers": [
+        7,
+        8,
+        10,
+        12,
+        32
+      ],
+      "special": 1
+    },
+    {
+      "model": "svm",
+      "draw": "00217",
+      "numbers": [
+        1,
+        4,
+        14,
+        15,
+        32
+      ],
+      "special": 7
+    },
+    {
+      "model": "k_means",
+      "draw": "00234",
+      "numbers": [
+        3,
+        7,
+        24,
+        25,
+        34
+      ],
+      "special": 7
+    }
+  ],
+  "jackpot1_log": []
+}
