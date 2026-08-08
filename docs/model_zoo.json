@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-08T07:38:13",
-  "next_draw": 808,
+  "generated_at": "2026-08-08T07:56:28",
+  "next_draw": 812,
   "mode": "top",
   "temperature": 0.5,
   "tickets_per_model": 1,
@@ -16,13 +16,13 @@
           "index": 1,
           "numbers": [
             1,
-            3,
+            14,
             27,
-            30,
+            28,
             34
           ],
           "special": 7,
-          "trace": "zoo-808-logistic_regression-top-01"
+          "trace": "zoo-812-logistic_regression-top-01"
         }
       ]
     },
@@ -35,14 +35,14 @@
         {
           "index": 1,
           "numbers": [
-            11,
+            1,
+            8,
+            10,
             14,
-            20,
-            27,
-            29
+            27
           ],
           "special": 7,
-          "trace": "zoo-808-naive_bayes-top-01"
+          "trace": "zoo-812-naive_bayes-top-01"
         }
       ]
     },
@@ -55,14 +55,14 @@
         {
           "index": 1,
           "numbers": [
-            1,
-            3,
-            17,
-            24,
-            25
+            15,
+            26,
+            28,
+            31,
+            35
           ],
-          "special": 2,
-          "trace": "zoo-808-knn-top-01"
+          "special": 12,
+          "trace": "zoo-812-knn-top-01"
         }
       ]
     },
@@ -75,14 +75,14 @@
         {
           "index": 1,
           "numbers": [
+            1,
             5,
             8,
-            16,
-            24,
+            15,
             27
           ],
           "special": 11,
-          "trace": "zoo-808-perceptron-top-01"
+          "trace": "zoo-812-perceptron-top-01"
         }
       ]
     },
@@ -96,13 +96,13 @@
           "index": 1,
           "numbers": [
             1,
-            3,
-            27,
-            28,
-            30
+            8,
+            14,
+            30,
+            31
           ],
-          "special": 4,
-          "trace": "zoo-808-mlp-top-01"
+          "special": 7,
+          "trace": "zoo-812-mlp-top-01"
         }
       ]
     },
@@ -116,13 +116,13 @@
           "index": 1,
           "numbers": [
             1,
-            3,
-            20,
-            30,
+            14,
+            27,
+            28,
             34
           ],
           "special": 7,
-          "trace": "zoo-808-linear_regression-top-01"
+          "trace": "zoo-812-linear_regression-top-01"
         }
       ]
     },
@@ -135,14 +135,14 @@
         {
           "index": 1,
           "numbers": [
-            18,
+            19,
             22,
+            23,
             28,
-            33,
             34
           ],
-          "special": 4,
-          "trace": "zoo-808-svm-top-01"
+          "special": 3,
+          "trace": "zoo-812-svm-top-01"
         }
       ]
     },
@@ -155,14 +155,14 @@
         {
           "index": 1,
           "numbers": [
-            3,
-            23,
+            8,
+            17,
             25,
-            33,
-            35
+            31,
+            34
           ],
-          "special": 7,
-          "trace": "zoo-808-decision_tree-top-01"
+          "special": 5,
+          "trace": "zoo-812-decision_tree-top-01"
         }
       ]
     },
@@ -175,14 +175,14 @@
         {
           "index": 1,
           "numbers": [
-            5,
-            15,
+            8,
+            17,
             25,
-            34,
-            35
+            31,
+            34
           ],
           "special": 7,
-          "trace": "zoo-808-random_forest-top-01"
+          "trace": "zoo-812-random_forest-top-01"
         }
       ]
     },
@@ -195,14 +195,14 @@
         {
           "index": 1,
           "numbers": [
-            1,
-            5,
-            15,
-            32,
-            35
+            8,
+            24,
+            25,
+            31,
+            34
           ],
           "special": 7,
-          "trace": "zoo-808-gradient_boosting-top-01"
+          "trace": "zoo-812-gradient_boosting-top-01"
         }
       ]
     },
@@ -215,14 +215,14 @@
         {
           "index": 1,
           "numbers": [
-            11,
-            20,
-            27,
-            29,
+            8,
+            14,
+            26,
+            28,
             34
           ],
           "special": 7,
-          "trace": "zoo-808-adaboost-top-01"
+          "trace": "zoo-812-adaboost-top-01"
         }
       ]
     },
@@ -235,14 +235,14 @@
         {
           "index": 1,
           "numbers": [
-            5,
+            4,
+            10,
             15,
-            18,
-            28,
+            26,
             34
           ],
           "special": 4,
-          "trace": "zoo-808-markov_chain-top-01"
+          "trace": "zoo-812-markov_chain-top-01"
         }
       ]
     },
@@ -255,14 +255,14 @@
         {
           "index": 1,
           "numbers": [
-            6,
-            15,
-            27,
-            28,
-            33
+            4,
+            26,
+            29,
+            33,
+            34
           ],
-          "special": 4,
-          "trace": "zoo-808-k_means-top-01"
+          "special": 9,
+          "trace": "zoo-812-k_means-top-01"
         }
       ]
     },
@@ -275,14 +275,14 @@
         {
           "index": 1,
           "numbers": [
-            4,
-            15,
-            22,
+            6,
+            9,
             23,
-            27
+            27,
+            34
           ],
           "special": 4,
-          "trace": "zoo-808-pca-top-01"
+          "trace": "zoo-812-pca-top-01"
         }
       ]
     },
@@ -296,13 +296,13 @@
           "index": 1,
           "numbers": [
             2,
-            10,
-            15,
-            21,
-            33
+            4,
+            12,
+            19,
+            29
           ],
-          "special": 3,
-          "trace": "zoo-808-exponential_smoothing-top-01"
+          "special": 7,
+          "trace": "zoo-812-exponential_smoothing-top-01"
         }
       ]
     },
@@ -315,14 +315,14 @@
         {
           "index": 1,
           "numbers": [
-            5,
-            10,
-            15,
-            22,
-            28
+            6,
+            9,
+            11,
+            14,
+            34
           ],
-          "special": 4,
-          "trace": "zoo-808-som-top-01"
+          "special": 7,
+          "trace": "zoo-812-som-top-01"
         }
       ]
     },
@@ -342,7 +342,7 @@
             34
           ],
           "special": 3,
-          "trace": "zoo-808-genetic_algorithm-top-01"
+          "trace": "zoo-812-genetic_algorithm-top-01"
         }
       ]
     },
@@ -355,14 +355,14 @@
         {
           "index": 1,
           "numbers": [
-            3,
+            15,
             22,
-            27,
             28,
-            33
+            33,
+            34
           ],
-          "special": 4,
-          "trace": "zoo-808-simulated_annealing-top-01"
+          "special": 11,
+          "trace": "zoo-812-simulated_annealing-top-01"
         }
       ]
     },
@@ -375,14 +375,14 @@
         {
           "index": 1,
           "numbers": [
-            3,
             15,
             27,
             28,
-            33
+            33,
+            34
           ],
           "special": 9,
-          "trace": "zoo-808-monte_carlo-top-01"
+          "trace": "zoo-812-monte_carlo-top-01"
         }
       ]
     }
