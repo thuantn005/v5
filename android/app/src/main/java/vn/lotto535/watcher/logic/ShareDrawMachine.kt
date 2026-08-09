@@ -23,7 +23,7 @@ object ShareDrawMachine {
     fun todayVn(): LocalDate = ZonedDateTime.now(VN_ZONE).toLocalDate()
 
     /** Loại sự kiện — trùng tên với bản Python để đối chiếu log cho dễ. */
-    enum class Kind { SCHEDULED, REMINDER, CANCELLED, COMPLETED, SCRAPE_FAIL, NEW_DRAW }
+    enum class Kind { SCHEDULED, REMINDER, CANCELLED, COMPLETED, SCRAPE_FAIL, NEW_DRAW, MISSED }
 
     data class Event(
         val kind: Kind,

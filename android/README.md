@@ -94,6 +94,32 @@ Kiểm tra: 6 ca đều đạt — HTML thật, dạng `|` có khoảng trắng,
 ngày xen giữa, và ba ca phải trả null (số trùng nhau, số ngoài 1..35, ĐB ngoài
 1..12).
 
+## Lịch sử kỳ quay
+
+Trang chính thức chỉ đăng **kỳ gần nhất**, nên lịch sử không tải về một lần
+được — app **gom dần** qua từng lần cào và giữ 60 kỳ gần nhất trong máy.
+Màn hình chính hiện 20 kỳ mới nhất.
+
+Chỗ nào thủng mã kỳ thì hiện thẳng dòng đỏ `⚠️ thiếu #00813`. Lịch sử có lỗ mà
+trông liền mạch còn nguy hiểm hơn không có lịch sử.
+
+## Không bỏ lỡ kỳ quay nào
+
+Lotto 5/35 quay **hai lần một ngày**. Mất mạng từ trưa tới đêm thì cả kỳ 13:00
+lẫn 21:00 đều đã quay xong. Bản trước chỉ đọc kỳ mới nhất rồi nhảy `lastDrawId`
+lên — kỳ giữa biến mất không dấu vết, không thông báo.
+
+Giờ:
+
+1. `parseAll()` vớt **mọi** kỳ đọc được trên trang, không chỉ kỳ mới nhất.
+2. Báo **từng** kỳ mới theo thứ tự tăng dần, mỗi kỳ một thông báo.
+3. Kỳ nào trang không còn liệt kê thì bắn cảnh báo `⚠️ Bỏ lỡ N kỳ quay` kèm
+   đúng mã kỳ bị thiếu, để bạn tự tra ở mục "Các lần quay trước". Loại thông
+   báo này **mặc định BẬT** — tắt nó là để lỗ hổng quay về im lặng.
+
+Kiểm tra 5 kịch bản: một kỳ mới, hai kỳ cùng lúc, trang chỉ còn kỳ mới nhất
+(thủng 1), mất mạng hai ngày (thủng 3), không có kỳ mới — đều đúng.
+
 ## Mất mạng đúng khung giờ thì sao
 
 Mốc đó **không bị bỏ**. Mọi yêu cầu mang ràng buộc `NetworkType.CONNECTED`, nên

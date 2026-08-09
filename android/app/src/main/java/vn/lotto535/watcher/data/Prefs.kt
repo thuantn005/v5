@@ -2,6 +2,7 @@ package vn.lotto535.watcher.data
 
 import android.content.Context
 import org.json.JSONArray
+import org.json.JSONObject
 import vn.lotto535.watcher.logic.ShareDrawMachine.Kind
 import vn.lotto535.watcher.logic.ShareDrawMachine.State
 
@@ -31,6 +32,46 @@ class Prefs(context: Context) {
         .putLong("prevJackpot", s.prevJackpot)
         .putBoolean("scrapeFailAlerted", s.scrapeFailAlerted)
         .apply()
+
+    /**
+     * LỊCH SỬ KỲ QUAY — tự tích luỹ.
+     *
+     * Trang chính thức chỉ đăng kỳ gần nhất, nên lịch sử không tải về một lần
+     * được mà phải gom dần qua từng lần cào. Giữ 60 kỳ gần nhất là quá đủ để
+     * dò vé và để nhìn ra chỗ thủng.
+     */
+    fun history(): List<Draw> = try {
+        val arr = JSONArray(sp.getString("history", "[]"))
+        (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            val nums = o.getJSONArray("n")
+            Draw(
+                drawId = o.getString("id"),
+                drawDate = o.optString("d"),
+                numbers = (0 until nums.length()).map { nums.getInt(it) },
+                special = o.optInt("s", -1).takeIf { it in 1..12 },
+            )
+        }
+    } catch (e: Exception) { emptyList() }
+
+    /** Gộp các kỳ mới vào lịch sử; trùng mã kỳ thì bản mới ghi đè. */
+    fun addDraws(list: List<Draw>) {
+        if (list.isEmpty()) return
+        val byId = LinkedHashMap<String, Draw>()
+        for (d in history()) byId[d.drawId] = d
+        for (d in list) byId[d.drawId] = d
+        val kept = byId.values.sortedByDescending { it.drawId }.take(60)
+        val arr = JSONArray()
+        for (d in kept) {
+            arr.put(JSONObject().apply {
+                put("id", d.drawId)
+                put("d", d.drawDate)
+                put("n", JSONArray(d.numbers))
+                put("s", d.special ?: -1)
+            })
+        }
+        sp.edit().putString("history", arr.toString()).apply()
+    }
 
     /** Vài giá trị pot gần nhất — dùng để phát hiện pot reset. */
     fun jackpotHistory(): List<Long> = try {
@@ -88,7 +129,9 @@ class Prefs(context: Context) {
     // Mặc định BẬT hai loại xoay quanh kỳ chia giải (đúng thứ bạn cần biết),
     // TẮT các loại phụ để không bị làm phiền.
     private fun defaultFor(k: Kind) = when (k) {
-        Kind.SCHEDULED, Kind.REMINDER -> true
+        // MISSED là cảnh báo TOÀN VẸN DỮ LIỆU: app biết mình đã bỏ sót kỳ nào.
+        // Tắt nó đi thì lỗ hổng trở lại im lặng, nên mặc định luôn bật.
+        Kind.SCHEDULED, Kind.REMINDER, Kind.MISSED -> true
         else -> false
     }
 

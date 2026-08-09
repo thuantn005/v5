@@ -149,6 +149,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Lịch sử kỳ quay"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="20dp"
+            android:paddingBottom="2dp" />
+
+        <TextView
+            android:id="@+id/txtHistoryNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="11sp"
+            android:alpha="0.55"
+            android:paddingBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/historyBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Thông báo"
             android:textSize="15sp"
             android:textStyle="bold"
@@ -184,6 +208,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Kết quả kỳ quay mới" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swMissed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cảnh báo khi bỏ lỡ kỳ quay" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/swScrapeFail"

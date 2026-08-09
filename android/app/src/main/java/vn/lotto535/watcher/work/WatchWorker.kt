@@ -55,15 +55,50 @@ class WatchWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
 
         val newDraw = snap.latestDraw
         val gotNewDraw = newDraw != null && newDraw.drawId != knownDrawBefore
-
         val allEvents = events.toMutableList()
-        if (gotNewDraw && knownDrawBefore != null) {
-            allEvents.add(ShareDrawMachine.Event(
-                ShareDrawMachine.Kind.NEW_DRAW,
-                "🎲 Kết quả kỳ #${newDraw!!.drawId}",
-                "${newDraw.pretty()}\nĐộc Đắc: ${ShareDrawMachine.fmt(snap.jackpotVnd)}",
-            ))
+
+        // KHÔNG BỎ LỠ KỲ NÀO.
+        //
+        // Mất mạng từ trưa tới đêm thì cả kỳ 13:00 lẫn 21:00 đều đã quay. Nếu
+        // chỉ báo kỳ mới nhất rồi nhảy lastDrawId lên, kỳ giữa mất hẳn. Nên:
+        //   1. báo TỪNG kỳ mới đọc được, theo thứ tự tăng dần
+        //   2. kỳ nào trang không còn liệt kê thì báo rõ là đã thủng — im lặng
+        //      mới là hỏng, người dùng phải biết để tự tra
+        if (knownDrawBefore != null && newDraw != null) {
+            val prev = knownDrawBefore.toIntOrNull()
+            val cur = newDraw.drawId.toIntOrNull()
+            val recovered = snap.draws
+                .filter { (it.drawId.toIntOrNull() ?: 0) > (prev ?: 0) }
+                .sortedBy { it.drawId }
+
+            for (d in recovered) {
+                allEvents.add(ShareDrawMachine.Event(
+                    ShareDrawMachine.Kind.NEW_DRAW,
+                    "🎲 Kết quả kỳ #${d.drawId}",
+                    "${d.pretty()}\nĐộc Đắc: ${ShareDrawMachine.fmt(snap.jackpotVnd)}",
+                ))
+            }
+
+            if (prev != null && cur != null && cur - prev > recovered.size) {
+                val have = recovered.mapNotNull { it.drawId.toIntOrNull() }.toSet()
+                val missing = ((prev + 1) until cur).filter { it !in have }
+                if (missing.isNotEmpty()) {
+                    allEvents.add(ShareDrawMachine.Event(
+                        ShareDrawMachine.Kind.MISSED,
+                        "⚠️ Bỏ lỡ ${missing.size} kỳ quay",
+                        "Không lấy được kết quả kỳ " +
+                            missing.joinToString(", ") { "#%05d".format(it) } +
+                            ". Thường do máy mất mạng lâu và trang chính thức chỉ " +
+                            "còn hiển thị kỳ gần nhất. Tra thủ công tại " +
+                            "vietlott.vn mục \"Các lần quay trước\".",
+                    ))
+                }
+            }
+        } else if (gotNewDraw && knownDrawBefore == null) {
+            // Lần chạy đầu tiên — chỉ ghi nhận, không dội thông báo.
         }
+
+        prefs.addDraws(snap.draws)
         if (newDraw != null) prefs.lastDrawId = newDraw.drawId
         snap.jackpotVnd?.let { prefs.pushJackpot(it); prefs.lastJackpot = it }
 

@@ -82,22 +82,38 @@ object DrawParser {
     private val PIPE_FORM = Regex("""((?:\d\s*){10})\|\s*((?:\d\s*){2})""")
 
     /**
-     * Thử bóc kỳ MỚI NHẤT. Trả null nếu không chắc chắn — thà không có còn hơn
-     * báo sai số cho người dùng.
+     * Bóc MỌI kỳ đọc được trên trang, sắp xếp tăng dần theo mã kỳ.
+     *
+     * Vì sao không chỉ lấy kỳ mới nhất: nếu điện thoại mất mạng suốt từ trưa
+     * tới đêm thì CẢ HAI kỳ 13:00 và 21:00 đều đã quay. Chỉ đọc kỳ mới nhất sẽ
+     * làm kỳ giữa biến mất không dấu vết. Trang nào liệt kê nhiều kỳ thì ta vớt
+     * hết; phần còn thiếu sẽ được báo là lỗ hổng chứ không im lặng bỏ qua.
      */
-    fun parseLatest(html: String): Draw? {
+    fun parseAll(html: String): List<Draw> {
         val text = stripTags(html)
-        val ky = KY.find(text) ?: return null
-        val drawId = ky.groupValues[1].padStart(5, '0')
+        val out = LinkedHashMap<String, Draw>()
+        for (ky in KY.findAll(text)) {
+            val drawId = ky.groupValues[1].padStart(5, '0')
+            if (out.containsKey(drawId)) continue
+            val d = parsePipeForm(text, ky.range.last + 1, drawId)
+                ?: parseTokenForm(text, ky.range.last + 1, drawId)
+            if (d != null) out[drawId] = d
+        }
+        return out.values.sortedBy { it.drawId }
+    }
 
-        // Ưu tiên tuyệt đối: dạng có dấu `|` — đây là dạng trang chính thức
-        // thực sự dùng. Chỉ khi không thấy mới rơi xuống cách dò từng số.
-        parsePipeForm(text, ky.range.last + 1, drawId)?.let { return it }
+    /** Kỳ mới nhất đọc được, hoặc null. */
+    fun parseLatest(html: String): Draw? = parseAll(html).lastOrNull()
+
+    /**
+     * Dạng cũ: từng số hai chữ số tách rời. Giữ làm phương án dự phòng phòng
+     * khi trang đổi cách hiển thị.
+     */
+    private fun parseTokenForm(text: String, from: Int, drawId: String): Draw? {
 
         // Chỉ soi trong ~400 ký tự ngay sau mã kỳ: đó là khối kết quả của kỳ đó.
         // stripNoise thay ngày/giờ/tiền bằng khoảng trắng CÙNG ĐỘ DÀI, nên vị
         // trí các ký tự không xê dịch.
-        val from = ky.range.last + 1
         val window = stripNoise(text.substring(from, minOf(text.length, from + 400)))
 
         val hits = BALLS.findAll(window).take(5).toList()

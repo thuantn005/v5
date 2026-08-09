@@ -12,6 +12,8 @@ data class Snapshot(
     val jackpotVnd: Long?,
     val jackpotDrawId: String?,
     val latestDraw: Draw?,
+    /** MỌI kỳ đọc được trên trang, tăng dần — để không bỏ sót kỳ giữa. */
+    val draws: List<Draw>,
     val jackpotSource: String?,
     val drawSource: String?,
     val errors: List<String>,
@@ -58,6 +60,7 @@ object Repository {
         var jackpotKy: String? = null
         var jackpotSrc: String? = null
         var draw: Draw? = null
+        var draws: List<Draw> = emptyList()
         var drawSrc: String? = null
         val errors = ArrayList<String>()
 
@@ -70,9 +73,10 @@ object Repository {
                 val html = fetch(url)
 
                 if (draw == null) {
-                    val d = DrawParser.parseLatest(html)
-                    if (d != null) {
-                        draw = d
+                    val found = DrawParser.parseAll(html)
+                    if (found.isNotEmpty()) {
+                        draws = found
+                        draw = found.last()
                         drawSrc = host
                     } else {
                         // Nói rõ là KHÔNG ĐỌC ĐƯỢC, chứ không im lặng bỏ qua —
@@ -97,6 +101,6 @@ object Repository {
             errors.add("vietlott.vn: không trả về dữ liệu dùng được")
         }
 
-        Snapshot(jackpot, jackpotKy, draw, jackpotSrc, drawSrc, errors)
+        Snapshot(jackpot, jackpotKy, draw, draws, jackpotSrc, drawSrc, errors)
     }
 }

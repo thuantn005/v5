@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         b.swCompleted.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.COMPLETED, on) }
         b.swNewDraw.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.NEW_DRAW, on) }
         b.swScrapeFail.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.SCRAPE_FAIL, on) }
+        b.swMissed.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.MISSED, on) }
         b.swMirrors.setOnCheckedChangeListener { _, on ->
             prefs.useMirrors = on
             if (on) refreshNow()
@@ -97,6 +98,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 prefs.saveState(state)
                 snap.jackpotVnd?.let { prefs.pushJackpot(it); prefs.lastJackpot = it }
+                prefs.addDraws(snap.draws)
                 if (snap.latestDraw != null) {
                     prefs.lastDrawId = snap.latestDraw.drawId
                     prefs.lastDrawText = "#${snap.latestDraw.drawId} — ${snap.latestDraw.pretty()}"
@@ -154,6 +156,57 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Lịch sử tích luỹ. Chỗ nào thủng mã kỳ thì hiện thẳng dòng "thiếu #…" —
+     * lịch sử có lỗ mà trông liền mạch còn nguy hiểm hơn không có lịch sử.
+     */
+    private fun renderHistory() {
+        val hist = prefs.history()          // đã sắp giảm dần theo mã kỳ
+        b.historyBox.removeAllViews()
+
+        if (hist.isEmpty()) {
+            b.txtHistoryNote.text =
+                "Chưa có kỳ nào. Lịch sử gom dần sau mỗi lần cào — trang chính " +
+                "thức chỉ đăng kỳ gần nhất nên không tải về một lần được."
+            return
+        }
+        b.txtHistoryNote.text = "${hist.size} kỳ đã ghi nhận (mới nhất trước)"
+
+        val shown = hist.take(20)
+        for ((i, d) in shown.withIndex()) {
+            addHistoryRow("#${d.drawId}  ${d.drawDate}   ${d.pretty()}", false)
+
+            // Khoảng trống giữa kỳ này và kỳ kế tiếp trong danh sách.
+            val next = shown.getOrNull(i + 1) ?: continue
+            val a = d.drawId.toIntOrNull() ?: continue
+            val bId = next.drawId.toIntOrNull() ?: continue
+            if (a - bId > 1) {
+                val missing = ((bId + 1) until a).joinToString(", ") { "#%05d".format(it) }
+                addHistoryRow("⚠️ thiếu $missing", true)
+            }
+        }
+        if (hist.size > shown.size) {
+            addHistoryRow("… và ${hist.size - shown.size} kỳ cũ hơn", false)
+        }
+    }
+
+    private fun addHistoryRow(text: String, warn: Boolean) {
+        val tv = android.widget.TextView(this).apply {
+            this.text = text
+            textSize = 13f
+            typeface = android.graphics.Typeface.MONOSPACE
+            setPadding(0, 6, 0, 6)
+            if (warn) {
+                setTextColor(0xFFC62828.toInt())
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                textSize = 12f
+            } else {
+                alpha = 0.85f
+            }
+        }
+        b.historyBox.addView(tv)
+    }
+
     private fun render() {
         val state = prefs.loadState()
 
@@ -193,6 +246,8 @@ class MainActivity : AppCompatActivity() {
                 " (giờ VN)"
         } ?: "Chưa cào lần nào"
 
+        renderHistory()
+
         b.txtPermWarn.visibility =
             if (notificationsAllowed()) android.view.View.GONE else android.view.View.VISIBLE
 
@@ -203,6 +258,7 @@ class MainActivity : AppCompatActivity() {
         b.swNewDraw.isChecked = prefs.isEnabled(Kind.NEW_DRAW)
         b.swScrapeFail.isChecked = prefs.isEnabled(Kind.SCRAPE_FAIL)
         b.swMirrors.isChecked = prefs.useMirrors
+        b.swMissed.isChecked = prefs.isEnabled(Kind.MISSED)
         val (nextAt, _) = Scheduler.nextSlot()
         b.txtInterval.text = "Tự cào lúc ${Scheduler.describe()} (giờ VN) · " +
             "lần tới %02d:%02d %02d/%02d".format(
