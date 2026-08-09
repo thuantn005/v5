@@ -32,6 +32,26 @@ object DrawParser {
     // 5 số 2 chữ số cách nhau bởi thẻ/khoảng trắng, rồi tới số đặc biệt.
     private val BALLS = Regex("""\b(0[1-9]|[12]\d|3[0-5])\b""")
 
+    /**
+     * Những thứ TRÔNG như số xổ số nhưng không phải, phải xoá trước khi dò.
+     *
+     * Ngày tháng là thủ phạm chính: trang kết quả xếp "Kỳ #00812" rồi tới
+     * "09/08/2026" rồi mới tới dãy số. Không xoá thì `09` và `08` bị nhận làm
+     * hai số đầu và vé hiện ra sai hoàn toàn — đã tái hiện được lỗi này.
+     */
+    private val NOISE = listOf(
+        Regex("""\d{1,4}[/-]\d{1,2}[/-]\d{1,4}"""),   // 09/08/2026, 2026-08-09
+        Regex("""\b\d{1,2}\s*[:h]\s*\d{2}\b"""),      // 13:00, 21h00
+        Regex("""[\d][\d.,]{8,}"""),                  // 6.648.422.500 (tiền)
+        Regex("""#\s*\d{3,6}"""),                      // chính mã kỳ
+    )
+
+    private fun stripNoise(s: String): String {
+        var out = s
+        for (r in NOISE) out = r.replace(out) { m -> " ".repeat(m.value.length) }
+        return out
+    }
+
     /** Cắt bỏ thẻ HTML, giữ lại text để dò số cho đỡ nhiễu. */
     private fun stripTags(html: String): String =
         html.replace(Regex("""<script[\s\S]*?</script>""", RegexOption.IGNORE_CASE), " ")
@@ -49,13 +69,19 @@ object DrawParser {
         val drawId = ky.groupValues[1].padStart(5, '0')
 
         // Chỉ soi trong ~400 ký tự ngay sau mã kỳ: đó là khối kết quả của kỳ đó.
+        // stripNoise thay ngày/giờ/tiền bằng khoảng trắng CÙNG ĐỘ DÀI, nên vị
+        // trí các ký tự không xê dịch.
         val from = ky.range.last + 1
-        val window = text.substring(from, minOf(text.length, from + 400))
+        val window = stripNoise(text.substring(from, minOf(text.length, from + 400)))
 
         val hits = BALLS.findAll(window).take(5).toList()
         if (hits.size < 5) return null
         val main = hits.map { it.value.toInt() }.sorted()
         if (main.distinct().size != 5) return null
+
+        // 5 quả bóng của cùng một kỳ nằm sát nhau. Nếu chúng trải ra quá rộng
+        // thì ta đang vơ số từ nhiều khối khác nhau — thà trả null còn hơn.
+        if (hits[4].range.last - hits[0].range.first > 200) return null
 
         // Số đặc biệt 1..12 là số hai chữ số đầu tiên NGAY SAU 5 số chính.
         val afterMain = window.substring(minOf(hits[4].range.last + 1, window.length))

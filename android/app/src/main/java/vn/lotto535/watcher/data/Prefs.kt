@@ -67,10 +67,16 @@ class Prefs(context: Context) {
         get() = sp.getString("lastSource", "—") ?: "—"
         set(v) = sp.edit().putString("lastSource", v).apply()
 
-    /** Chu kỳ kiểm tra (phút). WorkManager không cho dưới 15. */
-    var intervalMinutes: Int
-        get() = sp.getInt("intervalMinutes", 30)
-        set(v) = sp.edit().putInt("intervalMinutes", v.coerceAtLeast(15)).apply()
+    /** Mốc thời gian lần cào THÀNH CÔNG gần nhất — lưới an toàn dựa vào đây
+     *  để biết chuỗi hẹn giờ còn sống hay đã đứt. */
+    var lastSuccessEpoch: Long
+        get() = sp.getLong("lastSuccessEpoch", 0L)
+        set(v) = sp.edit().putLong("lastSuccessEpoch", v).apply()
+
+    /** Đã thử lại mấy lần cho kỳ quay đang chờ. */
+    var retryCount: Int
+        get() = sp.getInt("retryCount", 0)
+        set(v) = sp.edit().putInt("retryCount", v).apply()
 
     // ── Bật/tắt từng loại thông báo ─────────────────────────────────────────
     // Mặc định BẬT hai loại xoay quanh kỳ chia giải (đúng thứ bạn cần biết),

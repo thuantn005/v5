@@ -18,7 +18,7 @@ import vn.lotto535.watcher.databinding.ActivityMainBinding
 import vn.lotto535.watcher.logic.ShareDrawMachine
 import vn.lotto535.watcher.logic.ShareDrawMachine.Kind
 import vn.lotto535.watcher.work.Notifier
-import vn.lotto535.watcher.work.WatchWorker
+import vn.lotto535.watcher.work.Scheduler
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         b.swNewDraw.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.NEW_DRAW, on) }
         b.swScrapeFail.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.SCRAPE_FAIL, on) }
 
-        WatchWorker.schedule(this, prefs.intervalMinutes)
+        Scheduler.ensureScheduled(this)
         requestNotificationPermissionIfNeeded()
         render()
         refreshNow()
@@ -102,6 +102,9 @@ class MainActivity : AppCompatActivity() {
                     snap.drawSource?.let { "số: $it" },
                 ).joinToString(" · ").ifEmpty { "không nguồn nào trả lời" }
                 prefs.lastCheckEpoch = System.currentTimeMillis()
+                if (snap.jackpotVnd != null || snap.latestDraw != null) {
+                    prefs.lastSuccessEpoch = System.currentTimeMillis()
+                }
 
                 var id = 5_000
                 for (e in events) if (prefs.isEnabled(e.kind)) Notifier.show(this@MainActivity, e, id++)
@@ -192,6 +195,9 @@ class MainActivity : AppCompatActivity() {
         b.swCompleted.isChecked = prefs.isEnabled(Kind.COMPLETED)
         b.swNewDraw.isChecked = prefs.isEnabled(Kind.NEW_DRAW)
         b.swScrapeFail.isChecked = prefs.isEnabled(Kind.SCRAPE_FAIL)
-        b.txtInterval.text = "Tự kiểm tra mỗi ${prefs.intervalMinutes} phút"
+        val (nextAt, _) = Scheduler.nextSlot()
+        b.txtInterval.text = "Tự cào lúc ${Scheduler.describe()} (giờ VN) · " +
+            "lần tới %02d:%02d %02d/%02d".format(
+                nextAt.hour, nextAt.minute, nextAt.dayOfMonth, nextAt.monthValue)
     }
 }

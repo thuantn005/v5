@@ -3,7 +3,6 @@ package vn.lotto535.watcher.work
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import vn.lotto535.watcher.data.Prefs
 
 /**
  * WorkManager tự khôi phục lịch sau khi khởi động lại máy, nhưng chỉ với công
@@ -15,7 +14,7 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
             intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
         ) {
-            WatchWorker.schedule(context, Prefs(context).intervalMinutes)
+            Scheduler.ensureScheduled(context)
         }
     }
 }
