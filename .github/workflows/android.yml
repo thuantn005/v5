@@ -11,7 +11,7 @@ on:
       - '.github/workflows/android.yml'
 
 permissions:
-  contents: read
+  contents: write        # cần để tạo Release đính kèm APK
 
 jobs:
   build:
@@ -68,3 +68,25 @@ jobs:
             android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 90
+
+      # Artifact chỉ tải được qua host blob của Azure, vốn bị chặn ở một số
+      # mạng. Release asset nằm trên objects.githubusercontent.com — tải bằng
+      # trình duyệt hay curl đều được, không cần đăng nhập.
+      - name: Phát hành APK dưới dạng Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             "dist/lotto535-watcher-${{ github.run_number }}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             "dist/lotto535-watcher-${{ github.run_number }}-debug.apk"
+          gh release delete apk-latest --yes --cleanup-tag || true
+          gh release create apk-latest dist/*.apk \
+            --title "APK mới nhất (build #${{ github.run_number }})" \
+            --notes "App theo dõi kỳ CHIA GIẢI Độc Đắc Lotto 5/35.
+
+          Commit: \`${{ github.sha }}\`
+
+          Tải file \`.apk\` bên dưới, mở trên điện thoại, cho phép cài từ nguồn
+          không xác định. Bản \`-debug\` chỉ dùng khi cần xem log."
