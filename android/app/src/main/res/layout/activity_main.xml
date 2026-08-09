@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Giá trị Độc Đắc hiện tại"
+            android:textSize="13sp"
+            android:alpha="0.7" />
+
+        <TextView
+            android:id="@+id/txtJackpot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="—"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:id="@+id/txtSource"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="—"
+            android:textSize="12sp"
+            android:alpha="0.6"
+            android:paddingBottom="16dp" />
+
+        <!-- Khối kỳ chia giải — lý do chính app này tồn tại -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#22C62828"
+            android:padding="14dp">
+
+            <TextView
+                android:id="@+id/txtShare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Chưa có dữ liệu"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtSharePeak"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="12sp"
+                android:alpha="0.75"
+                android:paddingTop="4dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kỳ quay mới nhất"
+            android:textSize="13sp"
+            android:alpha="0.7"
+            android:paddingTop="16dp" />
+
+        <TextView
+            android:id="@+id/txtDraw"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="—"
+            android:textSize="17sp"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:id="@+id/txtLastCheck"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="12sp"
+            android:alpha="0.6"
+            android:paddingTop="8dp" />
+
+        <TextView
+            android:id="@+id/txtStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="12sp"
+            android:alpha="0.6" />
+
+        <TextView
+            android:id="@+id/txtInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="12sp"
+            android:alpha="0.6"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/txtErrors"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="11sp"
+            android:alpha="0.6"
+            android:fontFamily="monospace"
+            android:visibility="gone"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/txtPermWarn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚠️ Chưa cấp quyền thông báo — app sẽ không báo được kỳ chia giải. Mở Cài đặt ứng dụng để bật."
+            android:textSize="13sp"
+            android:background="#33F9A825"
+            android:padding="10dp"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cào lại ngay" />
+
+        <Button
+            android:id="@+id/btnTest"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gửi thông báo thử" />
+
+        <Button
+            android:id="@+id/btnBattery"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tắt tối ưu pin cho app" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thông báo"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="20dp"
+            android:paddingBottom="4dp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TỐI NAY là kỳ chia giải" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swScheduled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Đã xác định kỳ chia giải (pot vượt 12 tỷ)" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swCancelled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Huỷ chia giải (có người trúng trước)" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swCompleted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kỳ chia giải đã diễn ra" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swNewDraw"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kết quả kỳ quay mới" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swScrapeFail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cảnh báo khi mọi nguồn đều lỗi" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="App đọc thẳng vietlott.vn. Trang này chặn IP máy chủ nên pipeline trên GitHub thường bị 403 — điện thoại dùng IP dân cư nên qua được. Nếu trang chính thức vẫn lỗi, app tự lùi sang xosominhngoc, minhchinh, rồi dữ liệu repo tự công bố."
+            android:textSize="11sp"
+            android:alpha="0.55"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp" />
+    </LinearLayout>
+</ScrollView>
