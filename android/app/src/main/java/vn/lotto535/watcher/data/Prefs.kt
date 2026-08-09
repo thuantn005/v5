@@ -73,6 +73,12 @@ class Prefs(context: Context) {
         get() = sp.getLong("lastSuccessEpoch", 0L)
         set(v) = sp.edit().putLong("lastSuccessEpoch", v).apply()
 
+    /** Cho phép dùng nguồn dự phòng khi vietlott.vn không vào được.
+     *  MẶC ĐỊNH TẮT — app chỉ đọc trang chính thức. */
+    var useMirrors: Boolean
+        get() = sp.getBoolean("useMirrors", false)
+        set(v) = sp.edit().putBoolean("useMirrors", v).apply()
+
     /** Đã thử lại mấy lần cho kỳ quay đang chờ. */
     var retryCount: Int
         get() = sp.getInt("retryCount", 0)

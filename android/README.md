@@ -43,13 +43,18 @@ Máy trạng thái theo dõi bốn chuyển tiếp:
 Bật/tắt từng loại trong app. Mọi mốc ngày giờ tính theo **giờ VN (UTC+7)**,
 không theo giờ máy — mang điện thoại ra nước ngoài vẫn báo đúng ngày ở VN.
 
-## Thứ tự nguồn
+## Nguồn — CHỈ trang chính thức
 
-1. `vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535` — chính thức
-2. `vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535` — chính thức
-3. `xosominhngoc.net.vn` — dự phòng đã kiểm chứng
-4. `minhchinh.com` — dự phòng đã kiểm chứng
-5. `thuantn005.github.io/v5/jackpot.json` — dữ liệu repo tự công bố, chốt cuối
+1. `vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535`
+2. `vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535`
+
+Không còn nhánh GitHub Pages. `xosominhngoc` và `minhchinh` vẫn nằm trong code
+nhưng **mặc định TẮT** — bật bằng công tắc "Dùng nguồn dự phòng" trong app nếu
+mạng của bạn không vào được vietlott.vn.
+
+Hệ quả phải chấp nhận: không còn nguồn thứ hai để đối chiếu chéo. Bù lại,
+`DrawParser` được siết để **thà trả null còn hơn trả số sai** — không đọc chắc
+chắn được thì app hiện "⚠️ Không đọc được dãy số từ trang chính thức".
 
 ## Độ tin cậy của hai bộ parser — khác nhau
 
@@ -58,10 +63,23 @@ không theo giờ máy — mang điện thoại ra nước ngoài vẫn báo đ�
 ("ước tính", "kỳ tới", "doanh thu"…), cùng cửa sổ 200 ký tự, cùng lớp kiểm định
 theo mã kỳ. Bản Python đó đã chạy thật nhiều tháng. Đáng tin.
 
-**Parser kết quả số** (`DrawParser.kt`) thì KHÔNG — và nó ĐÃ hiện sai số thật.
-Trang kết quả xếp "Kỳ #00812" rồi tới ngày "09/08/2026" rồi mới tới dãy số, nên
-regex nuốt luôn `09` và `08` thành hai số xổ số: kỳ #00812 hiện ra
-`03 08 09 12 19` thay vì `03 12 19 29 30`.
+**Parser kết quả số** (`DrawParser.kt`) giờ đã đối chiếu với HTML THẬT. Định
+dạng thật của vietlott.vn là:
+
+    Kỳ quay thưởng #00814 ngày 09/08/2026
+    0116192933|01
+
+Năm số chính **dính liền thành 10 chữ số**, rồi dấu `|`, rồi số đặc biệt. Hai
+bản trước đều sai vì không biết điều này:
+
+* bản đầu dò từng số hai chữ số → nuốt ngày `09/08/2026` thành số xổ số, kỳ
+  #00812 hiện ra `03 08 09 12 19` thay vì `03 12 19 29 30`
+* bản thứ hai xoá được ngày nhưng vẫn dò theo ranh giới từ, mà `0116192933`
+  là một khối liền → chỉ tìm được 2 số, luôn trả null
+
+Bản hiện tại bám dấu `|` làm mốc neo — không còn phải đoán ranh giới con số, và
+ngày tháng phía trên không thể lọt vào. Đối chiếu với `data/all.csv` kỳ #00814:
+`[1, 16, 19, 29, 33]` + ĐB `1` — khớp.
 
 Đã sửa hai lớp:
 
@@ -72,14 +90,25 @@ regex nuốt luôn `09` và `08` thành hai số xổ số: kỳ #00812 hiện r
    là nguồn CHÍNH, HTML cào chỉ để đối chiếu. Hai bên lệch nhau thì tin
    `data.json` và ghi xung đột vào danh sách lỗi hiển thị trong app.
 
-Nhãn nguồn trong app cho biết đang chạy nhánh nào:
+Kiểm tra: 6 ca đều đạt — HTML thật, dạng `|` có khoảng trắng, dạng token cũ có
+ngày xen giữa, và ba ca phải trả null (số trùng nhau, số ngoài 1..35, ĐB ngoài
+1..12).
 
-| Nhãn | Nghĩa |
-|---|---|
-| `vietlott.vn + github pages (khớp)` | hai nguồn độc lập cho cùng kết quả — chắc nhất |
-| `github pages` | chỉ có nguồn đã kiểm định; cào HTML không ra số |
-| `vietlott.vn (chưa đối chiếu)` | kỳ mới hơn pages chưa kịp công bố |
-| dòng `LỆCH kỳ #…` ở mục lỗi | hai nguồn bất đồng; app hiện số của pages |
+## Mất mạng đúng khung giờ thì sao
+
+Mốc đó **không bị bỏ**. Mọi yêu cầu mang ràng buộc `NetworkType.CONNECTED`, nên
+WorkManager giữ việc ở trạng thái chờ và chạy ngay khi mạng trở lại — dù ba
+tiếng sau. Cào lỗi giữa chừng thì `Result.retry()` lùi dần theo cấp số nhân,
+vẫn kèm đúng ràng buộc ấy.
+
+Ba lớp bảo đảm một mốc không mất:
+
+1. **Ràng buộc mạng** — hoãn chứ không bỏ.
+2. **KEEP khi mở app.** Trước đây `ensureScheduled` luôn dùng `REPLACE`: mở app
+   lúc 15:00 trong khi mốc 13:10 đang treo chờ mạng sẽ **xoá mất** nó và hẹn
+   sang 21:10, kỳ trưa không bao giờ được kiểm tra. Giờ mở app / khởi động máy
+   dùng `KEEP`, chỉ cuối mỗi lần chạy mới `REPLACE` để nối chuỗi.
+3. **Lưới an toàn 6 giờ** — hồi sinh chuỗi nếu ROM cắt mất.
 
 ## Lịch cào — bám mốc giờ, không quét đều
 

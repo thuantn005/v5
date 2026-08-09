@@ -50,6 +50,10 @@ class MainActivity : AppCompatActivity() {
         b.swCompleted.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.COMPLETED, on) }
         b.swNewDraw.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.NEW_DRAW, on) }
         b.swScrapeFail.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.SCRAPE_FAIL, on) }
+        b.swMirrors.setOnCheckedChangeListener { _, on ->
+            prefs.useMirrors = on
+            if (on) refreshNow()
+        }
 
         Scheduler.ensureScheduled(this)
         requestNotificationPermissionIfNeeded()
@@ -80,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         b.btnRefresh.isEnabled = false
         b.txtStatus.text = "Đang cào trang chính thức…"
         lifecycleScope.launch {
-            val snap = runCatching { Repository.scrape() }.getOrNull()
+            val snap = runCatching { Repository.scrape(prefs.useMirrors) }.getOrNull()
             if (snap == null) {
                 b.txtStatus.text = "Cào thất bại — kiểm tra kết nối mạng."
             } else {
@@ -93,9 +97,12 @@ class MainActivity : AppCompatActivity() {
                 )
                 prefs.saveState(state)
                 snap.jackpotVnd?.let { prefs.pushJackpot(it); prefs.lastJackpot = it }
-                snap.latestDraw?.let {
-                    prefs.lastDrawId = it.drawId
-                    prefs.lastDrawText = "#${it.drawId} — ${it.pretty()}"
+                if (snap.latestDraw != null) {
+                    prefs.lastDrawId = snap.latestDraw.drawId
+                    prefs.lastDrawText = "#${snap.latestDraw.drawId} — ${snap.latestDraw.pretty()}"
+                } else {
+                    // Không đọc được thì NÓI RÕ, đừng để số cũ nằm lại như thể mới.
+                    prefs.lastDrawText = "⚠️ Không đọc được dãy số từ trang chính thức"
                 }
                 prefs.lastSource = listOfNotNull(
                     snap.jackpotSource?.let { "pot: $it" },
@@ -195,6 +202,7 @@ class MainActivity : AppCompatActivity() {
         b.swCompleted.isChecked = prefs.isEnabled(Kind.COMPLETED)
         b.swNewDraw.isChecked = prefs.isEnabled(Kind.NEW_DRAW)
         b.swScrapeFail.isChecked = prefs.isEnabled(Kind.SCRAPE_FAIL)
+        b.swMirrors.isChecked = prefs.useMirrors
         val (nextAt, _) = Scheduler.nextSlot()
         b.txtInterval.text = "Tự cào lúc ${Scheduler.describe()} (giờ VN) · " +
             "lần tới %02d:%02d %02d/%02d".format(

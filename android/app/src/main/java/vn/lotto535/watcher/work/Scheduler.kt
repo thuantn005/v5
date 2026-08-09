@@ -37,8 +37,15 @@ import vn.lotto535.watcher.logic.ShareDrawMachine.VN_ZONE
  * Lưới an toàn 6 giờ/lần vớt trường hợp chuỗi hẹn giờ bị ROM cắt; nó tự bỏ
  * qua nếu vừa cào thành công trong 4 giờ qua, nên gần như không tốn gì.
  *
- * MỌI yêu cầu đều mang ràng buộc NetworkType.CONNECTED: mất mạng thì
- * WorkManager GIỮ LẠI và chạy ngay khi có mạng trở lại, chứ không bỏ lỡ.
+ * MẤT MẠNG THÌ SAO? Mọi yêu cầu mang ràng buộc NetworkType.CONNECTED, nên
+ * WorkManager KHÔNG bỏ qua mốc đó — nó giữ việc ở trạng thái chờ và chạy ngay
+ * khi mạng trở lại, dù là ba tiếng sau. Cào lỗi giữa chừng thì Result.retry()
+ * cho lùi dần theo cấp số nhân, vẫn kèm đúng ràng buộc ấy.
+ *
+ * Ba lớp để một mốc không bị mất:
+ *   1. ràng buộc mạng  — hoãn chứ không bỏ
+ *   2. KEEP khi mở app — không giẫm lên lần cào đang chờ (xem scheduleNextSlot)
+ *   3. lưới an toàn 6h — hồi sinh chuỗi nếu ROM cắt mất
  */
 object Scheduler {
 
@@ -75,8 +82,16 @@ object Scheduler {
         return now.plusDays(1).with(first.time).withSecond(0).withNano(0) to first
     }
 
-    /** Hẹn lần cào theo mốc kế tiếp. Mỗi lần chạy xong lại tự hẹn mốc sau. */
-    fun scheduleNextSlot(ctx: Context) {
+    /**
+     * Hẹn lần cào theo mốc kế tiếp.
+     *
+     * @param replace true khi gọi từ cuối một lần chạy — phải thay thế để nối
+     *   chuỗi. false khi gọi lúc mở app / khởi động máy: nếu đang có một mốc
+     *   BỊ TREO CHỜ MẠNG thì phải GIỮ NGUYÊN nó. Trước đây chỗ này luôn dùng
+     *   REPLACE, nên mở app trong lúc mất mạng sẽ xoá mất lần cào đang chờ và
+     *   kỳ quay đó không bao giờ được kiểm tra.
+     */
+    fun scheduleNextSlot(ctx: Context, replace: Boolean = true) {
         val now = ZonedDateTime.now(VN_ZONE)
         val (at, slot) = nextSlot(now)
         val delay = Duration.between(now, at).toMillis().coerceAtLeast(1_000L)
@@ -91,8 +106,11 @@ object Scheduler {
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
             .build()
 
-        WorkManager.getInstance(ctx)
-            .enqueueUniqueWork(WORK_SLOT, ExistingWorkPolicy.REPLACE, req)
+        WorkManager.getInstance(ctx).enqueueUniqueWork(
+            WORK_SLOT,
+            if (replace) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP,
+            req,
+        )
     }
 
     /** Thử lại sau khi một mốc quay chưa thấy kỳ mới. */
@@ -126,9 +144,12 @@ object Scheduler {
         )
     }
 
-    /** Gọi khi mở app và sau khi khởi động lại máy. */
+    /**
+     * Gọi khi mở app và sau khi khởi động lại máy. Dùng KEEP để không giẫm lên
+     * lần cào đang chờ mạng.
+     */
     fun ensureScheduled(ctx: Context) {
-        scheduleNextSlot(ctx)
+        scheduleNextSlot(ctx, replace = false)
         scheduleSafetyNet(ctx)
     }
 

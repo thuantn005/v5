@@ -37,7 +37,7 @@ class WatchWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         val knownDrawBefore = prefs.lastDrawId
 
         val snap = try {
-            Repository.scrape()
+            Repository.scrape(prefs.useMirrors)
         } catch (e: Exception) {
             prefs.lastStatus = "Lỗi cào: ${e.message}"
             return Result.retry()          // WorkManager tự lùi dần, vẫn chờ có mạng
@@ -77,7 +77,7 @@ class WatchWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         prefs.lastCheckEpoch = System.currentTimeMillis()
         if (ok) prefs.lastSuccessEpoch = System.currentTimeMillis()
         prefs.lastDrawText = newDraw?.let { "#${it.drawId} — ${it.pretty()}" }
-            ?: prefs.lastDrawText
+            ?: "⚠️ Không đọc được dãy số từ trang chính thức"
         prefs.lastSource = listOfNotNull(
             snap.jackpotSource?.let { "pot: $it" },
             snap.drawSource?.let { "số: $it" },

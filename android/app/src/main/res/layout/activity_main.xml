@@ -194,7 +194,22 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="App đọc thẳng vietlott.vn. Trang này chặn IP máy chủ nên pipeline trên GitHub thường bị 403 — điện thoại dùng IP dân cư nên qua được. Nếu trang chính thức vẫn lỗi, app tự lùi sang xosominhngoc, minhchinh, rồi dữ liệu repo tự công bố."
+            android:text="Nguồn"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="20dp"
+            android:paddingBottom="4dp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swMirrors"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dùng nguồn dự phòng khi vietlott.vn lỗi" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="App chỉ đọc trang chính thức vietlott.vn. Trang này chặn IP máy chủ nên pipeline trên GitHub thường bị 403 — điện thoại dùng IP dân cư nên qua được. Vì không còn nguồn thứ hai để đối chiếu, khi không đọc chắc chắn được dãy số app sẽ báo &quot;không đọc được&quot; thay vì hiện số đoán. Bật công tắc trên để cho phép lùi sang xosominhngoc / minhchinh nếu mạng của bạn không vào được trang chính thức."
             android:textSize="11sp"
             android:alpha="0.55"
             android:paddingTop="20dp"

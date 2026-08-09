@@ -3,7 +3,6 @@ package vn.lotto535.watcher.data
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.zip.GZIPInputStream
@@ -46,47 +45,44 @@ object Repository {
     }
 
     /**
-     * Hai loại dữ liệu, hai mức tin cậy khác nhau — nên lấy theo hai đường:
+     * Cào CHỈ trang chính thức (mirror chỉ chạy khi người dùng bật).
      *
-     *  * ĐỘC ĐẮC ← trang chính thức trước. Parser tiền là bản cổng nguyên văn
-     *    từ Python đã chạy thật, đối chiếu khớp 10/10 ca. Tin được.
+     * Không còn nguồn thứ hai để đối chiếu, nên quy tắc là: dữ liệu nào không
+     * chắc thì KHÔNG trả về. Thà app hiện "không đọc được dãy số" còn hơn hiện
+     * một dãy số bịa — lỗi trước đây đúng là kiểu đó.
      *
-     *  * DÃY SỐ ← data.json của pipeline TRƯỚC, cào HTML chỉ để đối chiếu.
-     *    Parser số dò bằng regex trên HTML chưa từng kiểm chứng với trang thật,
-     *    và đã đo được nó nuốt ngày tháng thành số xổ số. Còn data.json thì đã
-     *    qua kiểm định chéo nhiều nguồn của pipeline.
-     *
-     * Khi cả hai đều có số mà LỆCH nhau, tin data.json và ghi lại xung đột —
-     * hiện số sai còn tệ hơn không hiện số nào.
+     * @param allowMirrors bật nguồn dự phòng khi mạng không vào được vietlott.vn
      */
-    suspend fun scrape(): Snapshot = withContext(Dispatchers.IO) {
+    suspend fun scrape(allowMirrors: Boolean = false): Snapshot = withContext(Dispatchers.IO) {
         var jackpot: Long? = null
         var jackpotKy: String? = null
         var jackpotSrc: String? = null
-        var trustedDraw: Draw? = null
-        var scrapedDraw: Draw? = null
-        var scrapedFrom: String? = null
+        var draw: Draw? = null
+        var drawSrc: String? = null
         val errors = ArrayList<String>()
 
-        // 1) Dãy số từ nguồn đã kiểm định chéo.
-        try {
-            trustedDraw = DrawParser.parsePagesJson(fetch(Sources.PAGES_DATA))
-        } catch (e: Exception) {
-            errors.add("pages/data.json: ${e.message}")
-        }
+        val urls = if (allowMirrors) Sources.OFFICIAL + Sources.MIRRORS else Sources.OFFICIAL
 
-        // 2) Độc Đắc từ trang chính thức, kèm cào số để đối chiếu.
-        for (url in Sources.OFFICIAL + Sources.MIRRORS) {
-            if (jackpot != null && scrapedDraw != null) break
+        for (url in urls) {
+            if (jackpot != null && draw != null) break
             val host = runCatching { URL(url).host }.getOrDefault(url)
             try {
                 val html = fetch(url)
-                if (scrapedDraw == null) {
-                    DrawParser.parseLatest(html)?.let { scrapedDraw = it; scrapedFrom = host }
+
+                if (draw == null) {
+                    val d = DrawParser.parseLatest(html)
+                    if (d != null) {
+                        draw = d
+                        drawSrc = host
+                    } else {
+                        // Nói rõ là KHÔNG ĐỌC ĐƯỢC, chứ không im lặng bỏ qua —
+                        // im lặng khiến số cũ nằm lại trên màn hình như thể mới.
+                        errors.add("$host: tải được trang nhưng không đọc chắc chắn được dãy số")
+                    }
                 }
+
                 if (jackpot == null) {
-                    val ky = trustedDraw?.drawId ?: scrapedDraw?.drawId
-                    val r = JackpotParser.extract(html, ky)
+                    val r = JackpotParser.extract(html, draw?.drawId)
                     if (r.amountVnd != null) {
                         jackpot = r.amountVnd; jackpotKy = r.drawId; jackpotSrc = host
                     }
@@ -97,40 +93,8 @@ object Repository {
             }
         }
 
-        // 3) Quyết định dãy số nào được hiển thị.
-        var draw = trustedDraw
-        var drawSrc: String? = if (trustedDraw != null) "github pages" else null
-        val s = scrapedDraw
-        if (s != null) {
-            if (trustedDraw == null) {
-                draw = s; drawSrc = scrapedFrom          // không có gì để đối chiếu
-            } else if (s.drawId == trustedDraw.drawId) {
-                if (s.numbers == trustedDraw.numbers && s.special == trustedDraw.special) {
-                    drawSrc = "$scrapedFrom + github pages (khớp)"
-                } else {
-                    errors.add("LỆCH kỳ #${s.drawId}: $scrapedFrom cho ${s.pretty()}, " +
-                        "pages cho ${trustedDraw.pretty()} → dùng pages")
-                }
-            } else if (s.drawId > trustedDraw.drawId) {
-                // Kỳ mới hơn pages chưa kịp công bố. Dùng nhưng nói rõ là chưa
-                // đối chiếu được với nguồn nào khác.
-                draw = s; drawSrc = "$scrapedFrom (chưa đối chiếu)"
-            }
-        }
-
-        // 4) Độc Đắc dự phòng.
-        if (jackpot == null) {
-            try {
-                val o = JSONObject(fetch(Sources.PAGES_JACKPOT))
-                val v = o.optLong("jackpot_vnd", 0L)
-                if (v > 0) {
-                    jackpot = v
-                    jackpotKy = o.optString("draw_id").ifEmpty { null }
-                    jackpotSrc = "github pages"
-                }
-            } catch (e: Exception) {
-                errors.add("pages/jackpot.json: ${e.message}")
-            }
+        if (jackpot == null && draw == null && errors.isEmpty()) {
+            errors.add("vietlott.vn: không trả về dữ liệu dùng được")
         }
 
         Snapshot(jackpot, jackpotKy, draw, jackpotSrc, drawSrc, errors)
