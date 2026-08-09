@@ -58,21 +58,60 @@ không theo giờ máy — mang điện thoại ra nước ngoài vẫn báo đ�
 ("ước tính", "kỳ tới", "doanh thu"…), cùng cửa sổ 200 ký tự, cùng lớp kiểm định
 theo mã kỳ. Bản Python đó đã chạy thật nhiều tháng. Đáng tin.
 
-**Parser kết quả số** (`DrawParser.kt`) thì **chưa** được đối chiếu với HTML
-thật của vietlott.vn — môi trường viết app trả 403 với trang đó nên không kiểm
-chứng được tại chỗ. Vì vậy nó được viết theo hướng **thà không trả gì còn hơn
-đoán bừa**: không đủ chắc thì trả `null` và app lùi xuống `data.json` trên
-GitHub Pages (đã qua kiểm định chéo của pipeline). Nếu bạn thấy app hiện đúng
-pot nhưng dãy số lấy từ "github pages" thay vì "vietlott.vn", thì đó chính là
-nhánh dự phòng đang chạy — gửi tôi HTML thật của trang để chỉnh parser.
+**Parser kết quả số** (`DrawParser.kt`) thì KHÔNG — và nó ĐÃ hiện sai số thật.
+Trang kết quả xếp "Kỳ #00812" rồi tới ngày "09/08/2026" rồi mới tới dãy số, nên
+regex nuốt luôn `09` và `08` thành hai số xổ số: kỳ #00812 hiện ra
+`03 08 09 12 19` thay vì `03 12 19 29 30`.
 
-## Chu kỳ chạy nền
+Đã sửa hai lớp:
 
-WorkManager, mặc định **30 phút/lần** (tối thiểu hệ thống cho phép là 15).
-Đủ dày, vì cảnh báo chia giải tính theo **ngày** chứ không theo phút.
+1. `stripNoise()` xoá ngày/giờ/tiền/mã kỳ khỏi vùng dò trước khi tìm số, thay
+   bằng khoảng trắng cùng độ dài để vị trí không xê dịch. Thêm kiểm tra 5 quả
+   bóng phải nằm sát nhau (≤200 ký tự), quá xa thì trả `null`.
+2. **Đảo thứ tự nguồn cho dãy số**: `data.json` của pipeline (đã kiểm định chéo)
+   là nguồn CHÍNH, HTML cào chỉ để đối chiếu. Hai bên lệch nhau thì tin
+   `data.json` và ghi xung đột vào danh sách lỗi hiển thị trong app.
+
+Nhãn nguồn trong app cho biết đang chạy nhánh nào:
+
+| Nhãn | Nghĩa |
+|---|---|
+| `vietlott.vn + github pages (khớp)` | hai nguồn độc lập cho cùng kết quả — chắc nhất |
+| `github pages` | chỉ có nguồn đã kiểm định; cào HTML không ra số |
+| `vietlott.vn (chưa đối chiếu)` | kỳ mới hơn pages chưa kịp công bố |
+| dòng `LỆCH kỳ #…` ở mục lỗi | hai nguồn bất đồng; app hiện số của pages |
+
+## Lịch cào — bám mốc giờ, không quét đều
+
+Lotto 5/35 chỉ quay **13:00** và **21:00**, nên quét đều cả ngày là lãng phí.
+App chỉ cào ở ba mốc (giờ VN):
+
+| Mốc | Mục đích |
+|---|---|
+| **08:00** | nhắc "HÔM NAY là kỳ chia giải" từ sáng, còn kịp mua vé |
+| **13:10** | ngay sau kỳ quay trưa |
+| **21:10** | ngay sau kỳ quay tối |
+
+Ở hai mốc quay, nếu kỳ mới chưa về (trang hay cập nhật trễ) thì hẹn thử lại sau
+**25 phút, tối đa 2 lần**. Kỳ đã về thì không thử lại.
+
+    ngày bình thường : 3 lần
+    ngày xấu nhất    : 7 lần
+
+Mỗi lần cào gửi **1-6 request** tuỳ nguồn nào trả lời trước — dừng ngay khi đủ.
+
+**Có mạng mới chạy.** Mọi yêu cầu mang ràng buộc `NetworkType.CONNECTED`: mất
+mạng thì WorkManager *giữ lại* và chạy ngay khi mạng trở lại, không bỏ lỡ mốc.
+Cào lỗi thì `Result.retry()` cho lùi dần theo cấp số nhân, vẫn kèm ràng buộc đó.
+
+Chuỗi tự nối: mỗi lần chạy xong lại hẹn mốc kế tiếp. Thêm lưới an toàn 6 giờ/lần
+để vớt trường hợp ROM cắt chuỗi — nó tự bỏ qua nếu vừa cào thành công trong 4
+giờ qua, nên gần như không tốn gì.
 
 Chọn WorkManager thay vì AlarmManager vì nó sống sót qua khởi động lại máy, tự
-hoãn khi mất mạng, và tuân thủ Doze thay vì bị hệ thống giết.
+hoãn khi mất mạng, và tuân thủ Doze thay vì bị hệ thống giết. Đổi lại giờ chạy
+có thể lệch ~10-15 phút khi máy nằm im — chấp nhận được, vì cảnh báo chia giải
+tính theo **ngày**.
 
 **Quan trọng:** trên Xiaomi/Oppo/Vivo/Samsung, tối ưu hoá pin hay bóp chết
 công việc nền. App có nút **"Tắt tối ưu pin cho app"** đưa thẳng tới màn hình
