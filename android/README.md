@@ -94,14 +94,38 @@ Kiểm tra: 6 ca đều đạt — HTML thật, dạng `|` có khoảng trắng,
 ngày xen giữa, và ba ca phải trả null (số trùng nhau, số ngoài 1..35, ĐB ngoài
 1..12).
 
-## Lịch sử kỳ quay
+## Lịch sử kỳ quay — lưu TẤT CẢ
 
-Trang chính thức chỉ đăng **kỳ gần nhất**, nên lịch sử không tải về một lần
-được — app **gom dần** qua từng lần cào và giữ 60 kỳ gần nhất trong máy.
-Màn hình chính hiện 20 kỳ mới nhất.
+Trang chính thức chỉ đăng **kỳ gần nhất**, nên lịch sử không tải về một lần từ
+đó được. App lưu **toàn bộ** kỳ nó biết (814 kỳ ≈ 47 KB, không đáng tiết kiệm),
+hiện 20 kỳ mới nhất và có nút **"Xem tất cả"** để bung hết.
 
 Chỗ nào thủng mã kỳ thì hiện thẳng dòng đỏ `⚠️ thiếu #00813`. Lịch sử có lỗ mà
 trông liền mạch còn nguy hiểm hơn không có lịch sử.
+
+### Vá lỗ hổng bằng GitHub
+
+`docs/history.json` (do `scripts/publish_history_json.py` sinh, chạy trong
+pipeline mỗi lần cập nhật) chứa **trọn bộ** lịch sử. App gọi nó **chỉ khi phát
+hiện thiếu kỳ** — nó không bao giờ được dùng cho kỳ mới hay giá trị Độc Đắc,
+hai thứ đó vẫn phải đến từ vietlott.vn.
+
+Vá tự động khi worker thấy lỗ hổng, hoặc bấm tay nút **"Tải bổ sung lịch sử
+còn thiếu"**. Chỉ khi vá xong mà vẫn thiếu thì mới bắn cảnh báo `⚠️ Bỏ lỡ N kỳ`.
+
+## Dự đoán kỳ tới
+
+Tính **ngay trên máy** từ lịch sử đã lưu — không cần mạng, không gọi nguồn nào.
+
+Công thức: tần suất gần đây (200 kỳ) + tần suất toàn lịch sử + số kỳ vắng mặt,
+rồi **bốc ngẫu nhiên theo trọng số** đó. Không lấy tất định 5 số điểm cao nhất,
+vì làm vậy thì 30 số còn lại không bao giờ có cửa dù điểm chỉ kém chút xíu.
+Seed lấy từ mã kỳ nên cùng một kỳ luôn ra cùng bộ vé — tái lập được.
+
+**Nó không làm bạn dễ trúng hơn.** Backtest 600 kỳ với 19 model trong repo này
+cho thấy không công thức nào vượt được ngẫu nhiên thuần — vé ngẫu nhiên còn về
+nhì. Mọi vé đều đúng 1/324.632 (J2) và 1/3.895.584 (J1). Phần này là một cách
+chọn số có thể tái lập, không phải một lợi thế.
 
 ## Không bỏ lỡ kỳ quay nào
 

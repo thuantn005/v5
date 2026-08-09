@@ -1,5 +1,7 @@
 package vn.lotto535.watcher.data
 
+import org.json.JSONObject
+
 /** Một kỳ quay Lotto 5/35. */
 data class Draw(
     val drawId: String,
@@ -162,6 +164,20 @@ object DrawParser {
         DATE.find(text)?.let { m ->
             "${m.groupValues[3]}-${m.groupValues[2]}-${m.groupValues[1]}"
         } ?: ""
+
+    /** Đọc history.json (nguồn vá). Định dạng: {"draws":[{id,d,n[],s}]} */
+    fun parseHistoryJson(body: String): List<Draw> = try {
+        val arr = JSONObject(body).getJSONArray("draws")
+        (0 until arr.length()).mapNotNull { i ->
+            val o = arr.getJSONObject(i)
+            val n = o.getJSONArray("n")
+            val nums = (0 until n.length()).map { n.getInt(it) }
+            val sp = o.optInt("s", -1)
+            if (nums.size == 5 && sp in SPECIAL_MIN..SPECIAL_MAX)
+                Draw(o.getString("id"), o.optString("d"), nums.sorted(), sp)
+            else null
+        }
+    } catch (e: Exception) { emptyList() }
 
     private const val MAIN_MIN = 1
     private const val MAIN_MAX = 35

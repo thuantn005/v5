@@ -103,4 +103,20 @@ object Repository {
 
         Snapshot(jackpot, jackpotKy, draw, draws, jackpotSrc, drawSrc, errors)
     }
+
+    /**
+     * Tải trọn bộ lịch sử để VÁ những kỳ bị thiếu.
+     *
+     * Chỉ gọi khi app phát hiện lỗ hổng — không dùng cho kỳ mới hay Độc Đắc,
+     * hai thứ đó vẫn phải đến từ trang chính thức. Trang chính thức chỉ đăng
+     * kỳ gần nhất nên tự nó không vá được quá khứ.
+     */
+    suspend fun fetchHistory(): List<Draw> = withContext(Dispatchers.IO) {
+        try {
+            DrawParser.parseHistoryJson(fetch(Sources.PAGES_HISTORY))
+        } catch (e: Exception) {
+            Log.w(TAG, "không tải được lịch sử vá", e)
+            emptyList()
+        }
+    }
 }

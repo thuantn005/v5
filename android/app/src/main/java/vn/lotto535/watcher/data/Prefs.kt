@@ -37,8 +37,8 @@ class Prefs(context: Context) {
      * LỊCH SỬ KỲ QUAY — tự tích luỹ.
      *
      * Trang chính thức chỉ đăng kỳ gần nhất, nên lịch sử không tải về một lần
-     * được mà phải gom dần qua từng lần cào. Giữ 60 kỳ gần nhất là quá đủ để
-     * dò vé và để nhìn ra chỗ thủng.
+     * được mà phải gom dần qua từng lần cào — hoặc vá một lần từ history.json.
+     * Giữ TOÀN BỘ, không cắt bớt.
      */
     fun history(): List<Draw> = try {
         val arr = JSONArray(sp.getString("history", "[]"))
@@ -60,7 +60,8 @@ class Prefs(context: Context) {
         val byId = LinkedHashMap<String, Draw>()
         for (d in history()) byId[d.drawId] = d
         for (d in list) byId[d.drawId] = d
-        val kept = byId.values.sortedByDescending { it.drawId }.take(60)
+        // Lưu TẤT CẢ, không cắt bớt: 814 kỳ ~47 KB, không đáng để tiết kiệm.
+        val kept = byId.values.sortedByDescending { it.drawId }
         val arr = JSONArray()
         for (d in kept) {
             arr.put(JSONObject().apply {

@@ -28,6 +28,14 @@ object Sources {
         "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html",
     )
 
+    /**
+     * Nguồn VÁ LỖ HỔNG — không phải nguồn chính, không bao giờ dùng cho kỳ mới
+     * hay giá trị Độc Đắc. Chỉ gọi khi app phát hiện thiếu kỳ trong lịch sử
+     * (máy mất mạng nhiều ngày, trang chính thức chỉ đăng kỳ gần nhất).
+     * Chứa trọn bộ lịch sử do pipeline công bố.
+     */
+    const val PAGES_HISTORY = "https://thuantn005.github.io/v5/history.json"
+
     const val USER_AGENT =
         "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/131.0.0.0 Mobile Safari/537.36"

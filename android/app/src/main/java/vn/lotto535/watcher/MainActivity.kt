@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import vn.lotto535.watcher.data.Prefs
 import vn.lotto535.watcher.data.Repository
 import vn.lotto535.watcher.databinding.ActivityMainBinding
+import vn.lotto535.watcher.logic.Predictor
 import vn.lotto535.watcher.logic.ShareDrawMachine
 import vn.lotto535.watcher.logic.ShareDrawMachine.Kind
 import vn.lotto535.watcher.work.Notifier
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityMainBinding
     private lateinit var prefs: Prefs
+    private var historyExpanded = false
 
     private val askNotify = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -43,6 +45,11 @@ class MainActivity : AppCompatActivity() {
         b.btnRefresh.setOnClickListener { refreshNow() }
         b.btnTest.setOnClickListener { sendTestNotification() }
         b.btnBattery.setOnClickListener { openBatterySettings() }
+        b.btnHistoryToggle.setOnClickListener {
+            historyExpanded = !historyExpanded
+            renderHistory()
+        }
+        b.btnBackfill.setOnClickListener { backfillNow() }
 
         b.swScheduled.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.SCHEDULED, on) }
         b.swReminder.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.REMINDER, on) }
@@ -157,6 +164,61 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
+     * Dự đoán kỳ tới, tính ngay trên máy từ lịch sử đã lưu — không cần mạng.
+     */
+    private fun renderPrediction() {
+        b.predictBox.removeAllViews()
+        val hist = prefs.history()
+        val lastId = hist.maxOfOrNull { it.drawId }?.toIntOrNull()
+
+        if (hist.isEmpty() || lastId == null) {
+            b.txtPredictTitle.text = "Dự đoán kỳ tới"
+            b.txtPredictNote.text = "Cần có lịch sử trước. Bấm \"Tải bổ sung lịch " +
+                "sử còn thiếu\" hoặc chờ lần cào đầu tiên."
+            return
+        }
+
+        val nextId = "%05d".format(lastId + 1)
+        b.txtPredictTitle.text = "Dự đoán kỳ tới — #$nextId"
+
+        for (t in Predictor.predict(hist, nextId, count = 5)) {
+            val tv = android.widget.TextView(this).apply {
+                text = "Vé ${t.index}   ${t.pretty()}"
+                textSize = 14f
+                typeface = android.graphics.Typeface.MONOSPACE
+                setPadding(0, 6, 0, 6)
+            }
+            b.predictBox.addView(tv)
+        }
+
+        b.txtPredictNote.text =
+            "Kết hợp tần suất gần đây + toàn lịch sử + số kỳ vắng mặt, bốc ngẫu " +
+            "nhiên theo trọng số, tái lập được từ mã kỳ. Backtest 600 kỳ với 19 " +
+            "model: KHÔNG công thức nào vượt ngẫu nhiên thuần — vé ngẫu nhiên còn " +
+            "về nhì. Mọi vé đều 1/324.632 (J2) và 1/3.895.584 (J1). Đây là cách " +
+            "chọn số, không phải cách tăng cơ hội."
+    }
+
+    /** Tải trọn bộ lịch sử để vá những kỳ còn thiếu. */
+    private fun backfillNow() {
+        b.btnBackfill.isEnabled = false
+        b.btnBackfill.text = "Đang tải lịch sử…"
+        lifecycleScope.launch {
+            val before = prefs.history().size
+            val all = runCatching { Repository.fetchHistory() }.getOrDefault(emptyList())
+            if (all.isNotEmpty()) prefs.addDraws(all)
+            val after = prefs.history().size
+            b.btnBackfill.text = if (all.isEmpty())
+                "Không tải được lịch sử bổ sung"
+            else
+                "Đã bổ sung ${after - before} kỳ (tổng $after)"
+            b.btnBackfill.isEnabled = true
+            renderHistory()
+            renderPrediction()
+        }
+    }
+
+    /**
      * Lịch sử tích luỹ. Chỗ nào thủng mã kỳ thì hiện thẳng dòng "thiếu #…" —
      * lịch sử có lỗ mà trông liền mạch còn nguy hiểm hơn không có lịch sử.
      */
@@ -172,7 +234,11 @@ class MainActivity : AppCompatActivity() {
         }
         b.txtHistoryNote.text = "${hist.size} kỳ đã ghi nhận (mới nhất trước)"
 
-        val shown = hist.take(20)
+        val shown = if (historyExpanded) hist else hist.take(20)
+        b.btnHistoryToggle.text =
+            if (historyExpanded) "Thu gọn" else "Xem tất cả (${hist.size} kỳ)"
+        b.btnHistoryToggle.visibility =
+            if (hist.size > 20) android.view.View.VISIBLE else android.view.View.GONE
         for ((i, d) in shown.withIndex()) {
             addHistoryRow("#${d.drawId}  ${d.drawDate}   ${d.pretty()}", false)
 
@@ -185,9 +251,7 @@ class MainActivity : AppCompatActivity() {
                 addHistoryRow("⚠️ thiếu $missing", true)
             }
         }
-        if (hist.size > shown.size) {
-            addHistoryRow("… và ${hist.size - shown.size} kỳ cũ hơn", false)
-        }
+
     }
 
     private fun addHistoryRow(text: String, warn: Boolean) {
@@ -247,6 +311,7 @@ class MainActivity : AppCompatActivity() {
         } ?: "Chưa cào lần nào"
 
         renderHistory()
+        renderPrediction()
 
         b.txtPermWarn.visibility =
             if (notificationsAllowed()) android.view.View.GONE else android.view.View.VISIBLE

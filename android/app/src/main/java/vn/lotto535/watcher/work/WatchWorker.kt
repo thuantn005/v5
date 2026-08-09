@@ -80,17 +80,31 @@ class WatchWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
             }
 
             if (prev != null && cur != null && cur - prev > recovered.size) {
-                val have = recovered.mapNotNull { it.drawId.toIntOrNull() }.toSet()
-                val missing = ((prev + 1) until cur).filter { it !in have }
+                val have = recovered.mapNotNull { it.drawId.toIntOrNull() }.toMutableSet()
+                var missing = ((prev + 1) until cur).filter { it !in have }
+
+                // VÁ bằng history.json trước khi kêu là bỏ lỡ. Trang chính thức
+                // chỉ đăng kỳ gần nhất nên tự nó không vá được quá khứ; nguồn
+                // vá chỉ dùng đúng việc này, không đụng tới kỳ mới hay Độc Đắc.
+                if (missing.isNotEmpty()) {
+                    val patch = Repository.fetchHistory()
+                        .filter { (it.drawId.toIntOrNull() ?: -1) in missing }
+                    if (patch.isNotEmpty()) {
+                        prefs.addDraws(patch)
+                        have += patch.mapNotNull { it.drawId.toIntOrNull() }
+                        missing = missing.filter { it !in have }
+                    }
+                }
+
                 if (missing.isNotEmpty()) {
                     allEvents.add(ShareDrawMachine.Event(
                         ShareDrawMachine.Kind.MISSED,
                         "⚠️ Bỏ lỡ ${missing.size} kỳ quay",
                         "Không lấy được kết quả kỳ " +
                             missing.joinToString(", ") { "#%05d".format(it) } +
-                            ". Thường do máy mất mạng lâu và trang chính thức chỉ " +
-                            "còn hiển thị kỳ gần nhất. Tra thủ công tại " +
-                            "vietlott.vn mục \"Các lần quay trước\".",
+                            ". Trang chính thức chỉ còn kỳ gần nhất, và nguồn vá " +
+                            "cũng chưa có. Tra thủ công tại vietlott.vn mục " +
+                            "\"Các lần quay trước\".",
                     ))
                 }
             }

@@ -63,6 +63,31 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/txtPredictTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dự đoán kỳ tới"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="18dp"
+            android:paddingBottom="2dp" />
+
+        <LinearLayout
+            android:id="@+id/predictBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/txtPredictNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="11sp"
+            android:alpha="0.55"
+            android:paddingTop="4dp" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Kỳ quay mới nhất"
@@ -170,6 +195,20 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
 
+        <Button
+            android:id="@+id/btnHistoryToggle"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Xem tất cả" />
+
+        <Button
+            android:id="@+id/btnBackfill"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tải bổ sung lịch sử còn thiếu" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -236,13 +275,5 @@
             android:layout_height="wrap_content"
             android:text="Dùng nguồn dự phòng khi vietlott.vn lỗi" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="App chỉ đọc trang chính thức vietlott.vn. Trang này chặn IP máy chủ nên pipeline trên GitHub thường bị 403 — điện thoại dùng IP dân cư nên qua được. Vì không còn nguồn thứ hai để đối chiếu, khi không đọc chắc chắn được dãy số app sẽ báo &quot;không đọc được&quot; thay vì hiện số đoán. Bật công tắc trên để cho phép lùi sang xosominhngoc / minhchinh nếu mạng của bạn không vào được trang chính thức."
-            android:textSize="11sp"
-            android:alpha="0.55"
-            android:paddingTop="20dp"
-            android:paddingBottom="24dp" />
     </LinearLayout>
 </ScrollView>
