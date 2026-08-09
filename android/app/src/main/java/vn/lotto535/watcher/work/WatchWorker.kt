@@ -1,6 +1,7 @@
 package vn.lotto535.watcher.work
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import vn.lotto535.watcher.data.Prefs
@@ -115,6 +116,14 @@ class WatchWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         prefs.addDraws(snap.draws)
         if (newDraw != null) prefs.lastDrawId = newDraw.drawId
         snap.jackpotVnd?.let { prefs.pushJackpot(it); prefs.lastJackpot = it }
+
+        // Gom bảng số người trúng để đo thiên lệch đám đông. Không phá lần cào
+        // nếu nguồn tạm lỗi — đây là dữ liệu phụ, không phải thông báo chính.
+        try {
+            Repository.fetchWinnerCounts()?.let { prefs.addWinnerCounts(it) }
+        } catch (e: Exception) {
+            Log.w("Lotto535", "winner-counts lỗi", e)
+        }
 
         var id = 4_000
         for (e in allEvents) {

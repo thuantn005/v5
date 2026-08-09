@@ -105,6 +105,24 @@ object Repository {
     }
 
     /**
+     * Cào bảng SỐ NGƯỜI TRÚNG mỗi bậc giải (minhchinh.com).
+     *
+     * Đây là dữ liệu duy nhất ĐO được thiên lệch chọn số của đám đông. Dừng
+     * ngay khi một nguồn cho bảng có đủ Giải Tư + Giải Năm (đủ để đo ĐB).
+     */
+    suspend fun fetchWinnerCounts(): WinnerCounts? = withContext(Dispatchers.IO) {
+        for (url in Sources.WINNER_COUNT_SOURCES) {
+            try {
+                val wc = WinnerCountsParser.parse(fetch(url))
+                if (wc != null && wc.hasCore()) return@withContext wc
+            } catch (e: Exception) {
+                Log.w(TAG, "winner-counts lỗi $url", e)
+            }
+        }
+        null
+    }
+
+    /**
      * Tải trọn bộ lịch sử để VÁ những kỳ bị thiếu.
      *
      * Chỉ gọi khi app phát hiện lỗ hổng — không dùng cho kỳ mới hay Độc Đắc,

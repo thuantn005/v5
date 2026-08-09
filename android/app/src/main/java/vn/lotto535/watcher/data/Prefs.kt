@@ -74,6 +74,39 @@ class Prefs(context: Context) {
         sp.edit().putString("history", arr.toString()).apply()
     }
 
+    /**
+     * SỐ NGƯỜI TRÚNG mỗi bậc, gom dần qua các kỳ — dữ liệu đo thiên lệch đám
+     * đông. Mỗi kỳ một dòng, trùng mã kỳ thì ghi đè.
+     */
+    fun winnerCounts(): List<WinnerCounts> = try {
+        val arr = JSONArray(sp.getString("winnerCounts", "[]"))
+        (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            WinnerCounts(
+                drawId = o.getString("id"),
+                jackpot = o.optInt("jp", -1), first = o.optInt("f1", -1),
+                second = o.optInt("f2", -1), third = o.optInt("f3", -1),
+                fourth = o.optInt("f4", -1), fifth = o.optInt("f5", -1),
+                kk = o.optInt("kk", -1),
+            )
+        }
+    } catch (e: Exception) { emptyList() }
+
+    fun addWinnerCounts(wc: WinnerCounts) {
+        val byId = LinkedHashMap<String, WinnerCounts>()
+        for (w in winnerCounts()) byId[w.drawId] = w
+        byId[wc.drawId] = wc
+        val arr = JSONArray()
+        for (w in byId.values.sortedBy { it.drawId }) {
+            arr.put(JSONObject().apply {
+                put("id", w.drawId); put("jp", w.jackpot); put("f1", w.first)
+                put("f2", w.second); put("f3", w.third); put("f4", w.fourth)
+                put("f5", w.fifth); put("kk", w.kk)
+            })
+        }
+        sp.edit().putString("winnerCounts", arr.toString()).apply()
+    }
+
     /** Vài giá trị pot gần nhất — dùng để phát hiện pot reset. */
     fun jackpotHistory(): List<Long> = try {
         val arr = JSONArray(sp.getString("jackpotHistory", "[]"))

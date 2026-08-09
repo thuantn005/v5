@@ -90,6 +90,37 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Vé ngược đám đông (giảm chia giải)"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="18dp"
+            android:paddingBottom="2dp" />
+
+        <LinearLayout
+            android:id="@+id/antiCrowdBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/txtAntiCrowdNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="11sp"
+            android:alpha="0.55"
+            android:paddingTop="4dp" />
+
+        <Button
+            android:id="@+id/btnWinnerCounts"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cào bảng số người trúng" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Kỳ quay mới nhất"
             android:textSize="13sp"
             android:alpha="0.7"

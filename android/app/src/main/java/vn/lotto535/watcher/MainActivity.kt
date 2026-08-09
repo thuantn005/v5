@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import vn.lotto535.watcher.data.Prefs
 import vn.lotto535.watcher.data.Repository
 import vn.lotto535.watcher.databinding.ActivityMainBinding
+import vn.lotto535.watcher.logic.AntiCrowd
 import vn.lotto535.watcher.logic.Predictor
 import vn.lotto535.watcher.logic.ShareDrawMachine
 import vn.lotto535.watcher.logic.ShareDrawMachine.Kind
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
             renderHistory()
         }
         b.btnBackfill.setOnClickListener { backfillNow() }
+        b.btnWinnerCounts.setOnClickListener { fetchWinnerCountsNow() }
 
         b.swScheduled.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.SCHEDULED, on) }
         b.swReminder.setOnCheckedChangeListener { _, on -> prefs.setEnabled(Kind.REMINDER, on) }
@@ -197,6 +199,65 @@ class MainActivity : AppCompatActivity() {
             "model: KHÔNG công thức nào vượt ngẫu nhiên thuần — vé ngẫu nhiên còn " +
             "về nhì. Mọi vé đều 1/324.632 (J2) và 1/3.895.584 (J1). Đây là cách " +
             "chọn số, không phải cách tăng cơ hội."
+
+        renderAntiCrowd(nextId)
+    }
+
+    /**
+     * Vé NGƯỢC ĐÁM ĐÔNG + kết quả đo thiên lệch từ bảng số người trúng.
+     * Đây là phần DUY NHẤT tác động lên số tiền nhận được (giảm chia giải),
+     * chứ không phải lên xác suất trúng.
+     */
+    private fun renderAntiCrowd(nextId: String) {
+        b.antiCrowdBox.removeAllViews()
+        val rows = prefs.winnerCounts()
+
+        for (t in AntiCrowd.generate(nextId, 5, rows)) {
+            val tv = android.widget.TextView(this).apply {
+                text = "Vé ${t.index}   ${t.pretty()}"
+                textSize = 14f
+                typeface = android.graphics.Typeface.MONOSPACE
+                setPadding(0, 6, 0, 6)
+            }
+            b.antiCrowdBox.addView(tv)
+        }
+
+        val bias = vn.lotto535.watcher.data.CrowdBias.analyze(rows)
+        b.txtAntiCrowdNote.text = when {
+            bias == null ->
+                "Chưa gom được bảng số người trúng nào. App tự cào từ minhchinh " +
+                "mỗi kỳ; bấm \"Cào bảng số người trúng\" để lấy ngay. Tạm dùng " +
+                "quy luật chung: né vùng ngày sinh (≤31), dãy liên tiếp, cấp số cộng."
+            bias.significant -> {
+                val pct = ((1.0 / 12 - bias.pickedFraction) / (1.0 / 12) * 100)
+                "ĐO TỪ ${bias.draws} kỳ: đám đông %s số ĐB đúng %.0f%% so với ngẫu nhiên "
+                    .format(if (pct > 0) "né" else "dồn", kotlin.math.abs(pct)) +
+                "(p=%.1e). Vé trên né vùng đám đông. XÁC SUẤT TRÚNG KHÔNG ĐỔI — chỉ giảm số người chia giải nếu trúng."
+                    .format(bias.pValue)
+            }
+            else ->
+                "Đã gom ${bias.draws} kỳ nhưng chưa đủ mạnh để kết luận (p=%.2f). "
+                    .format(bias.pValue) +
+                "Tạm dùng quy luật chung. Càng nhiều kỳ, bản đồ càng chính xác."
+        }
+    }
+
+    /** Cào bảng số người trúng ngay (thường app tự làm mỗi kỳ). */
+    private fun fetchWinnerCountsNow() {
+        b.btnWinnerCounts.isEnabled = false
+        b.btnWinnerCounts.text = "Đang cào bảng…"
+        lifecycleScope.launch {
+            val wc = runCatching { Repository.fetchWinnerCounts() }.getOrNull()
+            if (wc != null) prefs.addWinnerCounts(wc)
+            val n = prefs.winnerCounts().size
+            b.btnWinnerCounts.text = if (wc == null)
+                "Không cào được bảng số người trúng"
+            else
+                "Đã có $n kỳ số người trúng"
+            b.btnWinnerCounts.isEnabled = true
+            val lastId = prefs.history().maxOfOrNull { it.drawId }?.toIntOrNull()
+            if (lastId != null) renderAntiCrowd("%05d".format(lastId + 1))
+        }
     }
 
     /** Tải trọn bộ lịch sử để vá những kỳ còn thiếu. */

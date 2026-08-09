@@ -36,6 +36,16 @@ object Sources {
      */
     const val PAGES_HISTORY = "https://thuantn005.github.io/v5/history.json"
 
+    /**
+     * Bảng SỐ NGƯỜI TRÚNG mỗi bậc giải — dữ liệu đo thiên lệch đám đông.
+     * minhchinh.com là bên thứ ba, KHÔNG sau WAF vietlott, nên đọc được cả từ
+     * điện thoại lẫn CI (đã dò xác nhận). Trang trực tiếp có bảng đầy đủ.
+     */
+    val WINNER_COUNT_SOURCES = listOf(
+        "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html",
+        "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html",
+    )
+
     const val USER_AGENT =
         "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/131.0.0.0 Mobile Safari/537.36"
