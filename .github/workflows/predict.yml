@@ -113,11 +113,16 @@ jobs:
       - name: Publish history.json for the Android app
         run: python scripts/publish_history_json.py
 
+      # Cào SỐ NGƯỜI TRÚNG mỗi bậc (minhchinh.com) — dữ liệu đo thiên lệch
+      # chọn số của đám đông. Không phá pipeline nếu nguồn tạm lỗi.
+      - name: Gom số người trúng để đo thiên lệch đám đông
+        run: python scripts/fetch_winner_counts.py || true
+
       - name: Commit updated data, logs & dashboard
         run: |
           git config user.name "lotto535-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/all.csv state/ docs/data.json docs/config_tickets.json docs/j1_tickets.json docs/jackpot_wins.json docs/random_tickets.json docs/jackpot.json docs/history.json
+          git add data/all.csv state/ docs/data.json docs/config_tickets.json docs/j1_tickets.json docs/jackpot_wins.json docs/random_tickets.json docs/jackpot.json docs/history.json state/winner_counts.jsonl
           if git diff --cached --quiet; then
             echo "Không có thay đổi để commit."; exit 0
           fi
