@@ -26,7 +26,9 @@ jobs:
             "https://vietlott-sms.vn/" \
             "https://vietlott-sms.vn/lotto535" \
             "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535" \
-            "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535" ; do
+            "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535" \
+            "https://www.minhchinh.com/truc-tiep-xo-so-tu-chon-lotto-535.html" \
+            "https://www.minhchinh.com/xo-so-dien-toan-lotto-535.html" ; do
             i=$((i+1))
             code=$(curl -sS -o "probe/p$i.html" -w '%{http_code}' \
                    --max-time 30 -A "$UA" -H 'Accept-Language: vi-VN,vi;q=0.9' \
