@@ -1,0 +1,39 @@
+name: Dò nguồn vietlott-sms
+
+# Chỉ DÒ trang công khai, KHÔNG đăng nhập, KHÔNG dùng tài khoản nào.
+# Mục đích: biết GitHub Actions có đọc được vietlott-sms.vn / vietlott.vn
+# không, và trang nào có bảng "Số lượng giải" — đó là dữ liệu duy nhất cho
+# phép ĐO thiên lệch chọn số của đám đông.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dò các trang công khai
+        run: |
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+          mkdir -p probe
+          i=0
+          for u in \
+            "https://vietlott-sms.vn/" \
+            "https://vietlott-sms.vn/lotto535" \
+            "https://vietlott.vn/vi/trung-thuong/ket-qua-trung-thuong/535" \
+            "https://vietlott.vn/vi/choi/lotto535/gioi-thieu-san-pham-535" ; do
+            i=$((i+1))
+            code=$(curl -sS -o "probe/p$i.html" -w '%{http_code}' \
+                   --max-time 30 -A "$UA" -H 'Accept-Language: vi-VN,vi;q=0.9' \
+                   "$u" 2>/dev/null || echo "ERR")
+            size=$(wc -c < "probe/p$i.html" 2>/dev/null || echo 0)
+            echo "HTTP $code  ${size} bytes  $u"
+          done
+
+      - name: Trang nào có dữ liệu dùng được?
+        run: python3 scripts/probe_report.py probe
