@@ -30,6 +30,12 @@ object Notifier {
             })
     }
 
+    /** Hiện một tin ntfy (kênh thông tin, không khẩn). */
+    fun showText(ctx: Context, title: String, body: String, id: Int) {
+        show(ctx, Event(vn.lotto535.watcher.logic.ShareDrawMachine.Kind.NEW_DRAW,
+            title, body, urgent = false), id)
+    }
+
     fun show(ctx: Context, event: Event, id: Int) {
         ensureChannels(ctx)
         val open = PendingIntent.getActivity(

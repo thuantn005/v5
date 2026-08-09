@@ -125,6 +125,22 @@ class WatchWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
             Log.w("Lotto535", "winner-counts lỗi", e)
         }
 
+        // Nhận tin từ ntfy (pipeline server đẩy). Poll kèm mỗi lần cào — con trỏ
+        // ntfySince chống lặp tin. Lỗi mạng không phá lần cào.
+        if (prefs.ntfyEnabled) {
+            try {
+                val (msgs, newest) = vn.lotto535.watcher.data.Ntfy.poll(
+                    prefs.ntfyTopic, prefs.ntfySince)
+                for (m in msgs) {
+                    Notifier.showText(applicationContext,
+                        m.title ?: "Lotto 5/35", m.body, 6_000 + (m.id.hashCode() and 0xFFF))
+                }
+                if (newest > prefs.ntfySince) prefs.ntfySince = newest
+            } catch (e: Exception) {
+                Log.w("Lotto535", "ntfy lỗi", e)
+            }
+        }
+
         var id = 4_000
         for (e in allEvents) {
             if (prefs.isEnabled(e.kind)) Notifier.show(applicationContext, e, id++)

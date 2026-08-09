@@ -148,6 +148,20 @@ class Prefs(context: Context) {
         get() = sp.getLong("lastSuccessEpoch", 0L)
         set(v) = sp.edit().putLong("lastSuccessEpoch", v).apply()
 
+    /** Nhận tin từ ntfy topic (tin do pipeline server đẩy). Mặc định BẬT. */
+    var ntfyEnabled: Boolean
+        get() = sp.getBoolean("ntfyEnabled", true)
+        set(v) = sp.edit().putBoolean("ntfyEnabled", v).apply()
+
+    var ntfyTopic: String
+        get() = sp.getString("ntfyTopic", null) ?: vn.lotto535.watcher.data.Ntfy.DEFAULT_TOPIC
+        set(v) = sp.edit().putString("ntfyTopic", v.trim()).apply()
+
+    /** Mốc thời gian (giây) tin ntfy mới nhất đã nhận — để không lặp tin. */
+    var ntfySince: Long
+        get() = sp.getLong("ntfySince", 0L)
+        set(v) = sp.edit().putLong("ntfySince", v).apply()
+
     /** Cho phép dùng nguồn dự phòng khi vietlott.vn không vào được.
      *  MẶC ĐỊNH TẮT — app chỉ đọc trang chính thức. */
     var useMirrors: Boolean

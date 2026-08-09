@@ -306,5 +306,11 @@
             android:layout_height="wrap_content"
             android:text="Dùng nguồn dự phòng khi vietlott.vn lỗi" />
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/swNtfy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nhận tin qua ntfy (lotto535-thuan)" />
+
     </LinearLayout>
 </ScrollView>

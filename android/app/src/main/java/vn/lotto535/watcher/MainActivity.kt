@@ -64,6 +64,10 @@ class MainActivity : AppCompatActivity() {
             prefs.useMirrors = on
             if (on) refreshNow()
         }
+        b.swNtfy.setOnCheckedChangeListener { _, on ->
+            prefs.ntfyEnabled = on
+            if (on) pollNtfyNow()
+        }
 
         Scheduler.ensureScheduled(this)
         requestNotificationPermissionIfNeeded()
@@ -242,6 +246,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Poll ntfy ngay để kéo tin server đã đẩy. */
+    private fun pollNtfyNow() {
+        lifecycleScope.launch {
+            try {
+                val (msgs, newest) = vn.lotto535.watcher.data.Ntfy.poll(
+                    prefs.ntfyTopic, prefs.ntfySince)
+                for (m in msgs) {
+                    Notifier.showText(this@MainActivity,
+                        m.title ?: "Lotto 5/35", m.body, 6_000 + (m.id.hashCode() and 0xFFF))
+                }
+                if (newest > prefs.ntfySince) prefs.ntfySince = newest
+            } catch (e: Exception) { /* im lặng, sẽ thử lại lần cào sau */ }
+        }
+    }
+
     /** Cào bảng số người trúng ngay (thường app tự làm mỗi kỳ). */
     private fun fetchWinnerCountsNow() {
         b.btnWinnerCounts.isEnabled = false
@@ -384,6 +403,7 @@ class MainActivity : AppCompatActivity() {
         b.swNewDraw.isChecked = prefs.isEnabled(Kind.NEW_DRAW)
         b.swScrapeFail.isChecked = prefs.isEnabled(Kind.SCRAPE_FAIL)
         b.swMirrors.isChecked = prefs.useMirrors
+        b.swNtfy.isChecked = prefs.ntfyEnabled
         b.swMissed.isChecked = prefs.isEnabled(Kind.MISSED)
         val (nextAt, _) = Scheduler.nextSlot()
         b.txtInterval.text = "Tự cào lúc ${Scheduler.describe()} (giờ VN) · " +
