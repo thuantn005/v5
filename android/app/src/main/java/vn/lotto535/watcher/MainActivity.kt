@@ -16,6 +16,7 @@ import vn.lotto535.watcher.data.Prefs
 import vn.lotto535.watcher.data.Repository
 import vn.lotto535.watcher.databinding.ActivityMainBinding
 import vn.lotto535.watcher.logic.AntiCrowd
+import vn.lotto535.watcher.logic.PredictionAudit
 import vn.lotto535.watcher.logic.Predictor
 import vn.lotto535.watcher.logic.ShareDrawMachine
 import vn.lotto535.watcher.logic.ShareDrawMachine.Kind
@@ -299,6 +300,55 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
+     * Bảng vàng: vé dự đoán từng kỳ quá khứ vs kết quả thật. Chạy trên máy,
+     * backtest tiến (chỉ dùng quá khứ mỗi kỳ) nên trung thực.
+     */
+    private fun renderAudit() {
+        b.auditBox.removeAllViews()
+        val hist = prefs.history()
+        if (hist.size < 40) {
+            b.txtAuditSummary.text = "Cần thêm lịch sử để chấm (bấm \"Tải bổ sung lịch sử\")."
+            b.txtAuditNote.text = ""
+            return
+        }
+        val s = PredictionAudit.audit(hist)
+        if (s.evaluated == 0) {
+            b.txtAuditSummary.text = "Chưa chấm được kỳ nào."
+            return
+        }
+
+        b.txtAuditSummary.text =
+            "Chấm ${s.evaluated} kỳ · trúng nhiều nhất (best 5 vé): " +
+            "%.3f số — ngẫu nhiên %.3f · trúng ĐB %.0f%% · J2 %d · J1 %d"
+                .format(s.avgBestMainHits, s.avgBestMainRandom,
+                        s.specialHitRate * 100, s.jackpot2, s.jackpot1)
+
+        for (r in s.rows.take(25)) {
+            val stars = "●".repeat(r.bestMainHits) + "○".repeat(5 - r.bestMainHits)
+            val extra = buildString {
+                if (r.specialHit) append(" +ĐB")
+                if (r.jackpot2) append(" ★J2")
+                if (r.jackpot1) append(" ★★J1")
+            }
+            val tv = android.widget.TextView(this).apply {
+                text = "#${r.drawId}  $stars ${r.bestMainHits}/5$extra"
+                textSize = 13f
+                typeface = android.graphics.Typeface.MONOSPACE
+                setPadding(0, 5, 0, 5)
+            }
+            b.auditBox.addView(tv)
+        }
+
+        val diff = s.avgBestMainHits - s.avgBestMainRandom
+        b.txtAuditNote.text =
+            "So công bằng: best-của-5-vé công thức vs best-của-5-vé NGẪU NHIÊN " +
+            "(so với 0,7143 của 1 vé là sai). Chênh lệch %+.3f. ".format(diff) +
+            "Trên ít kỳ, chênh này dao động và dễ trông như lợi thế; càng nhiều " +
+            "kỳ càng co về 0 (đo 600 kỳ: +0,01). Không có lợi thế thật — mọi vé " +
+            "vẫn 1/324.632 (J2), 1/3.895.584 (J1)."
+    }
+
+    /**
      * Lịch sử tích luỹ. Chỗ nào thủng mã kỳ thì hiện thẳng dòng "thiếu #…" —
      * lịch sử có lỗ mà trông liền mạch còn nguy hiểm hơn không có lịch sử.
      */
@@ -392,6 +442,7 @@ class MainActivity : AppCompatActivity() {
 
         renderHistory()
         renderPrediction()
+        renderAudit()
 
         b.txtPermWarn.visibility =
             if (notificationsAllowed()) android.view.View.GONE else android.view.View.VISIBLE

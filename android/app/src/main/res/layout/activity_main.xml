@@ -121,6 +121,39 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Bảng vàng — vé dự đoán đối chiếu kết quả thật"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="18dp"
+            android:paddingBottom="2dp" />
+
+        <TextView
+            android:id="@+id/txtAuditSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="13sp"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:id="@+id/auditBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:id="@+id/txtAuditNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="11sp"
+            android:alpha="0.55"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Kỳ quay mới nhất"
             android:textSize="13sp"
             android:alpha="0.7"
