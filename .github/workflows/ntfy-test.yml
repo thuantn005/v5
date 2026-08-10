@@ -1,0 +1,22 @@
+name: Gửi tin thử ntfy
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: "Nội dung tin"
+        default: "Tin thử từ hệ thống Lotto 5/35 — kênh lotto535-thuan hoạt động."
+permissions:
+  contents: read
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Đẩy tin lên ntfy
+        run: |
+          curl -sS -X POST "https://ntfy.sh/lotto535-thuan" \
+            -H "Title: Thử thông báo Lotto 5/35" \
+            -H "Priority: high" \
+            -H "Tags: moneybag" \
+            -d "${{ github.event.inputs.message }}" \
+            -w '\nHTTP %{http_code}\n'
