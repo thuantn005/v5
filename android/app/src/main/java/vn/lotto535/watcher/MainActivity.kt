@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity() {
 
         for (t in Predictor.predict(hist, nextId, count = 5)) {
             val tv = android.widget.TextView(this).apply {
-                text = "Vé ${t.index}   ${t.pretty()}"
+                text = t.label()
                 textSize = 14f
                 typeface = android.graphics.Typeface.MONOSPACE
                 setPadding(0, 6, 0, 6)
@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
 
         for (t in AntiCrowd.generate(nextId, 5, rows)) {
             val tv = android.widget.TextView(this).apply {
-                text = "Vé ${t.index}   ${t.pretty()}"
+                text = t.label()
                 textSize = 14f
                 typeface = android.graphics.Typeface.MONOSPACE
                 setPadding(0, 6, 0, 6)
