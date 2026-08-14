@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-14T00:25:24.876225+07:00",
-  "jackpot_vnd": 6172970000,
-  "draw_id": "00823",
+  "generated_at": "2026-08-14T14:59:47.947851+07:00",
+  "jackpot_vnd": 6219315000,
+  "draw_id": "00824",
   "jackpot_source": null,
   "share_pending": false,
   "share_date": null,
-  "peak_jackpot": 6172970000,
+  "peak_jackpot": 6219315000,
   "trigger_draw_id": null,
   "threshold_vnd": 12000000000,
   "note": "Dự phòng cho app Android. Nguồn gốc vẫn là vietlott.vn — app ưu tiên cào thẳng trang chính thức trước khi dùng file này."
