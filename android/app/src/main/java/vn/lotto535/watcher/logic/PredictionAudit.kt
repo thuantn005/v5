@@ -16,37 +16,56 @@ import vn.lotto535.watcher.data.Draw
  */
 object PredictionAudit {
 
+    /** Chi tiết 1 vé trong 1 kỳ. */
+    data class TicketResult(
+        val index: Int,
+        val windowLabel: String,
+        val numbers: List<Int>,
+        val special: Int,
+        val mainHits: Int,        // số chính khớp
+        val hitNumbers: List<Int>,// những số khớp cụ thể
+        val specialHit: Boolean,
+        val jackpot2: Boolean,
+        val jackpot1: Boolean,
+    ) {
+        fun pretty(): String {
+            val nums = numbers.joinToString(" ") { String.format("%02d", it) }
+            val sp = String.format("%02d", special)
+            val spMark = if (specialHit) " ✅ĐB" else ""
+            return "[$windowLabel] $nums +$sp → $mainHits/5$spMark"
+        }
+    }
+
     data class Row(
         val drawId: String,
-        val bestMainHits: Int,      // số chính trúng nhiều nhất trong 5 vé
-        val specialHit: Boolean,    // có vé nào trúng cả ĐB không
-        val jackpot2: Boolean,      // vé nào trúng đủ 5 số chính
-        val jackpot1: Boolean,      // 5 chính + ĐB
-    )
+        val drawDate: String,
+        val actualNumbers: List<Int>,
+        val actualSpecial: Int,
+        val tickets: List<TicketResult>,
+        val bestMainHits: Int,
+        val specialHit: Boolean,
+        val jackpot2: Boolean,
+        val jackpot1: Boolean,
+    ) {
+        fun prettyActual(): String {
+            val nums = actualNumbers.joinToString(" ") { String.format("%02d", it) }
+            return "#$drawId $drawDate  $nums +${String.format("%02d", actualSpecial)}"
+        }
+    }
 
     data class Summary(
         val rows: List<Row>,
         val evaluated: Int,
         val avgBestMainHits: Double,
-        /** Mốc CÔNG BẰNG: best-của-5-vé NGẪU NHIÊN trên đúng các kỳ ấy. So
-         *  best-của-5 với 0,7143 (mốc 1 vé) là gian lận — đây mới đúng. */
         val avgBestMainRandom: Double,
         val specialHitRate: Double,
         val jackpot2: Int,
         val jackpot1: Int,
     )
 
-    private const val MIN_HISTORY = 30      // cần đủ lịch sử trước khi chấm
+    private const val MIN_HISTORY = 30
     private const val TICKETS = 5
 
-    /**
-     * Chấm các kỳ gần nhất (tối đa `window`). Với mỗi kỳ, dựng lại vé dự đoán
-     * TỪ lịch sử trước đó rồi so với kết quả thật.
-     *
-     * Mặc định 200 kỳ, KHÔNG phải 40: đo trên 40 kỳ, công thức trông hơn ngẫu
-     * nhiên (+0,1) nhưng đó là nhiễu — thêm kỳ vào thì chênh lệch co về ~0
-     * (600 kỳ: +0,01). Cửa sổ nhỏ dễ tạo ảo giác có lợi thế.
-     */
     fun audit(history: List<Draw>, window: Int = 200): Summary {
         val sorted = history
             .filter { it.numbers.size == 5 && it.special != null }
@@ -57,27 +76,42 @@ object PredictionAudit {
         val startIdx = maxOf(MIN_HISTORY, sorted.size - window)
         for (i in startIdx until sorted.size) {
             val target = sorted[i]
-            val prior = sorted.subList(0, i)          // CHỈ quá khứ — không rò tương lai
+            val prior = sorted.subList(0, i)
             if (prior.size < MIN_HISTORY) continue
 
             val tickets = Predictor.predict(prior, target.drawId, TICKETS)
             if (tickets.isEmpty()) continue
 
             val actualMain = target.numbers.toSet()
-            var bestMain = 0
-            var special = false
-            var jp2 = false
-            var jp1 = false
-            for (t in tickets) {
-                val hits = t.numbers.count { it in actualMain }
-                if (hits > bestMain) bestMain = hits
-                val sp = (t.special == target.special)
-                if (sp) special = true
-                if (hits == 5) { jp2 = true; if (sp) jp1 = true }
+            val ticketResults = tickets.map { t ->
+                val hits = t.numbers.filter { it in actualMain }
+                val spHit = t.special == target.special
+                TicketResult(
+                    index       = t.index,
+                    windowLabel = t.windowLabel,
+                    numbers     = t.numbers,
+                    special     = t.special,
+                    mainHits    = hits.size,
+                    hitNumbers  = hits.sorted(),
+                    specialHit  = spHit,
+                    jackpot2    = hits.size == 5,
+                    jackpot1    = hits.size == 5 && spHit,
+                )
             }
-            rows.add(Row(target.drawId, bestMain, special, jp2, jp1))
 
-            // Mốc công bằng: 5 vé NGẪU NHIÊN cho đúng kỳ này, lấy best.
+            val best = ticketResults.maxOf { it.mainHits }
+            rows.add(Row(
+                drawId        = target.drawId,
+                drawDate      = target.drawDate ?: "",
+                actualNumbers = target.numbers.sorted(),
+                actualSpecial = target.special ?: 0,
+                tickets       = ticketResults,
+                bestMainHits  = best,
+                specialHit    = ticketResults.any { it.specialHit },
+                jackpot2      = ticketResults.any { it.jackpot2 },
+                jackpot1      = ticketResults.any { it.jackpot1 },
+            ))
+
             val rng = java.util.Random(target.drawId.hashCode().toLong() * 31 + 7)
             var rb = 0
             repeat(TICKETS) {
