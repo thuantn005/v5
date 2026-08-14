@@ -1,0 +1,116 @@
+name: Scan J1 Parallel
+
+on:
+  workflow_dispatch:
+    inputs:
+      min_j1:
+        description: 'Số lần J1 tối thiểu'
+        default: '3'
+      total_seeds:
+        description: 'Tổng seed cần quét'
+        default: '10000000000'
+      runners:
+        description: 'Số runner song song (tối đa 20)'
+        default: '20'
+
+jobs:
+  scan:
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Tính range và quét
+        env:
+          MIN_J1:      ${{ github.event.inputs.min_j1 }}
+          TOTAL:       ${{ github.event.inputs.total_seeds }}
+          RUNNERS:     ${{ github.event.inputs.runners }}
+          CHUNK:       ${{ matrix.chunk }}
+          CSV_PATH:    data/all.csv
+        run: |
+          python3 -c "
+          import os, math
+          total=int(os.environ['TOTAL'])
+          runners=int(os.environ['RUNNERS'])
+          chunk=int(os.environ['CHUNK'])
+          size=math.ceil(total/runners)
+          start=chunk*size+1
+          end=min((chunk+1)*size, total)
+          print(f'SCAN_START={start}')
+          print(f'SCAN_END={end}')
+          " >> $GITHUB_ENV
+
+      - name: Quét chunk ${{ matrix.chunk }}
+        env:
+          CSV_PATH:  data/all.csv
+          OUT_PATH:  configs/j1_chunk_${{ matrix.chunk }}.json
+          MIN_J1:    ${{ github.event.inputs.min_j1 }}
+        run: |
+          timeout 21000 python scripts/scan_j1_triple.py || echo "Timeout"
+
+      - name: Upload kết quả chunk
+        uses: actions/upload-artifact@v4
+        with:
+          name: j1-chunk-${{ matrix.chunk }}
+          path: configs/j1_chunk_${{ matrix.chunk }}.json
+
+  merge:
+    needs: scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download tất cả chunks
+        uses: actions/download-artifact@v4
+        with:
+          path: configs/chunks/
+
+      - name: Merge kết quả
+        run: |
+          python3 << 'EOF'
+          import json, glob, os
+          from pathlib import Path
+
+          all_results = []
+          for f in glob.glob('configs/chunks/**/*.json', recursive=True):
+              try:
+                  data = json.load(open(f))
+                  all_results.extend(data.get('results', []))
+              except: pass
+
+          # Deduplicate theo seed
+          seen = {}
+          for r in all_results:
+              s = r['seed']
+              if s not in seen or r['j1_count'] > seen[s]['j1_count']:
+                  seen[s] = r
+
+          final = sorted(seen.values(), key=lambda x: -x['j1_count'])
+          out = {
+              'total_seeds_scanned': sum(
+                  json.load(open(f)).get('scan_end',0) - json.load(open(f)).get('scan_start',0)
+                  for f in glob.glob('configs/chunks/**/*.json', recursive=True)
+              ),
+              'found': len(final),
+              'results': final
+          }
+          json.dump(out, open('configs/jackpot1_triple.json','w'), ensure_ascii=False, indent=1)
+          print(f"Merged: {len(final)} seeds J1 found")
+          for r in final[:10]:
+              print(f"  seed={r['seed']} J1={r['j1_count']}x J2={r['j2_count']}x")
+          EOF
+
+      - name: Commit kết quả
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add configs/jackpot1_triple.json
+          git diff --staged --quiet || git commit -m "scan: J1 parallel 10B seeds"
+          git push
