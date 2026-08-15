@@ -1,76 +1,83 @@
 {
-  "tuned_at": "2026-08-07T15:31:21.163037+00:00",
+  "tuned_at": "2026-08-15T07:09:08.805932+00:00",
   "train_fraction": 0.7,
   "results": {
+    "chaos_logistic": {
+      "chosen_params": {},
+      "train_avg_hits": 0.6383,
+      "holdout_avg_hits": 0.6089,
+      "train_draws": 517,
+      "holdout_draws": 248
+    },
     "special_fortune": {
       "chosen_params": {},
-      "train_avg_hits": 0.7258,
-      "holdout_avg_hits": 0.6955,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.7176,
+      "holdout_avg_hits": 0.6976,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "uniform_seeded": {
       "chosen_params": {},
-      "train_avg_hits": 0.7179,
-      "holdout_avg_hits": 0.7942,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.7176,
+      "holdout_avg_hits": 0.7984,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "momentum_seeded": {
       "chosen_params": {},
-      "train_avg_hits": 0.6903,
-      "holdout_avg_hits": 0.6255,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.6867,
+      "holdout_avg_hits": 0.6371,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "momentum_pure": {
       "chosen_params": {},
-      "train_avg_hits": 0.7495,
-      "holdout_avg_hits": 0.6996,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.7485,
+      "holdout_avg_hits": 0.7056,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "vedic_chakra": {
       "chosen_params": {},
-      "train_avg_hits": 0.6706,
-      "holdout_avg_hits": 0.7078,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.6673,
+      "holdout_avg_hits": 0.7097,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "vedic_virahanka": {
       "chosen_params": {},
-      "train_avg_hits": 0.7495,
-      "holdout_avg_hits": 0.7284,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.7524,
+      "holdout_avg_hits": 0.754,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "ramanujan_sigma": {
       "chosen_params": {},
-      "train_avg_hits": 0.6785,
-      "holdout_avg_hits": 0.6914,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.6789,
+      "holdout_avg_hits": 0.6694,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "aryabhata_cycle": {
       "chosen_params": {},
-      "train_avg_hits": 0.6765,
-      "holdout_avg_hits": 0.6831,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.6789,
+      "holdout_avg_hits": 0.6653,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "neural_perceptron": {
       "chosen_params": {},
-      "train_avg_hits": 0.7574,
-      "holdout_avg_hits": 0.7449,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.766,
+      "holdout_avg_hits": 0.7177,
+      "train_draws": 517,
+      "holdout_draws": 248
     },
     "indian_per_slot": {
       "chosen_params": {},
-      "train_avg_hits": 0.7258,
-      "holdout_avg_hits": 0.6708,
-      "train_draws": 507,
-      "holdout_draws": 243
+      "train_avg_hits": 0.7234,
+      "holdout_avg_hits": 0.6815,
+      "train_draws": 517,
+      "holdout_draws": 248
     }
   },
   "note": "Params are chosen on the TRAIN split only, then re-scored on a held-out VALIDATION split never used for selection. If holdout_avg_hits isn't consistently close to or above train_avg_hits across strategies, the 'best' params on train are likely just fitting noise -- expected for a genuinely random game."
