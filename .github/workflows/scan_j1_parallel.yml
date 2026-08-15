@@ -27,90 +27,85 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Tính range và quét
+      - name: Tính range
         env:
-          MIN_J1:      ${{ github.event.inputs.min_j1 }}
-          TOTAL:       ${{ github.event.inputs.total_seeds }}
-          RUNNERS:     ${{ github.event.inputs.runners }}
-          CHUNK:       ${{ matrix.chunk }}
-          CSV_PATH:    data/all.csv
+          TOTAL:   ${{ github.event.inputs.total_seeds }}
+          RUNNERS: ${{ github.event.inputs.runners }}
+          CHUNK:   ${{ matrix.chunk }}
         run: |
           python3 -c "
-          import os, math
+          import os,math
           total=int(os.environ['TOTAL'])
           runners=int(os.environ['RUNNERS'])
           chunk=int(os.environ['CHUNK'])
           size=math.ceil(total/runners)
           start=chunk*size+1
-          end=min((chunk+1)*size, total)
+          end=min((chunk+1)*size,total)
           print(f'SCAN_START={start}')
           print(f'SCAN_END={end}')
           " >> $GITHUB_ENV
 
       - name: Quét chunk ${{ matrix.chunk }}
         env:
-          CSV_PATH:  data/all.csv
-          OUT_PATH:  configs/j1_chunk_${{ matrix.chunk }}.json
-          MIN_J1:    ${{ github.event.inputs.min_j1 }}
+          CSV_PATH: data/all.csv
+          OUT_PATH: configs/j1_chunk_${{ matrix.chunk }}.json
+          MIN_J1:   ${{ github.event.inputs.min_j1 }}
         run: |
-          timeout 21000 python scripts/scan_j1_triple.py || echo "Timeout"
+          timeout 21000 python scripts/scan_j1_triple.py || true
 
-      - name: Upload kết quả chunk
-        uses: actions/upload-artifact@v4
-        with:
-          name: j1-chunk-${{ matrix.chunk }}
-          path: configs/j1_chunk_${{ matrix.chunk }}.json
+      - name: Commit chunk ${{ matrix.chunk }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
+          git add configs/j1_chunk_${{ matrix.chunk }}.json
+          git diff --staged --quiet || git commit -m "scan: chunk ${{ matrix.chunk }} seed $SCAN_START-$SCAN_END"
+          git push
 
   merge:
     needs: scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Download tất cả chunks
-        uses: actions/download-artifact@v4
         with:
-          path: configs/chunks/
+          fetch-depth: 0
 
-      - name: Merge kết quả
+      - name: Pull latest
+        run: git pull
+
+      - name: Merge tất cả chunks
         run: |
           python3 << 'EOF'
-          import json, glob, os
+          import json,glob,os
           from pathlib import Path
 
-          all_results = []
-          for f in glob.glob('configs/chunks/**/*.json', recursive=True):
+          all_results=[]
+          scanned=0
+          for f in sorted(glob.glob('configs/j1_chunk_*.json')):
               try:
-                  data = json.load(open(f))
-                  all_results.extend(data.get('results', []))
+                  data=json.load(open(f))
+                  all_results.extend(data.get('results',[]))
+                  scanned+=data.get('scan_end',0)-data.get('scan_start',0)+1
               except: pass
 
-          # Deduplicate theo seed
-          seen = {}
+          seen={}
           for r in all_results:
-              s = r['seed']
-              if s not in seen or r['j1_count'] > seen[s]['j1_count']:
-                  seen[s] = r
+              s=r['seed']
+              if s not in seen or r['j1_count']>seen[s]['j1_count']:
+                  seen[s]=r
 
-          final = sorted(seen.values(), key=lambda x: -x['j1_count'])
-          out = {
-              'total_seeds_scanned': sum(
-                  json.load(open(f)).get('scan_end',0) - json.load(open(f)).get('scan_start',0)
-                  for f in glob.glob('configs/chunks/**/*.json', recursive=True)
-              ),
-              'found': len(final),
-              'results': final
-          }
-          json.dump(out, open('configs/jackpot1_triple.json','w'), ensure_ascii=False, indent=1)
-          print(f"Merged: {len(final)} seeds J1 found")
-          for r in final[:10]:
-              print(f"  seed={r['seed']} J1={r['j1_count']}x J2={r['j2_count']}x")
+          final=sorted(seen.values(),key=lambda x:-x['j1_count'])
+          out={'total_seeds_scanned':scanned,'found':len(final),'results':final}
+          json.dump(out,open('configs/jackpot1_triple.json','w'),ensure_ascii=False,indent=1)
+          print(f"Merged {len(final)} seeds J1>=3 từ {scanned:,} seeds quét")
+          for r in final[:20]:
+              print(f"  seed={r['seed']} J1={r['j1_count']}x kỳ={[h['draw_id'] for h in r['jackpot1_hits']]}")
           EOF
 
-      - name: Commit kết quả
+      - name: Commit kết quả cuối
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add configs/jackpot1_triple.json
-          git diff --staged --quiet || git commit -m "scan: J1 parallel 10B seeds"
+          git diff --staged --quiet || git commit -m "scan: merge J1 triple — $(python3 -c "import json; d=json.load(open('configs/jackpot1_triple.json')); print(f'{d[\"found\"]} seeds found / {d[\"total_seeds_scanned\":,]} scanned')")"
           git push
