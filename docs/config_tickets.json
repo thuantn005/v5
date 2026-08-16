@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-08-16T04:02:16+00:00",
- "next_draw": 827,
- "prev_draw": 826,
+ "generated_at": "2026-08-16T09:07:49+00:00",
+ "next_draw": 828,
+ "prev_draw": 827,
  "prize": "Jackpot 2 — khop 5/5 so chinh",
  "disclaimer": "Cac config nay tung trung 3 lan Jackpot 2 (5/5 so chinh) trong qua khu do quet ~4.2 ty seed (survivorship). Xac suat ky toi cua moi ve van la 1/324,632 — khong co edge. Chi giai tri.",
  "tickets": [
@@ -11,13 +11,13 @@
    "seed": 793931107,
    "name": "Aryabhata",
    "numbers": [
-    15,
-    23,
-    24,
-    30,
-    31
+    3,
+    9,
+    31,
+    32,
+    35
    ],
-   "special": 3,
+   "special": 10,
    "history": [
     {
      "draw_id": 245,
@@ -54,32 +54,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
+     24,
+     30,
+     33
     ],
-    "actual_special": 9,
+    "actual_special": 2,
     "predicted": [
-     8,
-     17,
-     22,
-     28,
-     32
+     15,
+     23,
+     24,
+     30,
+     31
     ],
-    "predicted_special": 1,
-    "main_hits": 3,
+    "predicted_special": 3,
+    "main_hits": 2,
     "special_hit": false
    },
    "recent": {
     "n": 12,
-    "avg_main_hits": 0.75,
+    "avg_main_hits": 0.833,
     "special_hits": 2,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       15,
+       23,
+       24,
+       30,
+       31
+      ],
+      "predicted_special": 3,
+      "main_hits": 2,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -321,28 +343,6 @@
       "predicted_special": 4,
       "main_hits": 0,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       6,
-       20,
-       23,
-       24,
-       26
-      ],
-      "predicted_special": 5,
-      "main_hits": 1,
-      "special_hit": false
      }
     ]
    }
@@ -353,13 +353,13 @@
    "seed": 1711867148,
    "name": "Brahmagupta",
    "numbers": [
-    13,
-    16,
+    5,
+    6,
+    14,
     17,
-    18,
-    29
+    28
    ],
-   "special": 1,
+   "special": 4,
    "history": [
     {
      "draw_id": 164,
@@ -396,32 +396,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
+     24,
+     30,
+     33
     ],
-    "actual_special": 9,
+    "actual_special": 2,
     "predicted": [
-     15,
+     13,
+     16,
      17,
-     26,
-     29,
-     32
+     18,
+     29
     ],
-    "predicted_special": 6,
-    "main_hits": 1,
+    "predicted_special": 1,
+    "main_hits": 0,
     "special_hit": false
    },
    "recent": {
     "n": 12,
-    "avg_main_hits": 0.667,
+    "avg_main_hits": 0.583,
     "special_hits": 0,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       13,
+       16,
+       17,
+       18,
+       29
+      ],
+      "predicted_special": 1,
+      "main_hits": 0,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -663,28 +685,6 @@
       "predicted_special": 5,
       "main_hits": 0,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       5,
-       10,
-       17,
-       21,
-       28
-      ],
-      "predicted_special": 9,
-      "main_hits": 1,
-      "special_hit": false
      }
     ]
    }
@@ -695,13 +695,13 @@
    "seed": 1978484241,
    "name": "Bhaskara II",
    "numbers": [
-    16,
-    22,
-    27,
-    32,
+    2,
+    12,
+    14,
+    15,
     35
    ],
-   "special": 3,
+   "special": 2,
    "history": [
     {
      "draw_id": 75,
@@ -738,32 +738,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
+     24,
+     30,
+     33
     ],
-    "actual_special": 9,
+    "actual_special": 2,
     "predicted": [
-     5,
-     14,
-     17,
-     26,
-     34
+     16,
+     22,
+     27,
+     32,
+     35
     ],
-    "predicted_special": 5,
-    "main_hits": 1,
+    "predicted_special": 3,
+    "main_hits": 0,
     "special_hit": false
    },
    "recent": {
     "n": 12,
     "avg_main_hits": 1.0,
-    "special_hits": 1,
+    "special_hits": 0,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       16,
+       22,
+       27,
+       32,
+       35
+      ],
+      "predicted_special": 3,
+      "main_hits": 0,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -1005,28 +1027,6 @@
       "predicted_special": 1,
       "main_hits": 2,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       13,
-       21,
-       27,
-       29,
-       32
-      ],
-      "predicted_special": 3,
-      "main_hits": 0,
-      "special_hit": true
      }
     ]
    }
@@ -1037,13 +1037,13 @@
    "seed": 2676381000,
    "name": "Mahavira",
    "numbers": [
-    2,
-    3,
-    6,
-    30,
-    32
+    7,
+    9,
+    22,
+    27,
+    30
    ],
-   "special": 3,
+   "special": 7,
    "history": [
     {
      "draw_id": 316,
@@ -1080,32 +1080,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
-     20,
-     28
-    ],
-    "actual_special": 9,
-    "predicted": [
-     2,
      9,
      20,
-     26,
-     29
+     24,
+     30,
+     33
     ],
-    "predicted_special": 9,
+    "actual_special": 2,
+    "predicted": [
+     2,
+     3,
+     6,
+     30,
+     32
+    ],
+    "predicted_special": 3,
     "main_hits": 1,
-    "special_hit": true
+    "special_hit": false
    },
    "recent": {
     "n": 12,
-    "avg_main_hits": 0.75,
+    "avg_main_hits": 0.833,
     "special_hits": 2,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       2,
+       3,
+       6,
+       30,
+       32
+      ],
+      "predicted_special": 3,
+      "main_hits": 1,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -1347,28 +1369,6 @@
       "predicted_special": 10,
       "main_hits": 0,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       3,
-       16,
-       22,
-       26,
-       33
-      ],
-      "predicted_special": 12,
-      "main_hits": 0,
-      "special_hit": false
      }
     ]
    }
@@ -1379,13 +1379,13 @@
    "seed": 3008260093,
    "name": "Varahamihira",
    "numbers": [
-    10,
-    12,
-    14,
+    7,
+    16,
     17,
-    20
+    22,
+    30
    ],
-   "special": 12,
+   "special": 7,
    "history": [
     {
      "draw_id": 120,
@@ -1422,32 +1422,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
+     24,
+     30,
+     33
     ],
-    "actual_special": 9,
+    "actual_special": 2,
     "predicted": [
-     8,
+     10,
      12,
-     19,
-     20,
-     21
+     14,
+     17,
+     20
     ],
-    "predicted_special": 5,
-    "main_hits": 2,
+    "predicted_special": 12,
+    "main_hits": 1,
     "special_hit": false
    },
    "recent": {
     "n": 12,
-    "avg_main_hits": 0.75,
+    "avg_main_hits": 0.833,
     "special_hits": 1,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       10,
+       12,
+       14,
+       17,
+       20
+      ],
+      "predicted_special": 12,
+      "main_hits": 1,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -1689,28 +1711,6 @@
       "predicted_special": 9,
       "main_hits": 1,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       6,
-       13,
-       20,
-       27,
-       29
-      ],
-      "predicted_special": 10,
-      "main_hits": 0,
-      "special_hit": false
      }
     ]
    }
@@ -1721,13 +1721,13 @@
    "seed": 3499271096,
    "name": "Madhava",
    "numbers": [
-    4,
-    11,
-    14,
-    25,
-    29
+    2,
+    7,
+    9,
+    20,
+    32
    ],
-   "special": 9,
+   "special": 3,
    "history": [
     {
      "draw_id": 255,
@@ -1764,24 +1764,24 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
-    ],
-    "actual_special": 9,
-    "predicted": [
-     12,
-     19,
      24,
-     33,
-     35
+     30,
+     33
     ],
-    "predicted_special": 5,
+    "actual_special": 2,
+    "predicted": [
+     4,
+     11,
+     14,
+     25,
+     29
+    ],
+    "predicted_special": 9,
     "main_hits": 0,
     "special_hit": false
    },
@@ -1790,6 +1790,28 @@
     "avg_main_hits": 0.667,
     "special_hits": 3,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       4,
+       11,
+       14,
+       25,
+       29
+      ],
+      "predicted_special": 9,
+      "main_hits": 0,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -2031,28 +2053,6 @@
       "predicted_special": 2,
       "main_hits": 2,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       10,
-       18,
-       24,
-       27,
-       33
-      ],
-      "predicted_special": 11,
-      "main_hits": 0,
-      "special_hit": false
      }
     ]
    }
@@ -2063,13 +2063,13 @@
    "seed": 3918496093,
    "name": "Nilakantha",
    "numbers": [
-    6,
-    7,
-    8,
-    18,
-    33
+    9,
+    29,
+    32,
+    33,
+    35
    ],
-   "special": 3,
+   "special": 4,
    "history": [
     {
      "draw_id": 337,
@@ -2106,32 +2106,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
-    ],
-    "actual_special": 9,
-    "predicted": [
-     14,
-     22,
-     29,
+     24,
      30,
-     32
+     33
     ],
-    "predicted_special": 7,
-    "main_hits": 0,
+    "actual_special": 2,
+    "predicted": [
+     6,
+     7,
+     8,
+     18,
+     33
+    ],
+    "predicted_special": 3,
+    "main_hits": 1,
     "special_hit": false
    },
    "recent": {
     "n": 12,
-    "avg_main_hits": 0.917,
+    "avg_main_hits": 0.833,
     "special_hits": 0,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       6,
+       7,
+       8,
+       18,
+       33
+      ],
+      "predicted_special": 3,
+      "main_hits": 1,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -2373,28 +2395,6 @@
       "predicted_special": 4,
       "main_hits": 0,
       "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       5,
-       17,
-       25,
-       30,
-       31
-      ],
-      "predicted_special": 11,
-      "main_hits": 2,
-      "special_hit": false
      }
     ]
    }
@@ -2405,13 +2405,13 @@
    "seed": 4127757402,
    "name": "Sridhara",
    "numbers": [
-    6,
-    11,
-    25,
-    26,
-    30
+    5,
+    10,
+    17,
+    21,
+    23
    ],
-   "special": 3,
+   "special": 4,
    "history": [
     {
      "draw_id": 182,
@@ -2448,32 +2448,54 @@
     }
    ],
    "last_result": {
-    "draw_id": 826,
-    "draw_date": "2026-08-15",
+    "draw_id": 827,
+    "draw_date": "2026-08-16",
     "actual": [
-     8,
-     10,
-     17,
+     9,
      20,
-     28
-    ],
-    "actual_special": 9,
-    "predicted": [
-     3,
-     11,
-     23,
      24,
-     35
+     30,
+     33
     ],
-    "predicted_special": 10,
-    "main_hits": 0,
+    "actual_special": 2,
+    "predicted": [
+     6,
+     11,
+     25,
+     26,
+     30
+    ],
+    "predicted_special": 3,
+    "main_hits": 1,
     "special_hit": false
    },
    "recent": {
     "n": 12,
-    "avg_main_hits": 0.667,
+    "avg_main_hits": 0.583,
     "special_hits": 1,
     "items": [
+     {
+      "draw_id": 827,
+      "draw_date": "2026-08-16",
+      "actual": [
+       9,
+       20,
+       24,
+       30,
+       33
+      ],
+      "actual_special": 2,
+      "predicted": [
+       6,
+       11,
+       25,
+       26,
+       30
+      ],
+      "predicted_special": 3,
+      "main_hits": 1,
+      "special_hit": false
+     },
      {
       "draw_id": 826,
       "draw_date": "2026-08-15",
@@ -2714,28 +2736,6 @@
       ],
       "predicted_special": 1,
       "main_hits": 1,
-      "special_hit": false
-     },
-     {
-      "draw_id": 815,
-      "draw_date": "2026-08-10",
-      "actual": [
-       23,
-       25,
-       28,
-       31,
-       35
-      ],
-      "actual_special": 3,
-      "predicted": [
-       9,
-       12,
-       23,
-       30,
-       35
-      ],
-      "predicted_special": 12,
-      "main_hits": 2,
       "special_hit": false
      }
     ]
