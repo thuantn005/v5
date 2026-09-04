@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-08-17T06:02:01.160235+00:00",
+  "generated_at": "2026-09-04T01:39:13.528381+00:00",
   "latest_prediction": {
-    "generated_at": "2026-08-16T15:43:52.330054+00:00",
-    "based_on_draw_id": "00828",
-    "based_on_draw_date": "2026-08-16",
-    "target_draw_id": "00829",
+    "generated_at": "2026-09-04T01:39:13.295036+00:00",
+    "based_on_draw_id": "00864",
+    "based_on_draw_date": "2026-09-03",
+    "target_draw_id": "00865",
     "ensemble": {
       "main": [
-        4,
-        9,
-        10,
-        25,
-        31
+        15,
+        16,
+        26,
+        27,
+        32
       ],
-      "special": 11,
+      "special": 3,
       "confidence": 0.0
     },
     "references": {
@@ -21,28 +21,28 @@
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
         "main": [
           2,
-          13,
-          14,
-          20,
-          31
+          18,
+          26,
+          29,
+          33
         ],
-        "special": 5,
-        "trace": "L535-00829-FAIR",
-        "seed": 829,
+        "special": 1,
+        "trace": "L535-00865-FAIR",
+        "seed": 865,
         "method": "rng = random.Random(seed); main = sorted(rng.sample(range(1, 36), 5)); special = rng.randint(1, 12)"
       },
       "random_repeat": {
         "label": "Chọn ngẫu nhiên (có thể lặp lại)",
         "main": [
-          7,
           14,
-          24,
-          29,
-          35
+          18,
+          20,
+          31,
+          32
         ],
-        "special": 9,
-        "trace": "L535-00829-REPEAT",
-        "seed": 1000829,
+        "special": 10,
+        "trace": "L535-00865-REPEAT",
+        "seed": 1000865,
         "method": "rng = random.Random(seed); main = sorted(rng.randint(1, 35) for _ in range(5)); special = rng.randint(1, 12)"
       },
       "nhanaz": {
@@ -63,71 +63,71 @@
     "per_strategy": {
       "ticket_neural": {
         "main": [
-          4,
-          9,
-          10,
-          25,
-          31
+          15,
+          16,
+          26,
+          27,
+          32
         ],
-        "special": 11,
+        "special": 3,
         "label": "Mạng nơ-ron (Perceptron)",
-        "trace": "lotto535|neural-perceptron|target=00829|data=5e80695345cb"
+        "trace": "lotto535|neural-perceptron|target=00865|data=f9928a102b5b"
       },
       "random_fair": {
         "main": [
           2,
-          13,
-          14,
-          20,
-          31
+          18,
+          26,
+          29,
+          33
         ],
-        "special": 5,
-        "trace": "L535-00829-FAIR",
+        "special": 1,
+        "trace": "L535-00865-FAIR",
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)"
       }
     },
     "notified": false,
-    "jackpot_vnd": 6844345000,
+    "jackpot_vnd": 9142685000,
     "resolved": false,
     "actual": null,
     "hits": null,
     "tickets": {
       "ticket_neural": {
         "main": [
-          4,
-          9,
-          10,
-          25,
-          31
+          15,
+          16,
+          26,
+          27,
+          32
         ],
-        "special": 11,
+        "special": 3,
         "label": "Mạng nơ-ron (Perceptron)",
-        "trace": "lotto535|neural-perceptron|target=00829|data=5e80695345cb"
+        "trace": "lotto535|neural-perceptron|target=00865|data=f9928a102b5b"
       },
       "random_fair": {
         "main": [
           2,
-          13,
-          14,
-          20,
-          31
+          18,
+          26,
+          29,
+          33
         ],
-        "special": 5,
+        "special": 1,
         "label": "Mốc so sánh công bằng (ngẫu nhiên, không lặp)",
-        "trace": "L535-00829-FAIR",
+        "trace": "L535-00865-FAIR",
         "method": "rng = random.Random(seed); main = sorted(rng.sample(range(1, 36), 5)); special = rng.randint(1, 12)"
       },
       "random_repeat": {
         "main": [
-          7,
           14,
-          24,
-          29,
-          35
+          18,
+          20,
+          31,
+          32
         ],
-        "special": 9,
+        "special": 10,
         "label": "Chọn ngẫu nhiên (có thể lặp lại)",
-        "trace": "L535-00829-REPEAT",
+        "trace": "L535-00865-REPEAT",
         "method": "rng = random.Random(seed); main = sorted(rng.randint(1, 35) for _ in range(5)); special = rng.randint(1, 12)"
       },
       "nhanaz": {
@@ -145,13 +145,13 @@
       },
       "ensemble": {
         "main": [
-          4,
-          9,
-          10,
-          25,
-          31
+          15,
+          16,
+          26,
+          27,
+          32
         ],
-        "special": 11,
+        "special": 3,
         "label": "Ensemble"
       }
     }
